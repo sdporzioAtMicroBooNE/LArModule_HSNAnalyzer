@@ -1,0 +1,11 @@
+BEGIN_PROLOG
+
+LArCVMaker:
+{
+ module_type:             "larhsn/LArCVMaker/LArCVMaker"
+ WireModuleLabel:         "caldata"
+ MaxTick:                 6400
+ ADCCut:                  20
+}
+
+END_PROLOG
