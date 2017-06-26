@@ -47,7 +47,7 @@ private:
   void ResetROI();
   void SetROISize();
   bool IsInsideTPC(double xyz[]);
-  void BoxCoordinates(const simb::MCParticle& part, double xyz_origin[], double xyz_end[]);
+  void AssignOrigin(const simb::MCParticle& part, double xyz_origin[]);
   int FindBestAPA(std::vector<int> apas);
   int FindROI(int apa, int plane);
 
@@ -57,9 +57,6 @@ private:
   std::string fMcTruthModuleLabel;
   int fMaxTick;
   int fADCCut;
-  double fBoxSizeX;
-  double fBoxSizeY;
-  double fBoxSizeZ;
   int fEventType;
 
   const int fNumberChannels[3] = { 2400, 2400, 3456 };
@@ -74,7 +71,6 @@ private:
   int fNumberTicks;
 
   bool fOriginIsInsideTPC = true;
-  bool fEndIsInsideTPC = true;
 
   std::map<int,std::vector<float> > fWireMap;
   std::vector<std::vector<float> > fImage;
@@ -123,32 +119,13 @@ bool LArCVMaker::IsInsideTPC(double xyz[]) {
   else return false;
 }
 
-void LArCVMaker::BoxCoordinates(const simb::MCParticle& part, double xyz_origin[], double xyz_end[]) {
-  if ((part.Vx()-fBoxSizeX/2.) < minTpcBoundd[0]) xyz_origin[0] = minTpcBoundd[0];
-  else xyz_origin[0] = part.Vx()-fBoxSizeX/2.;
-  if ((part.Vy()-fBoxSizeY/2.) < minTpcBoundd[1]) xyz_origin[1] = minTpcBoundd[1];
-  else xyz_origin[1] = part.Vy()-fBoxSizeY/2.;
-  if ((part.Vx()-fBoxSizeX/2.) < minTpcBoundd[2]) xyz_origin[2] = minTpcBoundd[2];
-  else xyz_origin[2] = part.Vz()-fBoxSizeZ/2.;
-
-  if ((part.Vx()+fBoxSizeX/2.) > maxTpcBound[0]){
-    xyz_end[0] = maxTpcBound[0];
-    xyz_origin[0] = xyz_end[0] - fBoxSizeX;
-  }
-  else xyz_end[0] = xyz_origin[0] + fBoxSizeX;
-
-  if ((part.Vy()+fBoxSizeY/2.) > maxTpcBound[1]){
-    xyz_end[1] = maxTpcBound[1];
-    xyz_origin[1] = xyz_end[1] - fBoxSizeY;
-  }
-  else xyz_end[1] = xyz_origin[1] + fBoxSizeY;
-
-  if ((part.Vz()+fBoxSizeZ/2.) > maxTpcBound[2]){
-    xyz_end[2] = maxTpcBound[2];
-    xyz_origin[2] = xyz_end[2] - fBoxSizeZ;
-  }
-  else xyz_end[2] = xyz_origin[2] + fBoxSizeZ;
-
+void LArCVMaker::AssignOrigin(const simb::MCParticle& part, double xyz_origin[]) {
+  if (part.Vx() < minTpcBoundd[0]) xyz_origin[0] = minTpcBound[0];
+  else xyz_origin[0] = part.Vx();
+  if (part.Vy() < minTpcBoundd[1]) xyz_origin[1] = minTpcBound[1];
+  else xyz_origin[1] = part.Vy();
+  if (part.Vz() < minTpcBoundd[2]) xyz_origin[2] = minTpcBound[2];
+  else xyz_origin[2] = part.Vz();
   return;
 }
 
