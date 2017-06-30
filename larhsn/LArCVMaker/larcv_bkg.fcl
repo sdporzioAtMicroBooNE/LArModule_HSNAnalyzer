@@ -7,8 +7,11 @@ LArCVMaker:
 {
  module_type:             "larhsn/LArCVMaker/LArCVMaker"
  WireModuleLabel:         "caldata"
+ McTruthModuleLabel:      "generator"
  MaxTick:                 6400
  ADCCut:                  20
+ ImageSizeX:							600
+ ImageSizeY:							600
 }
 
 services:
