@@ -3,6 +3,17 @@
 
 process_name: larcvmaker
 
+LArCVMaker:
+{
+ module_type:             "larhsn/LArCVMaker/LArCVMaker"
+ WireModuleLabel:         "caldata"
+ McTruthModuleLabel:      "generator"
+ MaxTick:                 6400
+ ADCCut:                  20
+ ImageSizeX:							600
+ ImageSizeY:							600
+}
+
 services:
 {
   TimeTracker:            {}
@@ -22,6 +33,11 @@ physics:
  ana:        [ larcv ]
  end_paths:  [ ana ]
 }
+
+services.DetectorClocksService.InheritClockConfig: false
+services.DetectorClocksService.TriggerOffsetTPC: -400
+services.DetectorPropertiesService.NumberTimeSamples: 6400
+services.DetectorPropertiesService.ReadOutWindowSize: 6400
 
 physics.analyzers.larcv:  @local::LArCVMaker
 physics.analyzers.larcv.EventType: 1
