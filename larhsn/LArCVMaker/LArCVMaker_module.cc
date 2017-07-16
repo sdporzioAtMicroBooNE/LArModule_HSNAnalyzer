@@ -206,6 +206,7 @@ void LArCVMaker::FitBoxInDetector(int centerTick[], int centerChannel[], int rea
 void LArCVMaker::analyze(art::Event const & evt) {
   // Clear data before starting analyzing event
   ClearData();
+  bool isEmptyEvent = false;
 
   // Get event number
   fEvent = evt.event();
@@ -342,6 +343,9 @@ void LArCVMaker::analyze(art::Event const & evt) {
     centerTick[it_plane] = (topEdgeTick[it_plane] + bottomEdgeTick[it_plane])/2;
     centerChannel[it_plane] = (rightEdgeChannel[it_plane] + leftEdgeChannel[it_plane])/2;
 
+    // Mark event as empty if there is no image in it, so it doesn't get recorded.
+    if (channelWidth[it_plane]==0 || tickWidth[it_plane]==0) isEmptyEvent = true;
+
     // Diagnostic message
     // std::cout << "Minimum size ROI dimension: " << channelWidth[it_plane] << "x" << tickWidth[it_plane] << std::endl;
   } //EOPlane loop
@@ -374,29 +378,33 @@ void LArCVMaker::analyze(art::Event const & evt) {
   // }
 
   // Get handle on larcv image
-  std::cout << std::endl << std::endl << std::endl;
-  auto images = (larcv::EventImage2D*)(fMgr.get_data(larcv::kProductImage2D, "tpc"));
+  if (isEmptyEvent==false){
+    std::cout << std::endl << std::endl << std::endl;
+    auto images = (larcv::EventImage2D*)(fMgr.get_data(larcv::kProductImage2D, "tpc"));
 
-  // Create images from the wire map
-  for (int it_plane = 0; it_plane < 3; ++it_plane) {
-    larcv::Image2D image(tickOptWidth,channelOptWidth);
-    for (int it_channel = realLeftEdgeChannel[it_plane]; it_channel < realRightEdgeChannel[it_plane]; ++it_channel) {
-      for (int it_tick = realBottomEdgeTick[it_plane]; it_tick < realTopEdgeTick[it_plane]; ++it_tick) {
-        int xPixel = it_channel - realLeftEdgeChannel[it_plane];
-        int yPixel = it_tick - realBottomEdgeTick[it_plane];
-        if (fWireMap.find(it_channel) != fWireMap.end()) image.set_pixel(yPixel,xPixel,fWireMap[it_channel][it_tick]);
-        else image.set_pixel(yPixel,xPixel,0);
+    // Create images from the wire map
+    for (int it_plane = 0; it_plane < 3; ++it_plane) {
+      larcv::Image2D image(tickOptWidth,channelOptWidth);
+      for (int it_channel = realLeftEdgeChannel[it_plane]; it_channel < realRightEdgeChannel[it_plane]; ++it_channel) {
+        for (int it_tick = realBottomEdgeTick[it_plane]; it_tick < realTopEdgeTick[it_plane]; ++it_tick) {
+          int xPixel = it_channel - realLeftEdgeChannel[it_plane];
+          int yPixel = it_tick - realBottomEdgeTick[it_plane];
+          if (fWireMap.find(it_channel) != fWireMap.end()) image.set_pixel(yPixel,xPixel,fWireMap[it_channel][it_tick]);
+          else image.set_pixel(yPixel,xPixel,0);
+        }
       }
+      image.compress(600,600);
+      images->Emplace(std::move(image));
     }
-    image.compress(600,600);
-    images->Emplace(std::move(image));
+
+    auto roi = (larcv::EventROI*)(fMgr.get_data(larcv::kProductROI, "tpc"));
+    roi->Emplace(larcv::ROI((larcv::ROIType_t)fEventType));
+
+    fMgr.save_entry();
   }
-
-  auto roi = (larcv::EventROI*)(fMgr.get_data(larcv::kProductROI, "tpc"));
-  roi->Emplace(larcv::ROI((larcv::ROIType_t)fEventType));
-
-  std::cout <<  "FMGR 2: " << fMgr.event_id().run() << " " << fMgr.event_id().subrun() << " " << fMgr.event_id().event() << std::endl;
-  fMgr.save_entry();
+  else {
+    std::cout <<  "Empty image not saved [" << fMgr.event_id().run() << ", " << fMgr.event_id().subrun() << ", " << fMgr.event_id().event() << "]" << std::endl;
+  }
 } //EOFunction LArCVMaker::analyze
 
 DEFINE_ART_MODULE(LArCVMaker)
