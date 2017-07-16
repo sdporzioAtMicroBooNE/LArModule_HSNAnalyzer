@@ -211,10 +211,10 @@ void LArCVMaker::analyze(art::Event const & evt) {
   // Get event number
   fEvent = evt.event();
   // Set larcv manager
-  std::cout << "Generating manager for event:" << std::endl;
-  std::cout <<  "EVT: " << evt.id().run() << " " << evt.id().subRun() << " " << evt.id().event() << std::endl;
+  // std::cout << "Generating manager for event:" << std::endl;
+  // std::cout <<  "EVT: " << evt.id().run() << " " << evt.id().subRun() << " " << evt.id().event() << std::endl;
   fMgr.set_id(evt.id().run(),evt.id().subRun(),evt.id().event());
-  std::cout <<  "FMGR 1: " << fMgr.event_id().run() << " " << fMgr.event_id().subrun() << " " << fMgr.event_id().event() << std::endl;
+  // std::cout <<  "FMGR 1: " << fMgr.event_id().run() << " " << fMgr.event_id().subrun() << " " << fMgr.event_id().event() << std::endl;
   // Get objects from event
   art::Handle<std::vector<recob::Wire>> wireHandle;
   evt.getByLabel(fWireModuleLabel,wireHandle);
@@ -356,6 +356,19 @@ void LArCVMaker::analyze(art::Event const & evt) {
   maxChannelWidth = std::max({channelWidth[0],channelWidth[1],channelWidth[2]});
   int tickOptWidth = ceil(maxTickWidth/float(fImageSizeY))*fImageSizeY;
   int channelOptWidth = ceil(maxChannelWidth/float(fImageSizeX))*fImageSizeX;
+  int oldMultDiv = std::max({tickOptWidth,channelOptWidth})/fImageSizeY;
+
+  // Determine the multiple by which compress the images such that its resolution is lower or equal to 600x600
+  int optimalResolution = tickOptWidth*channelOptWidth;
+  int maxResolution = fImageSizeY*fImageSizeX;
+  int multDiv = std::round(std::sqrt(optimalResolution/maxResolution));
+
+  if (multDiv!=0 && oldMultDiv!=0){
+    std::cout << "Old multDiv: " << oldMultDiv << " [" << channelOptWidth << "x" << tickOptWidth << " -> " << channelOptWidth/oldMultDiv << "x" << tickOptWidth/oldMultDiv << "]" << std::endl;
+    std::cout << "Resolution ratio: " << ((channelOptWidth/oldMultDiv)*(tickOptWidth/oldMultDiv))/float(maxResolution) << std::endl;
+    std::cout << "Better multDiv: " << multDiv << " [" << channelOptWidth << "x" << tickOptWidth << " -> " << channelOptWidth/multDiv << "x" << tickOptWidth/multDiv << "]" << std::endl;
+    std::cout << "Resolution ratio: " << ((channelOptWidth/multDiv)*(tickOptWidth/multDiv))/float(maxResolution) << std::endl;
+  }
 
   //Diagnostic message
   // std::cout << std::endl;
@@ -393,7 +406,7 @@ void LArCVMaker::analyze(art::Event const & evt) {
           else image.set_pixel(yPixel,xPixel,0);
         }
       }
-      // image.compress(600,600);
+      image.compress(tickOptWidth/multDiv,channelOptWidth/multDiv);
       images->Emplace(std::move(image));
     }
 
