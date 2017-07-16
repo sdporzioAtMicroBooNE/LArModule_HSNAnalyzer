@@ -393,7 +393,7 @@ void LArCVMaker::analyze(art::Event const & evt) {
           else image.set_pixel(yPixel,xPixel,0);
         }
       }
-      image.compress(600,600);
+      // image.compress(600,600);
       images->Emplace(std::move(image));
     }
 
