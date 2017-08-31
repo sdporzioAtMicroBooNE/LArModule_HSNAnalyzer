@@ -4,7 +4,7 @@ process_name: scanrsp
 
 services:
 {
-  TFileService: {fileName: "Test.root"}
+  TFileService: {fileName: "RecoSelectionParametersTree.root"}
   TimeTracker:            {}
   MemoryTracker:          {}
   RandomNumberGenerator:  {}
@@ -21,18 +21,21 @@ physics:
 {
 	analyzers:
   {
-    ScanRecoSelectionParameters:
+    ScanRecoSelectionParameters0:
     {
 		 	module_type:          "larhsn/ScanRecoSelectionParameters/ScanRecoSelectionParameters"
+      InstanceName:         "ScanRecoSelectionParameters0"
+      Iteration:            "0"
 			TrackLabel:						"pandoraNu"
 			PfpLabel:							"pandoraNu"
       DataType:             "signal"
-      DecayChannel:         "1"
+      DecayChannel:         "2"
       SterileMass:          "0.350"
 			DistanceCut:					"0.5"
 			PrimaryOnly:					"true"
 			EndVerticesAlso:			"true"
       AnalysisType:         "tt"
+      VerboseMode:          "true"
     }
   }
   analysis: [ScanRecoSelectionParameters]

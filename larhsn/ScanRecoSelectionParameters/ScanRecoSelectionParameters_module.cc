@@ -102,14 +102,17 @@ private:
   void GetDecayVertices(const std::vector<DecayVertex>& trackVertices, const std::vector<DecayVertex>& showerVertices, std::vector<DecayVertex>& potVertices, std::vector<DecayVertex>& cleanVertices);
   void PerformPandoraAnalysis(art::Event const & evt, const std::vector<recob::PFParticle>& pandora_primaryPFP);
   // Declare fhiclcpp variables
+  std::string fInstanceName;
+  int fIteration;
   std::string fDataType;
-  TString fTrackLabel;
-  TString fPfpLabel;
+  std::string fTrackLabel;
+  std::string fPfpLabel;
   int fDecayChannel;
   double fSterileMass;
   double fDistanceCut;
   bool fPrimaryOnly;
   bool fEndVerticesAlso;
+  bool fVerbose;
   std::string fAnaType;
 
   // Declare script variables
@@ -122,6 +125,8 @@ private:
 
 ScanRecoSelectionParameters::ScanRecoSelectionParameters(fhicl::ParameterSet const & pset) :
     EDAnalyzer(pset),
+    fInstanceName(pset.get<std::string>("InstanceName")),
+    fIteration(pset.get<int>("Iteration")),
     fDataType(pset.get<std::string>("DataType")),
     fTrackLabel(pset.get<std::string>("TrackLabel")),
     fPfpLabel(pset.get<std::string>("PfpLabel")),
@@ -130,14 +135,20 @@ ScanRecoSelectionParameters::ScanRecoSelectionParameters(fhicl::ParameterSet con
     fDistanceCut(pset.get<double>("DistanceCut")),
     fPrimaryOnly(pset.get<bool>("PrimaryOnly")),
     fEndVerticesAlso(pset.get<bool>("EndVerticesAlso")),
+    fVerbose(pset.get<bool>("VerboseMode")),
     fAnaType(pset.get<std::string>("AnalysisType"))
 {} // END function ScanRecoSelectionParameters
 
 void ScanRecoSelectionParameters::beginJob() {
+  // Print information
+  if (fVerbose==true) PrintDiagnostics();
+
   // Declare tree variables
   art::ServiceHandle< art::TFileService > tfs;
 
   metaTree = tfs->make<TTree>("Metadata","");
+  metaTree->Branch("instanceName",&fInstanceName);
+  metaTree->Branch("iteration",&fIteration,"iteration/I");  
   metaTree->Branch("dataType",&fDataType);
   metaTree->Branch("trackLabel",&fTrackLabel);
   metaTree->Branch("pfpLabel",&fPfpLabel);
@@ -200,11 +211,14 @@ void ScanRecoSelectionParameters::ClearData() {
 
 void ScanRecoSelectionParameters::PrintDiagnostics(){
   std::cout << "Running analyzer with following settings:" << std::endl;
-  std::cout << "fTrackLabel: " << fTrackLabel << std::endl;
-  std::cout << "fPfpLabel: " << fPfpLabel << std::endl;
-  std::cout << "fDistanceCut: " << fDistanceCut << std::endl;
-  std::cout << "fPrimaryOnly: " << fPrimaryOnly << std::endl;
-  std::cout << "fEndVerticesAlso: " << fEndVerticesAlso << std::endl;
+  std::cout << "DataType: " << fDataType << std::endl;
+  std::cout << "DecayChannel: " << fDecayChannel << std::endl;
+  std::cout << "SterileMass: " << fSterileMass << std::endl;
+  std::cout << "TrackLabel: " << fTrackLabel << std::endl;
+  std::cout << "PfpLabel: " << fPfpLabel << std::endl;
+  std::cout << "DistanceCut: " << fDistanceCut << std::endl;
+  std::cout << "PrimaryOnly: " << fPrimaryOnly << std::endl;
+  std::cout << "EndVerticesAlso: " << fEndVerticesAlso << std::endl;
 } // END function PrintDiagnostics
 
 void ScanRecoSelectionParameters::GetTrackShowerVectors(art::Event const & evt, std::vector<recob::PFParticle>& pandora_primaryPFP, std::vector<recob::Track const*>& tracks, std::vector<recob::Shower const*>& showers){
@@ -425,7 +439,6 @@ void ScanRecoSelectionParameters::PerformPandoraAnalysis(art::Event const & evt,
 
 void ScanRecoSelectionParameters::analyze(art::Event const & evt) {
   ClearData();
-  PrintDiagnostics();
 
   // Determine event ID
   run = evt.id().run();
