@@ -10,8 +10,9 @@ LArCVMaker:
  McTruthModuleLabel:      "generator"
  MaxTick:                 6400
  ADCCut:                  20
- ImageSizeX:							600
- ImageSizeY:							600
+ ImageSizeX:							512
+ ImageSizeY:							512
+ ConstrainProportions:		true
 }
 
 services:

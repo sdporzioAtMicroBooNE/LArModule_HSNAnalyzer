@@ -78,6 +78,8 @@ private:
   int fNumberTicks;
 
   bool fOriginIsInsideTPC = true;
+  const bool fConstrainProportions;
+
 
   std::map<int,std::vector<float> > fWireMap;
   std::vector<std::vector<float> > fImage;
@@ -95,7 +97,8 @@ LArCVMaker::LArCVMaker(fhicl::ParameterSet const & pset) :
     fADCCut(pset.get<int>("ADCCut")),
     fEventType(pset.get<int>("EventType")),
     fImageSizeX(pset.get<int>("ImageSizeX")),
-    fImageSizeY(pset.get<int>("ImageSizeY"))
+    fImageSizeY(pset.get<int>("ImageSizeY")),
+    fConstrainProportions(pset.get<bool>("ConstrainProportions"))
 {} // EOFunction LArCVMaker::LArCVMaker
 
 void LArCVMaker::beginJob() {
@@ -354,20 +357,29 @@ void LArCVMaker::analyze(art::Event const & evt) {
   // All planes should have same size, size must also be multiple of setting size
   maxTickWidth = std::max({tickWidth[0],tickWidth[1],tickWidth[2]});
   maxChannelWidth = std::max({channelWidth[0],channelWidth[1],channelWidth[2]});
-  int tickOptWidth = ceil(maxTickWidth/float(fImageSizeY))*fImageSizeY;
-  int channelOptWidth = ceil(maxChannelWidth/float(fImageSizeX))*fImageSizeX;
-  int oldMultDiv = std::max({tickOptWidth,channelOptWidth})/fImageSizeY;
+  // Find now the maximum multiple across all channels (must also be same for x and y if you want to keep aspect ratio)
+  int maxTickMult = ceil(maxTickWidth/float(fImageSizeY));
+  int maxChannelMult = ceil(maxChannelWidth/float(fImageSizeX));
+  int maxTotMult = std::max({maxTickMult,maxChannelMult});
+  if (fConstrainProportions) {
+    maxTickMult = maxTotMult;
+    maxChannelMult = maxTotMult;
+  }
 
-  // Determine the multiple by which compress the images such that its resolution is lower or equal to 600x600
-  int optimalResolution = tickOptWidth*channelOptWidth;
-  int maxResolution = fImageSizeY*fImageSizeX;
-  int multDiv = std::round(std::sqrt(optimalResolution/maxResolution));
+  int tickOptWidth = fImageSizeY*maxTickMult;
+  int channelOptWidth = fImageSizeX*maxChannelMult;
 
-  if (multDiv!=0 && oldMultDiv!=0){
-    std::cout << "Old multDiv: " << oldMultDiv << " [" << channelOptWidth << "x" << tickOptWidth << " -> " << channelOptWidth/oldMultDiv << "x" << tickOptWidth/oldMultDiv << "]" << std::endl;
-    std::cout << "Resolution ratio: " << ((channelOptWidth/oldMultDiv)*(tickOptWidth/oldMultDiv))/float(maxResolution) << std::endl;
-    std::cout << "Better multDiv: " << multDiv << " [" << channelOptWidth << "x" << tickOptWidth << " -> " << channelOptWidth/multDiv << "x" << tickOptWidth/multDiv << "]" << std::endl;
-    std::cout << "Resolution ratio: " << ((channelOptWidth/multDiv)*(tickOptWidth/multDiv))/float(maxResolution) << std::endl;
+  if (tickOptWidth!=0 && channelOptWidth!=0){
+    printf("RESOLUTIONS:\n");
+    for(int i=0;i!=3;i++) {
+      printf("Plane %i : [%ix%i]\n", i, channelWidth[i], tickWidth[i]);
+    }
+    printf("\n");
+    printf("Original common resolution: [%ix%i]\n", maxChannelWidth, maxTickWidth);
+    printf("Expanded resolution: [%ix%i]\n", channelOptWidth, tickOptWidth);
+    printf("Compression factor: [%i:%i]\n", maxChannelMult, maxTickMult);
+    printf("Final resolution: [%ix%i]\n", fImageSizeX, fImageSizeY);
+    printf("\n");
   }
 
   //Diagnostic message
@@ -392,7 +404,6 @@ void LArCVMaker::analyze(art::Event const & evt) {
 
   // Get handle on larcv image
   if (isEmptyEvent==false){
-    std::cout << std::endl << std::endl << std::endl;
     auto images = (larcv::EventImage2D*)(fMgr.get_data(larcv::kProductImage2D, "tpc"));
 
     // Create images from the wire map
@@ -406,7 +417,7 @@ void LArCVMaker::analyze(art::Event const & evt) {
           else image.set_pixel(yPixel,xPixel,0);
         }
       }
-      image.compress(tickOptWidth/multDiv,channelOptWidth/multDiv);
+      image.compress(fImageSizeY,fImageSizeX);
       images->Emplace(std::move(image));
     }
 
