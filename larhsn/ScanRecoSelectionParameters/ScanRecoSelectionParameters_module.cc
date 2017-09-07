@@ -57,7 +57,7 @@
 #include "lardataobj/RecoBase/Wire.h"
 
 // Auxiliary objects includes
-#include "DecayVertex.h"
+#include "DataObjects/DecayVertex.h"
 
 
 // Analyzer class

@@ -1,55 +1,56 @@
-art_make( BASENAME_ONLY
-    LIBRARY_NAME  LArHSN_larhsn_ScanRecoSelectionParameters
-    MODULE_LIBRARIES
+# basic source code CMakeLists.txt
 
-    LArHSN_larhsn_ScanRecoSelectionParameters
-
+art_make(BASENAME_ONLY
+	LIBRARY_NAME AnaModules
+	LIB_LIBRARIES 
+		lardataobj_RecoBase
+		lardataobj_AnalysisBase
 		larcore_Geometry
-	  larcore_Geometry_Geometry_service
-	  larcoreobj_SummaryData
-
-	  larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
-	  larsim_MCCheater_BackTracker_service
-
+		larcore_Geometry_Geometry_service
 		lardata_Utilities
-		lardata_DetectorInfoServices_DetectorPropertiesServiceStandard_service
-		lardataobj_RawData
-	  lardataobj_RecoBase
-	  lardataobj_AnalysisBase
-	  lardata_RecoObjects larreco_Deprecated
+		${SIMULATIONBASE}
+		${MF_MESSAGELOGGER}
+		${MF_UTILITIES}
+		${FHICLCPP}
+		${CETLIB}
+		${CLHEP}
+		${ROOT_BASIC_LIB_LIST}
+		${G4_LIB_LIST}
+	MODULE_LIBRARIES  
+		LArHSN_DataObjects
 		larreco_RecoAlg
-
-		larevt_Filters
+		larreco_RecoAlg_Cluster3DAlgs
+		larsim_Simulation
+		lardataobj_RawData
+		lardata_RecoObjects
+		lardataobj_RecoBase
+		lardataobj_MCBase
+		lardataobj_AnalysisBase
+		larcore_Geometry
+		larcore_Geometry_Geometry_service
+		lardata_Utilities
 		nusimdata_SimulationBase
-	 	larpandora_LArPandoraInterface
-	  
-	  ${LARRECO_LIB}
-	  ${LARDATA_LIB}
+		${ART_FRAMEWORK_CORE}
+		${ART_FRAMEWORK_PRINCIPAL}
+		${ART_FRAMEWORK_SERVICES_REGISTRY}
+		${ART_FRAMEWORK_SERVICES_BASIC}
+		${ART_FRAMEWORK_SERVICES_OPTIONAL}
+		${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
+		${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
+		art_Persistency_Common
+		art_Persistency_Provenance
+		art_Utilities
+		${MF_MESSAGELOGGER}
+		${MF_UTILITIES}
+		${FHICLCPP}
+		${CETLIB}
+		${CLHEP}
+		${ROOT_BASIC_LIB_LIST}
+		${G4_LIB_LIST}
+	)
 
-	  ${ART_FRAMEWORK_CORE}
-	  ${ART_FRAMEWORK_PRINCIPAL}
-	  ${ART_FRAMEWORK_SERVICES_REGISTRY}
-	  ${ART_FRAMEWORK_SERVICES_OPTIONAL}
-	  ${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
-
-	  art_Persistency_Common
-	  art_Persistency_Provenance
-	  art_Utilities
-
-	  ${MF_MESSAGELOGGER}
-	  ${MF_UTILITIES}
-
-	  ${FHICLCPP}
-	  ${CETLIB}
-
-	  ${ROOT_GEOM}
-	  ${ROOT_XMLIO}
-	  ${ROOT_GDML}
-	  ${ROOT_BASIC_LIB_LIST}
-		${ROOT_CORE}
-		${ROOT_EG}
-    )
+add_subdirectory(DataObjects)
 
 install_headers()
-install_fhicl()
 install_source()
+install_fhicl()
