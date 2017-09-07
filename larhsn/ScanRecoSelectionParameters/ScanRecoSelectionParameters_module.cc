@@ -423,8 +423,6 @@ void ScanRecoSelectionParameters::analyze(art::Event const & evt)
   // Start by clearing all the vectors.
   ClearData();
 
-  std::cout << AuxVertex::test << std::endl;
-
   AuxVertex::DecayVertex v1(10.,-52.,1322.,0,0,"t","t");
   AuxVertex::DecayVertex v2(45.,32.,789.,1,1,"s","s");
 
