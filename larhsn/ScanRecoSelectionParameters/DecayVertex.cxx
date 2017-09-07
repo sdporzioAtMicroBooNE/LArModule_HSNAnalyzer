@@ -10,6 +10,11 @@
 
 namespace AuxVertex
 {
+  DecayVertex::DecayVertex()
+  {}
+  DecayVertex::~DecayVertex()
+  {}
+
   DecayVertex::DecayVertex(double x,
                            double y,
                            double z,
@@ -26,9 +31,6 @@ namespace AuxVertex
     fParType1 = parType1;
     fParType2 = parType2;
   }
-
-  DecayVertex::~DecayVertex()
-  {}
 
   double DecayVertex::GetX() {return fX;}
   double DecayVertex::GetY() {return fY;}

@@ -57,7 +57,7 @@
 #include "lardataobj/RecoBase/Wire.h"
 
 // Auxiliary objects includes
-// #include "DecayVertex.h"
+#include "DecayVertex.h"
 
 
 // Analyzer class
@@ -65,6 +65,7 @@ class ScanRecoSelectionParameters : public art::EDAnalyzer
 {
 public:
   explicit ScanRecoSelectionParameters(fhicl::ParameterSet const & pset);
+  virtual ~ScanRecoSelectionParameters();
   void analyze(art::Event const & evt);
   void beginJob();
   void endJob();
@@ -117,7 +118,10 @@ ScanRecoSelectionParameters::ScanRecoSelectionParameters(fhicl::ParameterSet con
     fPrimaryOnly(pset.get<bool>("PrimaryOnly")),
     fEndVerticesAlso(pset.get<bool>("EndVerticesAlso")),
     fAnaType(pset.get<std::string>("AnalysisType"))
-{} // END function ScanRecoSelectionParameters
+{} // END constructor ScanRecoSelectionParameters
+
+ScanRecoSelectionParameters::~ScanRecoSelectionParameters()
+{} // END destructor ScanRecoSelectionParameters
 
 void ScanRecoSelectionParameters::beginJob()
 {
@@ -419,16 +423,15 @@ void ScanRecoSelectionParameters::analyze(art::Event const & evt)
   // Start by clearing all the vectors.
   ClearData();
 
-  // AuxVertex::DecayVertex v1(10.,-52.,1322.,0,0,"t","t");
-  // std::cout << AuxVertex::als << std::endl;
+  std::cout << AuxVertex::test << std::endl;
 
+  AuxVertex::DecayVertex v1(10.,-52.,1322.,0,0,"t","t");
+  AuxVertex::DecayVertex v2(45.,32.,789.,1,1,"s","s");
 
-  // dv::DecayVertex v2(45.,32.,789.,1,1,"s","s");
-
-  // dv::DecayVertex v0 = AuxVertex::MeanVertex(v1,v2);
-  // printf("Distance: %.1f\n", AuxVertex::Distance(v1,v2));
-  // printf("Vertex coordinates: [%.1f,%.1f,%.1f]\n", v0.GetX(), v0.GetY(), v0.GetZ());
-  // printf("Vertex parent types: [%s,%s]\n",v0.GetParType1().c_str(),v0.GetParType2().c_str());
+  AuxVertex::DecayVertex v0 = AuxVertex::MeanVertex(v1,v2);
+  printf("Distance: %.1f\n", AuxVertex::Distance(v1,v2));
+  printf("Vertex coordinates: [%.1f,%.1f,%.1f]\n", v0.GetX(), v0.GetY(), v0.GetZ());
+  printf("Vertex parent types: [%s,%s]\n",v0.GetParType1().c_str(),v0.GetParType2().c_str());
 
 
 

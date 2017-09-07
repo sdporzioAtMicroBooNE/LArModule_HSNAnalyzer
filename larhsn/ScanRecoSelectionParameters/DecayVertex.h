@@ -21,39 +21,36 @@
 #include <exception>
 
 // LArSoft libraries
-// #include "fhiclcpp/ParameterSet.h"
-// #include "larcore/Geometry/Geometry.h"
-// #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+#include "fhiclcpp/ParameterSet.h"
+#include "larcore/Geometry/Geometry.h"
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 
 namespace AuxVertex
 {
-// Decay vertex class and functions
-  class DecayVertex
-  {
-  public:
-    // Constructor and destructor
-    DecayVertex(double x,
-                double y,
-                double z,
-                int parIdx1,
-                int parIdx2,
-                std::string parType1,
-                std::string parType2);
-    ~DecayVertex();
 
-    // Getters
-    double GetX();
-    double GetY();
-    double GetZ();
-    int GetParIdx1();
-    int GetParIdx2();
-    std::string GetParType1();
-    std::string GetParType2();
-    bool IsInsideTPC();
-    int GetWireLoc(int plane);
-    double GetTickLoc(int plane);
+    // Decay vertex class and functions
+    class DecayVertex
+    {
+    public:
+        // Constructor and destructor
+        DecayVertex();
+        virtual ~DecayVertex();
 
-  private:
+        DecayVertex(double x, double y, double z, int parIdx1, int parIdx2, std::string parType1, std::string parType2);
+
+        // Getters
+        double GetX();
+        double GetY();
+        double GetZ();
+        int GetParIdx1();
+        int GetParIdx2();
+        std::string GetParType1();
+        std::string GetParType2();
+        bool IsInsideTPC();
+        int GetWireLoc(int plane);
+        double GetTickLoc(int plane);
+
+    private:
     bool fIsInsideTPC; // Is the vertex inside the TPC.
     double fX, fY, fZ; // Spatial coordinates of the vertex inside the detector.
     int fParIdx1,  fParIdx2; // Index of parent in track/shower vector (same for origin vertices).
@@ -61,12 +58,12 @@ namespace AuxVertex
     std::vector<int> fWireLoc; // Nearest wire in each plane.
     std::vector<double> fTickLoc; // Nearest time tick in each plane.
 
-    // geo::GeometryCore const* fGeometry; // Pointer to the Geometry service
-    // detinfo::DetectorProperties const* fDetectorProperties; // Pointer to the Detector Properties
-  };
+    geo::GeometryCore const* fGeometry; // Pointer to the Geometry service
+    detinfo::DetectorProperties const* fDetectorProperties; // Pointer to the Detector Properties
+};
 
-  double Distance(DecayVertex v1, DecayVertex v2);
-  DecayVertex MeanVertex(DecayVertex v1, DecayVertex v2);
+double Distance(DecayVertex v1, DecayVertex v2);
+DecayVertex MeanVertex(DecayVertex v1, DecayVertex v2);
 
 
 } //END namespace AuxVertex
