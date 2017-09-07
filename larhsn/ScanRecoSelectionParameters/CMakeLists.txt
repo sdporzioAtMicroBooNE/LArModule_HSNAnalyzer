@@ -1,6 +1,8 @@
 set( BOOST_LIB -L$ENV{BOOST_LIB} -lboost_system )
 
-art_make( MODULE_LIBRARIES larcore_Geometry
+art_make(
+	MODULE_LIBRARIES
+		larcore_Geometry
 	  larcore_Geometry_Geometry_service
 	  larsim_Simulation nutools_ParticleNavigation lardataobj_Simulation
 	  larsim_MCCheater_BackTracker_service

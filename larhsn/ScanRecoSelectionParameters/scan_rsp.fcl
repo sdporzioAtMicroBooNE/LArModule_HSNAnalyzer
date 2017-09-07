@@ -26,6 +26,8 @@ physics:
 		 	module_type:          "larhsn/ScanRecoSelectionParameters/ScanRecoSelectionParameters"
       InstanceName:         "ScanRecoSelectionParameters0"
       Iteration:            "0"
+      MinTpcBound:          [10., -105.53, 10.1]
+      MaxTpcBound:          [246.35, 107.47, 1026.9]
 			TrackLabel:						"pandoraNu"
 			PfpLabel:							"pandoraNu"
       DataType:             "signal"
@@ -38,7 +40,7 @@ physics:
       VerboseMode:          "true"
     }
   }
-  analysis: [ScanRecoSelectionParameters]
+  analysis: [ScanRecoSelectionParameters0]
   end_paths: [analysis]
 }
 
