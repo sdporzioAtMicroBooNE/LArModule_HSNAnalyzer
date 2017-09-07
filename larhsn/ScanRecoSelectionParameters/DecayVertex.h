@@ -16,12 +16,14 @@
 #include <math.h>
 #include <string>
 #include <vector>
+#include <algorithm>
+#include <chrono>
 #include <exception>
 
 // LArSoft libraries
-#include "fhiclcpp/ParameterSet.h"
-#include "larcore/Geometry/Geometry.h"
-#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+// #include "fhiclcpp/ParameterSet.h"
+// #include "larcore/Geometry/Geometry.h"
+// #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 
 namespace AuxVertex
 {
@@ -59,8 +61,8 @@ namespace AuxVertex
     std::vector<int> fWireLoc; // Nearest wire in each plane.
     std::vector<double> fTickLoc; // Nearest time tick in each plane.
 
-    geo::GeometryCore const* fGeometry; // Pointer to the Geometry service
-    detinfo::DetectorProperties const* fDetectorProperties; // Pointer to the Detector Properties
+    // geo::GeometryCore const* fGeometry; // Pointer to the Geometry service
+    // detinfo::DetectorProperties const* fDetectorProperties; // Pointer to the Detector Properties
   };
 
   double Distance(DecayVertex v1, DecayVertex v2);
