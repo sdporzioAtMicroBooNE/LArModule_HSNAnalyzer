@@ -4,8 +4,8 @@ art_make(BASENAME_ONLY
 	LIB_LIBRARIES 
 		lardataobj_RecoBase
 		lardataobj_AnalysisBase
-		larcore_Geometry
-		larcore_Geometry_Geometry_service
+		larcorealg_Geometry
+    larcore_Geometry_Geometry_service
 		lardata_Utilities
 		${SIMULATIONBASE}
 		${MF_MESSAGELOGGER}
@@ -25,8 +25,8 @@ art_make(BASENAME_ONLY
 		lardataobj_RecoBase
 		lardataobj_MCBase
 		lardataobj_AnalysisBase
-		larcore_Geometry
-		larcore_Geometry_Geometry_service
+		larcorealg_Geometry
+    larcore_Geometry_Geometry_service
 		lardata_Utilities
 		nusimdata_SimulationBase
 		${ART_FRAMEWORK_CORE}
