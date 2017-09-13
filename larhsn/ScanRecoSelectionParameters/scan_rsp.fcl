@@ -23,17 +23,20 @@ physics:
   {
     ScanRecoSelectionParameters0:
     {
-		 	module_type:          "larhsn/ScanRecoSelectionParameters/ScanRecoSelectionParameters"
+		 	module_type:          "ScanRecoSelectionParameters"
       InstanceName:         "ScanRecoSelectionParameters0"
       Iteration:            "0"
       MinTpcBound:          [10., -105.53, 10.1]
       MaxTpcBound:          [246.35, 107.47, 1026.9]
-			TrackLabel:						"pandoraNu"
-			PfpLabel:							"pandoraNu"
+			PfpLabel:	       			"pandoraNu"
+      HitLabel:             "gaushit" 
       DataType:             "signal"
       DecayChannel:         "2"
-      SterileMass:          "0.350"
-			DistanceCut:					"0.5"
+      SterileMass:          "0.350" # GeV/c^2
+			DistanceCut:					"1" # cm
+      CaloCut:              "1" # cm
+      ChannelNorm:          "3.3" # number of channels in cm
+      TickNorm:             "17.9" # number of ticks in cm
 			PrimaryOnly:					"true"
 			EndVerticesAlso:			"true"
       AnalysisType:         "tt"

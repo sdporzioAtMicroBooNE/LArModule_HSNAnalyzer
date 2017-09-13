@@ -1,7 +1,6 @@
 # basic source code CMakeLists.txt
 
 art_make(BASENAME_ONLY
-	LIBRARY_NAME AnaModules
 	LIB_LIBRARIES 
 		lardataobj_RecoBase
 		lardataobj_AnalysisBase
@@ -17,7 +16,7 @@ art_make(BASENAME_ONLY
 		${ROOT_BASIC_LIB_LIST}
 		${G4_LIB_LIST}
 	MODULE_LIBRARIES  
-		LArHSN_DataObjects
+		LArHSNDataObjects
 		larreco_RecoAlg
 		larreco_RecoAlg_Cluster3DAlgs
 		larsim_Simulation

@@ -1,5 +1,5 @@
 art_make( BASENAME_ONLY
-	LIBRARY_NAME LArHSN_DataObjects
+	LIBRARY_NAME LArHSNDataObjects
 	LIB_LIBRARIES 
 		lardataobj_RawData
 		lardataobj_RecoBase

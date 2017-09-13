@@ -21,8 +21,11 @@ namespace AuxVertex
                            int parIdx1,
                            int parIdx2,
                            std::string parType1,
-                           std::string parType2)
+                           std::string parType2,
+                           std::string direction1,
+                           std::string direction2)
   {
+    fIsDetLocAssigned = false;
     fX = x;
     fY = y;
     fZ = z;
@@ -30,8 +33,13 @@ namespace AuxVertex
     fParIdx2 = parIdx2;
     fParType1 = parType1;
     fParType2 = parType2;
+    fDirection1 = direction1;
+    fDirection2 = direction2;
+    fChannelLoc = {-1,-1,-1};
+    fTickLoc = {-1.,-1.,-1.};
   }
 
+  // Getters
   double DecayVertex::GetX() {return fX;}
   double DecayVertex::GetY() {return fY;}
   double DecayVertex::GetZ() {return fZ;}
@@ -39,10 +47,39 @@ namespace AuxVertex
   int DecayVertex::GetParIdx2() {return fParIdx2;}
   std::string DecayVertex::GetParType1() {return fParType1;}
   std::string DecayVertex::GetParType2() {return fParType2;}
+  std::string DecayVertex::GetDirection1() {return fDirection1;}
+  std::string DecayVertex::GetDirection2() {return fDirection2;}
   bool DecayVertex::IsInsideTPC() {return fIsInsideTPC;}
-  int DecayVertex::GetWireLoc(int plane) {return fWireLoc[plane];}
+  bool DecayVertex::IsDetLocAssigned() {return fIsDetLocAssigned;}
+  int DecayVertex::GetChannelLoc(int plane) {return fChannelLoc[plane];}
   double DecayVertex::GetTickLoc(int plane) {return fTickLoc[plane];}
 
+  // Setters
+  void DecayVertex::SetChannelLoc(int channel0, int channel1, int channel2) {fChannelLoc = {channel0,channel1,channel2};return;}
+  void DecayVertex::SetTickLoc(double tick0, double tick1, double tick2) {fTickLoc = {tick0, tick1, tick2};return;}
+  void DecayVertex::SetIsInsideTPC(bool val) {fIsInsideTPC = val;return;}
+  void DecayVertex::SetIsDetLocAssigned(bool val) {fIsDetLocAssigned = val;return;}
+
+  // Printers
+  void DecayVertex::PrintInformation(){
+    printf("|Vertex information|\n");
+    printf("Parents type: [%s,%s]\n", fParType1.c_str(), fParType2.c_str());
+    printf("Parents direction: [%s,%s]\n", fDirection1.c_str(), fDirection2.c_str());
+    printf("Parents index: [%i,%i]\n", fParIdx1, fParIdx2);
+    printf("Vertex inside TPC: %d\n", fIsInsideTPC);
+    printf("Spatial Coordinates: [%.1f, %.1f, %.1f]\n",fX,fY,fZ);
+    printf("Detector location assigned: %d\n", fIsDetLocAssigned);
+    if (fIsDetLocAssigned)
+    {
+      printf("Channel coordinates: [%i, %i, %i]\n",fChannelLoc[0],fChannelLoc[1],fChannelLoc[2]);
+      printf("Ticks coordinates: [%.1f, %.1f, %.1f]\n",fTickLoc[0],fTickLoc[1],fTickLoc[2]);
+    }
+    printf("\n\n");
+    return;
+  }
+
+
+  // Aux Functions
   double Distance(DecayVertex v1, DecayVertex v2)
   {
     // Calculate distance between vertices
@@ -67,46 +104,10 @@ namespace AuxVertex
     int pidx2 = v2.GetParIdx1();
     std::string ptype1 = v1.GetParType1();
     std::string ptype2 = v2.GetParType1();
-    DecayVertex meanVertex(x,y,z,pidx1,pidx2,ptype1,ptype2);
+    std::string direction1 = v1.GetDirection1();
+    std::string direction2 = v2.GetDirection1();
+    DecayVertex meanVertex(x,y,z,pidx1,pidx2,ptype1,ptype2,direction1,direction2);
     return meanVertex;
   } // END function MeanVertex
 
 } // END namespace AuxVertex
-
-
-
-
-// // Geometry functions
-// void CoordinatesToChannels(geo::GeometryCore const* fGeometry, double xyz[], int channels[])
-// {
-//   // Find nearest wires to provided coordinates
-//   raw::ChannelID_t channels_info_0 = fGeometry->NearestChannel(xyz,0);
-//   raw::ChannelID_t channels_info_1 = fGeometry->NearestChannel(xyz,1);
-//   raw::ChannelID_t channels_info_2 = fGeometry->NearestChannel(xyz,2);
-//   channels[0] = channels_info_0;
-//   channels[1] = channels_info_1;
-//   channels[2] = channels_info_2;
-//   return;
-// } // END function CoordinatesToChannels
-
-// void XToTicks(detinfo::DetectorProperties const* fDetectorProperties, double x, double ticks[])
-// {
-//   // Find nearest ticks to provided coordinates
-//   ticks[0] = fDetectorProperties->ConvertXToTicks(x, 0, 0, 0);
-//   ticks[1] = fDetectorProperties->ConvertXToTicks(x, 1, 0, 0);
-//   ticks[2] = fDetectorProperties->ConvertXToTicks(x, 2, 0, 0);
-//   return;
-// } // END function XToTicks
-
-// bool IsInsideTPC(double xyz[], double fDistanceCut, std::vector<double> fMinTpcBound, std::vector<double> fMaxTpcBound)
-// {
-//   // Check whether coordinates are inside TPC 
-//   bool isInsideX = (xyz[0]>fMinTpcBound[0]+fDistanceCut &&
-//     xyz[0]<fMaxTpcBound[0]-fDistanceCut);
-//   bool isInsideY = (xyz[1]>fMinTpcBound[1]+fDistanceCut &&
-//     xyz[1]<fMaxTpcBound[1]-fDistanceCut);
-//   bool isInsideZ = (xyz[2]>fMinTpcBound[2]+fDistanceCut &&
-//     xyz[2]<fMaxTpcBound[2]-fDistanceCut);
-//   if (isInsideX && isInsideY && isInsideZ) return true;
-//   else return false;
-// } // END function IsInsideTPC
