@@ -1,4 +1,4 @@
-#LArHSN - Liquid Argon Heavy Sterile Neutrinos
+# LArHSN - Liquid Argon Heavy Sterile Neutrinos
 
 Development of LArSoft code for the analysis of heavy sterile neutrinos at the MicroBooNE detector.
 
