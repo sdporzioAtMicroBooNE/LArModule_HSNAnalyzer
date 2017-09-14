@@ -90,6 +90,7 @@ private:
   bool fPrimaryOnly;
   bool fEndVerticesAlso;
   std::string fAnaType;
+  bool fVerbose;
 
   // Declare services
   geo::GeometryCore const* fGeometry; // Pointer to the Geometry service
@@ -98,35 +99,37 @@ private:
   // Declare script variables
   TTree *tTree;
   TTree *metaTree;
-  Int_t run, subrun, event, nTracks, nShowers, nPairs, nTrackVertices, nShowerVertices, nPotVertices, nCleanVertices, pandora_nPrimaryVertices, pandora_nCleanVertices, nCleanVerticesOutsideTPC;
-  std::vector<float> pairDistance, potPairDistance;
-  std::vector<int> pandora_primaryVertexPDG, pandora_nDaughters, pandora_nTracks, pandora_nShowers, pandora_nNearTracks, pandora_nNearShowers;
+  Int_t run, subrun, event, nTracks, nShowers, nPairs, nTrackVertices, nShowerVertices, nPotVertices, nCleanVertices, pandora_nPrimaryVertices, pandora_nCleanVertices, nCleanVerticesOutsideTPC, nTotHits;
+  std::vector<float> pairDistance, potPairDistance, totChargeInRadius, par1ChargeInRadius, par2ChargeInRadius, caloRatio;
+  std::vector<int> pandora_primaryVertexPDG, pandora_nDaughters, pandora_nTracks, pandora_nShowers, pandora_nNearTracks, pandora_nNearShowers, nTrackHits, nShowerHits, nTotHitsInRadius, nPar1HitsInRadius, nPar2HitsInRadius;
 
   // Geometry functions
   void SetDetectorCoordinates(AuxVertex::DecayVertex& vert);
 
   void ClearData();
   void GetTrackShowerVectors(art::Event const & evt,
-                             std::vector<recob::PFParticle const*>& pandora_primaryPFP,
-                             std::vector<recob::PFParticle const*>& tracks,
-                             std::vector<recob::PFParticle const*>& showers);
+          std::vector<recob::PFParticle const*>& pandora_primaryPFP,
+          std::vector<recob::PFParticle const*>& tracks,
+          std::vector<recob::PFParticle const*>& showers);
   void GetOriginVertices(art::Event const & evt,
-                         const std::vector<recob::PFParticle const*>& tracks,
-                         const std::vector<recob::PFParticle const*>& showers,
-                         std::vector<AuxVertex::DecayVertex>& trackVertices,
-                         std::vector<AuxVertex::DecayVertex>& showerVertices);
+          const std::vector<recob::PFParticle const*>& tracks,
+          const std::vector<recob::PFParticle const*>& showers,
+          std::vector<AuxVertex::DecayVertex>& trackVertices,
+          std::vector<AuxVertex::DecayVertex>& showerVertices);
   void GetDecayVertices(const std::vector<AuxVertex::DecayVertex>& trackVertices,
-                        const std::vector<AuxVertex::DecayVertex>& showerVertices,
-                        std::vector<AuxVertex::DecayVertex>& potVertices,
-                        std::vector<AuxVertex::DecayVertex>& cleanVertices);
+          const std::vector<AuxVertex::DecayVertex>& showerVertices,
+          std::vector<AuxVertex::DecayVertex>& potVertices,
+          std::vector<AuxVertex::DecayVertex>& cleanVertices);
   void GetHitVectors(art::Event const & evt,
-                     const std::vector<recob::PFParticle const*>& tracks,
-                     const std::vector<recob::PFParticle const*>& showers,
-                     std::vector<recob::Hit const*>& totHits,
-                     std::vector<std::vector<recob::Hit const*>>& trackHits,
-                     std::vector<std::vector<recob::Hit const*>>& showerHits,
-                     int& nTrackHits,
-                     int& nShowerHits);
+          const std::vector<recob::PFParticle const*>& tracks,
+          const std::vector<recob::PFParticle const*>& showers,
+          std::vector<recob::Hit const*>& totHits,
+          std::vector<std::vector<recob::Hit const*>>& trackHits,
+          std::vector<std::vector<recob::Hit const*>>& showerHits);
+  void PerformCalorimetry(const std::vector<AuxVertex::DecayVertex>& cleanVertices,
+          const std::vector<recob::Hit const*>& totHits,
+          const std::vector<std::vector<recob::Hit const*>>& trackHits,
+          const std::vector<std::vector<recob::Hit const*>>& showerHits);
 }; // End class ScanRecoSelectionParameters
 
 ScanRecoSelectionParameters::ScanRecoSelectionParameters(fhicl::ParameterSet const & pset) :
@@ -146,7 +149,8 @@ ScanRecoSelectionParameters::ScanRecoSelectionParameters(fhicl::ParameterSet con
     fTickNorm(pset.get<double>("TickNorm")),
     fPrimaryOnly(pset.get<bool>("PrimaryOnly")),
     fEndVerticesAlso(pset.get<bool>("EndVerticesAlso")),
-    fAnaType(pset.get<std::string>("AnalysisType"))
+    fAnaType(pset.get<std::string>("AnalysisType")),
+    fVerbose(pset.get<bool>("VerboseMode"))
 {} // END constructor ScanRecoSelectionParameters
 
 ScanRecoSelectionParameters::~ScanRecoSelectionParameters()
@@ -184,6 +188,18 @@ void ScanRecoSelectionParameters::beginJob()
   tTree->Branch("potPairDistance",&potPairDistance);
   tTree->Branch("nPotVertices",&nPotVertices,"nPotVertices/I");
   tTree->Branch("nCleanVertices",&nCleanVertices,"nCleanVertices/I");
+
+  tTree->Branch("nTotHits",&nTotHits,"nTotHits/I");
+  tTree->Branch("nTrackHits",&nTrackHits);
+  tTree->Branch("nShowerHits",&nShowerHits);
+  tTree->Branch("nTotHitsInRadius",&nTotHitsInRadius);
+  tTree->Branch("nPar1HitsInRadius",&nPar1HitsInRadius);
+  tTree->Branch("nPar2HitsInRadius",&nPar2HitsInRadius);
+  tTree->Branch("totChargeInRadius",&totChargeInRadius);
+  tTree->Branch("par1ChargeInRadius",&par1ChargeInRadius);
+  tTree->Branch("par2ChargeInRadius",&par2ChargeInRadius);
+  tTree->Branch("caloRatio",&caloRatio);
+
   tTree->Branch("pandora_nPrimaryVertices",&pandora_nPrimaryVertices,"pandora_nPrimaryVertices/I");
   tTree->Branch("pandora_primaryVertexPDG",&pandora_primaryVertexPDG);
   tTree->Branch("pandora_nDaughters",&pandora_nDaughters);
@@ -192,6 +208,7 @@ void ScanRecoSelectionParameters::beginJob()
   tTree->Branch("pandora_nNearTracks",&pandora_nNearTracks);
   tTree->Branch("pandora_nNearShowers",&pandora_nNearShowers);
   tTree->Branch("pandora_nCleanVertices",&pandora_nCleanVertices,"pandora_nCleanVertices/I");
+
 
   fGeometry = lar::providerFrom<geo::Geometry>();
   fDetectorProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
@@ -224,6 +241,15 @@ void ScanRecoSelectionParameters::ClearData()
   pandora_nShowers.clear();
   pandora_nNearTracks.clear();
   pandora_nNearShowers.clear();
+  nTrackHits.clear();
+  nShowerHits.clear();
+  nTotHitsInRadius.clear();
+  nPar1HitsInRadius.clear();
+  nPar2HitsInRadius.clear();
+  totChargeInRadius.clear();
+  par1ChargeInRadius.clear();
+  par2ChargeInRadius.clear();
+  caloRatio.clear();
 } // END function ClearData
 
 void ScanRecoSelectionParameters::GetTrackShowerVectors(art::Event const & evt, std::vector<recob::PFParticle const*>& pandora_primaryPFP, std::vector<recob::PFParticle const*>&tracks, std::vector<recob::PFParticle const*>& showers)
@@ -254,6 +280,13 @@ void ScanRecoSelectionParameters::GetTrackShowerVectors(art::Event const & evt, 
       }
     }
   } // End of pfp loop
+
+  // Calculate tree quantities
+  nTracks = tracks.size();
+  nShowers = showers.size();
+
+  // Diagnostic message
+  if (fVerbose) {printf("Loading %lu secondary tracks and %lu secondary showers.\n", tracks.size(), showers.size());}
   return;
 } // END function GetTrackShowerVectors
 
@@ -306,6 +339,13 @@ void ScanRecoSelectionParameters::GetOriginVertices(art::Event const & evt, cons
     }
     else {printf("WHAT THE HELL! Why does the association doesn't lead to an object?\nIt looks like one track/object might be missing, don't trust this event.\n");}
   }
+
+  // Calculate tree quantities
+  nTrackVertices = trackVertices.size();
+  nShowerVertices = showerVertices.size();
+
+  // Diagnostic message
+  if (fVerbose) {printf("Processing %lu origin vertices (%lu from tracks, %lu from showers).\n", trackVertices.size()+showerVertices.size(), trackVertices.size(), showerVertices.size());}
   return;
 } // END function GetOriginVertices
 
@@ -399,19 +439,33 @@ void ScanRecoSelectionParameters::GetDecayVertices(const std::vector<AuxVertex::
   else {
     throw std::invalid_argument("Invalid fAnaType. Must be 'tt' or 'ts'!");
   }
+
+  // Calculate tree quantities
+  nPairs = pairDistance.size();
+  nPotVertices = potVertices.size();
+  nCleanVertices = cleanVertices.size();
+
+  // Diagnostic message
+  if (fVerbose) {printf("Selecting %lu potential vertices, %lu of which are clean.\n", potVertices.size(), cleanVertices.size());}
   return;
 } // END function GetDecayVertices
 
-void ScanRecoSelectionParameters::GetHitVectors(art::Event const & evt, const std::vector<recob::PFParticle const*>& tracks, const std::vector<recob::PFParticle const*>& showers, std::vector<recob::Hit const*>& totHits, std::vector<std::vector<recob::Hit const*>>& trackHits, std::vector<std::vector<recob::Hit const*>>& showerHits, int& nTrackHits, int& nShowerHits)
+void ScanRecoSelectionParameters::GetHitVectors(art::Event const & evt, const std::vector<recob::PFParticle const*>& tracks, const std::vector<recob::PFParticle const*>& showers, std::vector<recob::Hit const*>& totHits, std::vector<std::vector<recob::Hit const*>>& trackHits, std::vector<std::vector<recob::Hit const*>>& showerHits)
 {
+  // Fill three vectors, one containing all the hits in the event (totHits), one containing vectors of all the hits pertaining to tracks (trackHits), one for each track, and finally one containing vectors of all the hits form showers (showerHits), one for each shower. These hits will be used to perform calorimetry analysis.
+
   // Prepare pfpTag
   art::InputTag pfpTag {fPfpLabel};
   art::FindMany<recob::Track> pta(tracks,evt,pfpTag);
   art::FindMany<recob::Shower> psa(showers,evt,pfpTag);
   std::vector<recob::Track const*> realTracks;
   std::vector<recob::Shower const*> realShowers;
+  int totNTrackHits, totNShowerHits;
 
-  // Perform for tracks
+  // Get the actual recob::Track and recob::Shower objects from the tracks and shower arrays (which instead contain only recob::PFParticles).
+  // Hits are associated with tracks/showers objects, not with PFParticles, which is why we must follow this annoying chain of associations (recob::PFParticle->recob::Track/Shower->recob::Hit)
+
+  // Find recob::Tracks
   for(std::vector<int>::size_type i=0; i!=tracks.size(); i++)
   {
     // Annoying stupid way of getting associated object
@@ -423,7 +477,7 @@ void ScanRecoSelectionParameters::GetHitVectors(art::Event const & evt, const st
       realTracks.push_back(track);
     }
   }
-  // Perform for showers
+  // Find recob::Showers
   for(std::vector<int>::size_type i=0; i!=showers.size(); i++)
   {
     // Annoying stupid way of getting associated object
@@ -441,86 +495,57 @@ void ScanRecoSelectionParameters::GetHitVectors(art::Event const & evt, const st
   std::vector<recob::Hit> const& tempTotHits(*hitHandle);
   for (auto const& tempTotHit: tempTotHits) {totHits.push_back(&tempTotHit);}
   
-  // Find hits associated with tracks
+  // Find hits associated with recob::Tracks
   art::FindMany<recob::Hit> tha(realTracks,evt,pfpTag);
-  int tempNTrackHits = 0;
+  totNTrackHits = 0;
   for (std::vector<int>::size_type i=0; i!=realTracks.size(); i++)
   {
     std::vector<recob::Hit const*> tempHitVector;
     tha.get(i,tempHitVector);
     trackHits.push_back(tempHitVector);
-    tempNTrackHits += tempHitVector.size();
+    nTrackHits.push_back(tempHitVector.size());
+    totNTrackHits += tempHitVector.size();
   }
 
-  // Find hits associated with showers
+  // Find hits associated with recob::Showers
   art::FindMany<recob::Hit> sha(realShowers,evt,pfpTag);
-  int tempNShowerHits = 0;
+  totNShowerHits = 0;
   for (std::vector<int>::size_type i=0; i!=realShowers.size(); i++)
   {
     std::vector<recob::Hit const*> tempHitVector;
     sha.get(i,tempHitVector);
     showerHits.push_back(tempHitVector);
-    tempNShowerHits += tempHitVector.size();
+    nShowerHits.push_back(tempHitVector.size());
+    totNShowerHits += tempHitVector.size();
   }
-  nTrackHits = tempNTrackHits;
-  nShowerHits = tempNShowerHits;
+
+  // Calculate tree quantities
+  // Nothing this time
+
+  // Diagnostic message
+  if (fVerbose) {printf("Loading %lu hits (%i from %lu secondary tracks, %i from %lu secondary showers).\n", totHits.size(), totNTrackHits, tracks.size(), totNShowerHits, showers.size());}
   return;
 } // END function GetHitVectors
 
-
-void ScanRecoSelectionParameters::analyze(art::Event const & evt)
+void ScanRecoSelectionParameters::PerformCalorimetry(const std::vector<AuxVertex::DecayVertex>& cleanVertices, const std::vector<recob::Hit const*>& totHits, const std::vector<std::vector<recob::Hit const*>>& trackHits, const std::vector<std::vector<recob::Hit const*>>& showerHits)
 {
-  // Core analysis. Use all the previously defined functions to determine success rate. This will be repeated event by event.
-
-  // Start by clearing all the vectors.
-  ClearData();
-
-  // Determine event ID
-  run = evt.id().run();
-  subrun = evt.id().subRun();
-  event = evt.id().event();
-  printf("------------------------------------------------\n");
-  printf("||INFORMATION FOR EVENT %i [RUN %i, SUBRUN %i]||\n", event, run, subrun);
-
-  // Prepare track, shower and Pandora primary vectors
-  std::vector<recob::PFParticle const*> tracks;
-  std::vector<recob::PFParticle const*> showers;
-  std::vector<recob::PFParticle const*> pandora_primaryPFP;
-  GetTrackShowerVectors(evt, pandora_primaryPFP, tracks, showers);
-  printf("Loading %lu secondary tracks and %lu secondary showers.\n", tracks.size(), showers.size());
-
-  // Determine origin vertices for tracks and showers
-  std::vector<AuxVertex::DecayVertex> trackVertices;
-  std::vector<AuxVertex::DecayVertex> showerVertices;
-  GetOriginVertices(evt, tracks, showers, trackVertices, showerVertices);
-  printf("Processing %lu origin vertices (%lu from tracks, %lu from showers).\n", trackVertices.size()+showerVertices.size(), trackVertices.size(), showerVertices.size());
-
-  // Determine potential and clean decay vertices satisfying selection
-  std::vector<AuxVertex::DecayVertex> potVertices;
-  std::vector<AuxVertex::DecayVertex> cleanVertices;
-  GetDecayVertices(trackVertices, showerVertices, potVertices, cleanVertices);
-  printf("Selecting %lu potential vertices, %lu of which are clean.\n", potVertices.size(), cleanVertices.size());
-
-  std::vector<recob::Hit const*> totHits;
-  std::vector<std::vector<recob::Hit const*>> trackHits;
-  std::vector<std::vector<recob::Hit const*>> showerHits;
-  int nTrackHits;
-  int nShowerHits;
-  GetHitVectors(evt, tracks, showers, totHits, trackHits, showerHits, nTrackHits, nShowerHits);
-  printf("Loading %lu hits (%i from %lu secondary tracks, %i from %lu secondary showers).\n", totHits.size(), nTrackHits, tracks.size(), nShowerHits, showers.size());
+  // Perform calorimetry analysis. At this stage we finally calculate all the charge deposited by the hits of track1 and track2 (or shower) within a radius (fCaloCut) from the assumed HSN decay vertex (cleanVertices[i]), for each decay vertex.
+  // The second step looks at all the charge deposited by any hit in radius (which may come from hadronic interaction, in the case of background). And we finally calculate the ratio between the two (caloRatio). We would expect this ratio to be closer to 1 for signal, since HSN decaying in the detector don't interact with any particle, and we'd expect charge deposited by the two decay products to be the only charge within a certain radius from the decay point.
 
 
+  // Loop through each clean vertex
+  int vertInd = 0;
   for (std::vector<int>::size_type i=0; i!=cleanVertices.size(); i++)
   {
-    int startWire[3] = {0,2399,4798};
+    // Get useful quantities about the clean vertex currently being analyzed, like coordinates and parent indices
     int channel0[3] = {cleanVertices[i].GetChannelLoc(0),cleanVertices[i].GetChannelLoc(1),cleanVertices[i].GetChannelLoc(2)};
     double tick0[3] = {cleanVertices[i].GetTickLoc(0),cleanVertices[i].GetTickLoc(1),cleanVertices[i].GetTickLoc(2)};
     int parIdx1 = cleanVertices[i].GetParIdx1();
     int parIdx2 = cleanVertices[i].GetParIdx2();
-    cleanVertices[i].PrintInformation();
+    if (fVerbose) {cleanVertices[i].PrintInformation();}
 
-    printf("|_Clean vertex %lu\n", i);
-    printf("  |_Hits from track 1\n");
+    // Calculate calorimetry for track 1 within radius
+    double parCharge1 = 0.;
     for (auto hit : trackHits[parIdx1])
     {
       int hitChannel = hit->Channel();
@@ -529,10 +554,13 @@ void ScanRecoSelectionParameters::analyze(art::Event const & evt)
       bool isInsideRadius = (pow(((hitChannel-channel0[hitPlane])/fChannelNorm),2.) + pow(((hitTick-tick0[hitPlane])/fTickNorm),2.) < pow(fCaloCut,2.));
       if (isInsideRadius)
       {
-        printf("  | |_P%i Inside: %i -> Center: [%i,%.1f]; Hit:[%i,%.1f]; Distance: %.1f\n", hitPlane, isInsideRadius, channel0[hitPlane]-startWire[hitPlane], tick0[hitPlane], hitChannel-startWire[hitPlane], hitTick, sqrt(pow(((hitChannel-channel0[hitPlane])/fChannelNorm),2.) + pow(((hitTick-tick0[hitPlane])/fTickNorm),2.)));
+        double hitCharge = hit->Integral();
+        parCharge1 += hitCharge;
       }
     }
-    printf("  |_Hits from track 2\n");
+
+    // Calculate calorimetry for track 2 within radius
+    double parCharge2 = 0.;
     for (auto hit : trackHits[parIdx2])
     {
       int hitChannel = hit->Channel();
@@ -541,24 +569,87 @@ void ScanRecoSelectionParameters::analyze(art::Event const & evt)
       bool isInsideRadius = (pow(((hitChannel-channel0[hitPlane])/fChannelNorm),2.) + pow(((hitTick-tick0[hitPlane])/fTickNorm),2.) < pow(fCaloCut,2.));
       if (isInsideRadius)
       {
-        printf("    |_P%i Inside: %i -> Center: [%i,%.1f]; Hit:[%i,%.1f]; Distance: %.1f\n", hitPlane, isInsideRadius, channel0[hitPlane]-startWire[hitPlane], tick0[hitPlane], hitChannel-startWire[hitPlane], hitTick, sqrt(pow(((hitChannel-channel0[hitPlane])/fChannelNorm),2.) + pow(((hitTick-tick0[hitPlane])/fTickNorm),2.)));
+        double hitCharge = hit->Integral();
+        parCharge2 += hitCharge;
       }
     }
 
+    // Calculate total calorimetry within radius
+    double totCharge = 0.;
+    for (auto hit : totHits)
+    {
+      int hitChannel = hit->Channel();
+      double hitTick = (hit->EndTick() + hit->StartTick())/2.;
+      int hitPlane = hit->View();
+      bool isInsideRadius = (pow(((hitChannel-channel0[hitPlane])/fChannelNorm),2.) + pow(((hitTick-tick0[hitPlane])/fTickNorm),2.) < pow(fCaloCut,2.));
+      if (isInsideRadius)
+      {
+        double hitCharge = hit->Integral();
+        totCharge += hitCharge;
+      }
+    }
+
+    // Determine the ratio for this clean vertex
+    double thisCaloRatio = (parCharge1+parCharge2)/totCharge;
+
+    // Calculate tree quantities
+    par1ChargeInRadius.push_back(parCharge1);
+    par2ChargeInRadius.push_back(parCharge2);
+    totChargeInRadius.push_back(totCharge);
+    caloRatio.push_back(thisCaloRatio);
+
+    // Diagnostic message
+    if (fVerbose) {printf("\n-|Clean Vertex %i|\n|_Deposit IP1: %.1f\n|_Deposit IP2: %.1f\n|_Total deposit: %.1f\n|_RATIO: %.1f\n",vertInd,parCharge1,parCharge2,totCharge,thisCaloRatio);}
+
+    vertInd++;
+  } // End clean vertex loop
+  return;
+} // END function PerformCalorimetry
+
+
+void ScanRecoSelectionParameters::analyze(art::Event const & evt)
+{
+  // Core analysis. Use all the previously defined functions to determine success rate. This will be repeated event by event.
+  if (fVerbose) {printf("\n------------------------------------------------\n");}
+
+  // Start by clearing all the vectors.
+  ClearData();
+
+  // Determine event ID
+  run = evt.id().run();
+  subrun = evt.id().subRun();
+  event = evt.id().event();
+  if (fVerbose) {printf("||INFORMATION FOR EVENT %i [RUN %i, SUBRUN %i]||\n", event, run, subrun);}
+
+  // Prepare track, shower and Pandora primary vectors
+  std::vector<recob::PFParticle const*> tracks, showers, pandora_primaryPFP;
+  GetTrackShowerVectors(evt, pandora_primaryPFP, tracks, showers);
+
+  // Determine origin vertices for tracks and showers
+  std::vector<AuxVertex::DecayVertex> trackVertices, showerVertices;
+  GetOriginVertices(evt, tracks, showers, trackVertices, showerVertices);
+
+  // Determine potential and clean decay vertices satisfying selection
+  std::vector<AuxVertex::DecayVertex> potVertices, cleanVertices;
+  GetDecayVertices(trackVertices, showerVertices, potVertices, cleanVertices);
+
+  // Just being smart, if there's no clean vertices, there's no reason to waste time loading hits that won't be used
+  if (cleanVertices.size()==0) {printf("No clean vertex candidates found. Moving to next event...\n");}
+  else
+  {
+  // Get vectors containing hits for each track/shower object in order to perform calorimetry
+  std::vector<recob::Hit const*> totHits;
+  std::vector<std::vector<recob::Hit const*>> trackHits, showerHits;
+  GetHitVectors(evt, tracks, showers, totHits, trackHits, showerHits);
+
+  // Perform calorimetry analysis
+  PerformCalorimetry(cleanVertices, totHits, trackHits, showerHits);
   }
 
-  // Calculate final tree quantities
-  nTracks = tracks.size();
-  nShowers = showers.size();
-  nPairs = pairDistance.size();
-  nTrackVertices = trackVertices.size();
-  nShowerVertices = showerVertices.size();
-  nPotVertices = potVertices.size();
-  nCleanVertices = cleanVertices.size();
-  pandora_nPrimaryVertices = pandora_primaryPFP.size();
 
+  // Fill tree and finish event loop
   tTree->Fill();
-  printf("------------------------------------------------\n");
+  printf("------------------------------------------------\n\n");
 } // END function analyze
 
 

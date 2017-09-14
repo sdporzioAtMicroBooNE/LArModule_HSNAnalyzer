@@ -31,19 +31,19 @@ namespace AuxVertex
         DecayVertex(double x, double y, double z, int parIdx1, int parIdx2, std::string parType1, std::string parType2, std::string direction1, std::string direction2);
 
         // Getters
-        double GetX();
-        double GetY();
-        double GetZ();
-        int GetParIdx1();
-        int GetParIdx2();
-        std::string GetParType1();
-        std::string GetParType2();
-        std::string GetDirection1();
-        std::string GetDirection2();
-        bool IsInsideTPC();
-        bool IsDetLocAssigned();
-        int GetChannelLoc(int plane);
-        double GetTickLoc(int plane);
+        double GetX() const;
+        double GetY() const;
+        double GetZ() const;
+        int GetParIdx1() const;
+        int GetParIdx2() const;
+        std::string GetParType1() const;
+        std::string GetParType2() const;
+        std::string GetDirection1() const;
+        std::string GetDirection2() const;
+        bool IsInsideTPC() const;
+        bool IsDetLocAssigned() const;
+        int GetChannelLoc(int plane) const;
+        double GetTickLoc(int plane) const;
 
         // Setters
         void SetChannelLoc(int channel0, int channel1, int channel2);
@@ -52,7 +52,7 @@ namespace AuxVertex
         void SetIsDetLocAssigned(bool val);
 
         // Printers
-        void PrintInformation();
+        void PrintInformation() const;
 
     private:
     bool fIsInsideTPC; // Whetehr the vertex is inside the TPC.
