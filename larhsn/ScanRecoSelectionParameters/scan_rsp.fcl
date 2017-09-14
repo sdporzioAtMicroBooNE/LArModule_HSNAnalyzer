@@ -33,8 +33,8 @@ physics:
       DataType:             "signal"
       DecayChannel:         "2"
       SterileMass:          "0.350" # GeV/c^2
-			DistanceCut:					"1" # cm
-      CaloCut:              "1" # cm
+			DistanceCut:					"10" # cm
+      CaloCut:              "10" # cm
       ChannelNorm:          "3.3" # number of channels in cm
       TickNorm:             "17.9" # number of ticks in cm
 			PrimaryOnly:					"true"

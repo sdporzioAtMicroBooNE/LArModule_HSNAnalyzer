@@ -40,19 +40,19 @@ namespace AuxVertex
   }
 
   // Getters
-  double DecayVertex::GetX() {return fX;}
-  double DecayVertex::GetY() {return fY;}
-  double DecayVertex::GetZ() {return fZ;}
-  int DecayVertex::GetParIdx1() {return fParIdx1;}
-  int DecayVertex::GetParIdx2() {return fParIdx2;}
-  std::string DecayVertex::GetParType1() {return fParType1;}
-  std::string DecayVertex::GetParType2() {return fParType2;}
-  std::string DecayVertex::GetDirection1() {return fDirection1;}
-  std::string DecayVertex::GetDirection2() {return fDirection2;}
-  bool DecayVertex::IsInsideTPC() {return fIsInsideTPC;}
-  bool DecayVertex::IsDetLocAssigned() {return fIsDetLocAssigned;}
-  int DecayVertex::GetChannelLoc(int plane) {return fChannelLoc[plane];}
-  double DecayVertex::GetTickLoc(int plane) {return fTickLoc[plane];}
+  double DecayVertex::GetX() const {return fX;}
+  double DecayVertex::GetY() const {return fY;}
+  double DecayVertex::GetZ() const {return fZ;}
+  int DecayVertex::GetParIdx1() const {return fParIdx1;}
+  int DecayVertex::GetParIdx2() const {return fParIdx2;}
+  std::string DecayVertex::GetParType1() const {return fParType1;}
+  std::string DecayVertex::GetParType2() const {return fParType2;}
+  std::string DecayVertex::GetDirection1() const {return fDirection1;}
+  std::string DecayVertex::GetDirection2() const {return fDirection2;}
+  bool DecayVertex::IsInsideTPC() const {return fIsInsideTPC;}
+  bool DecayVertex::IsDetLocAssigned() const {return fIsDetLocAssigned;}
+  int DecayVertex::GetChannelLoc(int plane) const {return fChannelLoc[plane];}
+  double DecayVertex::GetTickLoc(int plane) const {return fTickLoc[plane];}
 
   // Setters
   void DecayVertex::SetChannelLoc(int channel0, int channel1, int channel2) {fChannelLoc = {channel0,channel1,channel2};return;}
@@ -61,20 +61,20 @@ namespace AuxVertex
   void DecayVertex::SetIsDetLocAssigned(bool val) {fIsDetLocAssigned = val;return;}
 
   // Printers
-  void DecayVertex::PrintInformation(){
-    printf("|Vertex information|\n");
-    printf("Parents type: [%s,%s]\n", fParType1.c_str(), fParType2.c_str());
-    printf("Parents direction: [%s,%s]\n", fDirection1.c_str(), fDirection2.c_str());
-    printf("Parents index: [%i,%i]\n", fParIdx1, fParIdx2);
-    printf("Vertex inside TPC: %d\n", fIsInsideTPC);
-    printf("Spatial Coordinates: [%.1f, %.1f, %.1f]\n",fX,fY,fZ);
-    printf("Detector location assigned: %d\n", fIsDetLocAssigned);
+  void DecayVertex::PrintInformation() const{
+    int fStartWire[3] = {0,2399,4798};
+    printf("\n-|Vertex information|\n");
+    printf("|_Parents type: [%s,%s]\n", fParType1.c_str(), fParType2.c_str());
+    printf("|_Parents direction: [%s,%s]\n", fDirection1.c_str(), fDirection2.c_str());
+    printf("|_Parents index: [%i,%i]\n", fParIdx1, fParIdx2);
+    printf("|_Vertex inside TPC: %d\n", fIsInsideTPC);
+    printf("|_Spatial Coordinates: [%.1f, %.1f, %.1f]\n",fX,fY,fZ);
+    printf("|_Detector location assigned: %d\n", fIsDetLocAssigned);
     if (fIsDetLocAssigned)
     {
-      printf("Channel coordinates: [%i, %i, %i]\n",fChannelLoc[0],fChannelLoc[1],fChannelLoc[2]);
-      printf("Ticks coordinates: [%.1f, %.1f, %.1f]\n",fTickLoc[0],fTickLoc[1],fTickLoc[2]);
+      printf("|_Channel coordinates: [%i, %i, %i]\n",fChannelLoc[0]-fStartWire[0],fChannelLoc[1]-fStartWire[1],fChannelLoc[2]-fStartWire[2]);
+      printf("|_Ticks coordinates: [%.1f, %.1f, %.1f]\n",fTickLoc[0],fTickLoc[1],fTickLoc[2]);
     }
-    printf("\n\n");
     return;
   }
 
