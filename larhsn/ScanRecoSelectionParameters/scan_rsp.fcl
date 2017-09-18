@@ -41,6 +41,7 @@ physics:
 			EndVerticesAlso:			"true"
       AnalysisType:         "tt"
       VerboseMode:          "true"
+      SaveDrawTree:         "true" # Optional. Takes more space.
     }
   }
   analysis: [ScanRecoSelectionParameters0]

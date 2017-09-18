@@ -91,21 +91,40 @@ private:
   bool fEndVerticesAlso;
   std::string fAnaType;
   bool fVerbose;
+  bool fSaveDrawTree;
 
   // Declare services
   geo::GeometryCore const* fGeometry; // Pointer to the Geometry service
   detinfo::DetectorProperties const* fDetectorProperties; // Pointer to the Detector Properties
 
-  // Declare script variables
+  // Declare trees
   TTree *tTree;
   TTree *metaTree;
+  TTree *drawTree;
+
+  // Declare analysis variables
   Int_t run, subrun, event, nTracks, nShowers, nPairs, nTrackVertices, nShowerVertices, nPotVertices, nCleanVertices, pandora_nPrimaryVertices, pandora_nCleanVertices, nCleanVerticesOutsideTPC, nTotHits;
   std::vector<float> pairDistance, potPairDistance, totChargeInRadius, par1ChargeInRadius, par2ChargeInRadius, caloRatio;
   std::vector<int> pandora_primaryVertexPDG, pandora_nDaughters, pandora_nTracks, pandora_nShowers, pandora_nNearTracks, pandora_nNearShowers, nTrackHits, nShowerHits, nTotHitsInRadius, nPar1HitsInRadius, nPar2HitsInRadius;
 
-  // Geometry functions
+  // Declare drawTree variables
+  std::vector<std::vector<int>> dv_wireCoordinates,
+    par1_wireCoordinates, par2_wireCoordinates,
+    par1_hits_p0_wireCoordinates, par1_hits_p1_wireCoordinates, par1_hits_p2_wireCoordinates,
+    par2_hits_p0_wireCoordinates, par2_hits_p1_wireCoordinates, par2_hits_p2_wireCoordinates,
+    tot_hits_p0_wireCoordinates, tot_hits_p1_wireCoordinates, tot_hits_p2_wireCoordinates;
+
+  std::vector<std::vector<double>> dv_xyzCoordinates, dv_tickCoordinates,
+    par1_xyzCoordinates, par1_tickCoordinates,
+    par2_xyzCoordinates, par2_tickCoordinates,
+    par1_hits_p0_tickCoordinates, par1_hits_p1_tickCoordinates, par1_hits_p2_tickCoordinates,
+    par2_hits_p0_tickCoordinates, par2_hits_p1_tickCoordinates, par2_hits_p2_tickCoordinates,
+    tot_hits_p0_tickCoordinates, tot_hits_p1_tickCoordinates, tot_hits_p2_tickCoordinates;
+
+  // Declare geometry functions
   void SetDetectorCoordinates(AuxVertex::DecayVertex& vert);
 
+  // Declare analysis functions
   void ClearData();
   void GetTrackShowerVectors(art::Event const & evt,
           std::vector<recob::PFParticle const*>& pandora_primaryPFP,
@@ -129,6 +148,12 @@ private:
   void PerformCalorimetry(const std::vector<AuxVertex::DecayVertex>& cleanVertices,
           const std::vector<recob::Hit const*>& totHits,
           const std::vector<std::vector<recob::Hit const*>>& trackHits,
+          const std::vector<std::vector<recob::Hit const*>>& showerHits,
+          std::vector<std::vector<recob::Hit const*>>& totHitsInRadius);
+  void FillDrawTree(
+          const std::vector<AuxVertex::DecayVertex>& cleanVertices,
+          const std::vector<std::vector<recob::Hit const*>>& totHitsInRadius,
+          const std::vector<std::vector<recob::Hit const*>>& trackHits,
           const std::vector<std::vector<recob::Hit const*>>& showerHits);
 }; // End class ScanRecoSelectionParameters
 
@@ -150,7 +175,8 @@ ScanRecoSelectionParameters::ScanRecoSelectionParameters(fhicl::ParameterSet con
     fPrimaryOnly(pset.get<bool>("PrimaryOnly")),
     fEndVerticesAlso(pset.get<bool>("EndVerticesAlso")),
     fAnaType(pset.get<std::string>("AnalysisType")),
-    fVerbose(pset.get<bool>("VerboseMode"))
+    fVerbose(pset.get<bool>("VerboseMode")),
+    fSaveDrawTree(pset.get<bool>("SaveDrawTree"))
 {} // END constructor ScanRecoSelectionParameters
 
 ScanRecoSelectionParameters::~ScanRecoSelectionParameters()
@@ -163,16 +189,23 @@ void ScanRecoSelectionParameters::beginJob()
 
   metaTree = tfs->make<TTree>("Metadata","");
   metaTree->Branch("instanceName",&fInstanceName);
-  metaTree->Branch("iteration",&fIteration,"iteration/I");  
+  metaTree->Branch("iteration",&fIteration,"iteration/I"); 
+  metaTree->Branch("minTpcBound",&fMinTpcBound);
+  metaTree->Branch("maxTpcBound",&fMaxTpcBound);  
   metaTree->Branch("dataType",&fDataType);
   metaTree->Branch("pfpLabel",&fPfpLabel);
   metaTree->Branch("hitLabel",&fHitLabel);
   metaTree->Branch("decayChannel",&fDecayChannel,"decayChannel/I");
   metaTree->Branch("distanceCut",&fDistanceCut,"distanceCut/D");
+  metaTree->Branch("caloCut",&fCaloCut,"caloCut/D");
+  metaTree->Branch("channelNorm",&fChannelNorm,"channelNorm/D");
+  metaTree->Branch("tickNorm",&fTickNorm,"tickNorm/D");
   metaTree->Branch("sterileMass",&fSterileMass,"sterileMass/D");
   metaTree->Branch("primaryOnly",&fPrimaryOnly,"primaryOnly/O");
   metaTree->Branch("endVerticesAlso",&fEndVerticesAlso,"endVerticesAlso/O");
   metaTree->Branch("anaType",&fAnaType);
+  metaTree->Branch("saveDrawTree",&fSaveDrawTree,"saveDrawTree/O");
+
   metaTree->Fill();
 
   tTree = tfs->make<TTree>("Data","");
@@ -209,6 +242,42 @@ void ScanRecoSelectionParameters::beginJob()
   tTree->Branch("pandora_nNearShowers",&pandora_nNearShowers);
   tTree->Branch("pandora_nCleanVertices",&pandora_nCleanVertices,"pandora_nCleanVertices/I");
 
+  if (fSaveDrawTree)
+  {
+    drawTree = tfs->make<TTree>("DrawTree","");
+    drawTree->Branch("dv_xyzCoordinates",&dv_xyzCoordinates);
+    drawTree->Branch("dv_wireCoordinates",&dv_wireCoordinates);
+    drawTree->Branch("dv_tickCoordinates",&dv_tickCoordinates);
+
+    drawTree->Branch("par1_xyzCoordinates",&par1_xyzCoordinates);
+    drawTree->Branch("par1_wireCoordinates",&par1_wireCoordinates);
+    drawTree->Branch("par1_tickCoordinates",&par1_tickCoordinates);
+
+    drawTree->Branch("par2_xyzCoordinates",&par2_xyzCoordinates);
+    drawTree->Branch("par2_wireCoordinates",&par2_wireCoordinates);
+    drawTree->Branch("par2_tickCoordinates",&par2_tickCoordinates);
+
+    drawTree->Branch("par1_hits_p0_wireCoordinates",&par1_hits_p0_wireCoordinates);
+    drawTree->Branch("par1_hits_p1_wireCoordinates",&par1_hits_p1_wireCoordinates);
+    drawTree->Branch("par1_hits_p2_wireCoordinates",&par1_hits_p2_wireCoordinates);
+    drawTree->Branch("par1_hits_p0_tickCoordinates",&par1_hits_p0_tickCoordinates);
+    drawTree->Branch("par1_hits_p1_tickCoordinates",&par1_hits_p1_tickCoordinates);
+    drawTree->Branch("par1_hits_p2_tickCoordinates",&par1_hits_p2_tickCoordinates);
+
+    drawTree->Branch("par2_hits_p0_wireCoordinates",&par2_hits_p0_wireCoordinates);
+    drawTree->Branch("par2_hits_p1_wireCoordinates",&par2_hits_p1_wireCoordinates);
+    drawTree->Branch("par2_hits_p2_wireCoordinates",&par2_hits_p2_wireCoordinates);
+    drawTree->Branch("par2_hits_p0_tickCoordinates",&par2_hits_p0_tickCoordinates);
+    drawTree->Branch("par2_hits_p1_tickCoordinates",&par2_hits_p1_tickCoordinates);
+    drawTree->Branch("par2_hits_p2_tickCoordinates",&par2_hits_p2_tickCoordinates);
+
+    drawTree->Branch("tot_hits_p0_wireCoordinates",&tot_hits_p0_wireCoordinates);
+    drawTree->Branch("tot_hits_p1_wireCoordinates",&tot_hits_p1_wireCoordinates);
+    drawTree->Branch("tot_hits_p2_wireCoordinates",&tot_hits_p2_wireCoordinates);
+    drawTree->Branch("tot_hits_p0_tickCoordinates",&tot_hits_p0_tickCoordinates);
+    drawTree->Branch("tot_hits_p1_tickCoordinates",&tot_hits_p1_tickCoordinates);
+    drawTree->Branch("tot_hits_p2_tickCoordinates",&tot_hits_p2_tickCoordinates);
+  }
 
   fGeometry = lar::providerFrom<geo::Geometry>();
   fDetectorProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
@@ -250,7 +319,90 @@ void ScanRecoSelectionParameters::ClearData()
   par1ChargeInRadius.clear();
   par2ChargeInRadius.clear();
   caloRatio.clear();
+
+  // Drawing vectors
+  dv_xyzCoordinates.clear();
+  dv_wireCoordinates.clear();
+  dv_tickCoordinates.clear();
+  par1_xyzCoordinates.clear();
+  par1_wireCoordinates.clear();
+  par1_tickCoordinates.clear();
+  par2_xyzCoordinates.clear();
+  par2_wireCoordinates.clear();
+  par2_tickCoordinates.clear();
+  par1_hits_p0_wireCoordinates.clear();
+  par1_hits_p1_wireCoordinates.clear();
+  par1_hits_p2_wireCoordinates.clear();
+  par1_hits_p0_tickCoordinates.clear();
+  par1_hits_p1_tickCoordinates.clear();
+  par1_hits_p2_tickCoordinates.clear();
+  par2_hits_p0_wireCoordinates.clear();
+  par2_hits_p1_wireCoordinates.clear();
+  par2_hits_p2_wireCoordinates.clear();
+  par2_hits_p0_tickCoordinates.clear();
+  par2_hits_p1_tickCoordinates.clear();
+  par2_hits_p2_tickCoordinates.clear();
+  tot_hits_p0_wireCoordinates.clear();
+  tot_hits_p1_wireCoordinates.clear();
+  tot_hits_p2_wireCoordinates.clear();
+  tot_hits_p0_tickCoordinates.clear();
+  tot_hits_p1_tickCoordinates.clear();
+  tot_hits_p2_tickCoordinates.clear();
 } // END function ClearData
+
+void ScanRecoSelectionParameters::SetDetectorCoordinates(AuxVertex::DecayVertex& vert)
+{
+  // Get spatial coordinates and mark vertex as assigned
+  double xyz[3] = {vert.GetX(),vert.GetY(),vert.GetZ()};
+  double par1_xyz[3] = {vert.GetParX(0),vert.GetParY(0),vert.GetParZ(0)};
+  double par2_xyz[3] = {vert.GetParX(1),vert.GetParY(1),vert.GetParZ(1)};
+
+  vert.SetIsDetLocAssigned(true);
+
+  // Check whether coordinates are inside TPC 
+  bool isInsideX = (xyz[0]>fMinTpcBound[0]+fDistanceCut &&
+    xyz[0]<fMaxTpcBound[0]-fDistanceCut);
+  bool isInsideY = (xyz[1]>fMinTpcBound[1]+fDistanceCut &&
+    xyz[1]<fMaxTpcBound[1]-fDistanceCut);
+  bool isInsideZ = (xyz[2]>fMinTpcBound[2]+fDistanceCut &&
+    xyz[2]<fMaxTpcBound[2]-fDistanceCut);
+
+  // If vertex is inside TPC, determine channel/tick coordinates and assign them
+  if (isInsideX && isInsideY && isInsideZ)
+  {
+    vert.SetIsInsideTPC(true);
+    raw::ChannelID_t channel0 = fGeometry->NearestChannel(xyz,0);
+    raw::ChannelID_t channel1 = fGeometry->NearestChannel(xyz,1);
+    raw::ChannelID_t channel2 = fGeometry->NearestChannel(xyz,2);
+    double tick0 = fDetectorProperties->ConvertXToTicks(xyz[0], 0, 0, 0);
+    double tick1 = fDetectorProperties->ConvertXToTicks(xyz[0], 1, 0, 0);
+    double tick2 = fDetectorProperties->ConvertXToTicks(xyz[0], 2, 0, 0);
+    vert.SetChannelLoc(channel0, channel1, channel2);
+    vert.SetTickLoc(tick0, tick1, tick2);
+
+    raw::ChannelID_t par1_channel0 = fGeometry->NearestChannel(par1_xyz,0);
+    raw::ChannelID_t par1_channel1 = fGeometry->NearestChannel(par1_xyz,1);
+    raw::ChannelID_t par1_channel2 = fGeometry->NearestChannel(par1_xyz,2);
+    double par1_tick0 = fDetectorProperties->ConvertXToTicks(par1_xyz[0], 0, 0, 0);
+    double par1_tick1 = fDetectorProperties->ConvertXToTicks(par1_xyz[0], 1, 0, 0);
+    double par1_tick2 = fDetectorProperties->ConvertXToTicks(par1_xyz[0], 2, 0, 0);
+    vert.SetParChannelLoc(0, par1_channel0, par1_channel1, par1_channel2);
+    vert.SetParTickLoc(0, par1_tick0, par1_tick1, par1_tick2);
+
+    raw::ChannelID_t par2_channel0 = fGeometry->NearestChannel(par2_xyz,0);
+    raw::ChannelID_t par2_channel1 = fGeometry->NearestChannel(par2_xyz,1);
+    raw::ChannelID_t par2_channel2 = fGeometry->NearestChannel(par2_xyz,2);
+    double par2_tick0 = fDetectorProperties->ConvertXToTicks(par2_xyz[0], 0, 0, 0);
+    double par2_tick1 = fDetectorProperties->ConvertXToTicks(par2_xyz[0], 1, 0, 0);
+    double par2_tick2 = fDetectorProperties->ConvertXToTicks(par2_xyz[0], 2, 0, 0);
+    vert.SetParChannelLoc(1, par2_channel0, par2_channel1, par2_channel2);
+    vert.SetParTickLoc(1, par2_tick0, par2_tick1, par2_tick2);
+    return;
+  }
+
+  // Else flag it as outside the TPC and exit function
+  else {vert.SetIsInsideTPC(false); return;}
+} // END function SetDetectorCoordinates
 
 void ScanRecoSelectionParameters::GetTrackShowerVectors(art::Event const & evt, std::vector<recob::PFParticle const*>& pandora_primaryPFP, std::vector<recob::PFParticle const*>&tracks, std::vector<recob::PFParticle const*>& showers)
 {
@@ -432,7 +584,7 @@ void ScanRecoSelectionParameters::GetDecayVertices(const std::vector<AuxVertex::
         bool isInRadius = (Distance(mv,v2)<fDistanceCut);
         if (isInRadius && notParent) isGoodVertex = false;
       }
-      if (isGoodVertex) cleanVertices.push_back(mv);
+      if (isGoodVertex) {cleanVertices.push_back(mv);}
     }
   }
   // Throw error if fAnaType wasn't right.
@@ -527,7 +679,7 @@ void ScanRecoSelectionParameters::GetHitVectors(art::Event const & evt, const st
   return;
 } // END function GetHitVectors
 
-void ScanRecoSelectionParameters::PerformCalorimetry(const std::vector<AuxVertex::DecayVertex>& cleanVertices, const std::vector<recob::Hit const*>& totHits, const std::vector<std::vector<recob::Hit const*>>& trackHits, const std::vector<std::vector<recob::Hit const*>>& showerHits)
+void ScanRecoSelectionParameters::PerformCalorimetry(const std::vector<AuxVertex::DecayVertex>& cleanVertices, const std::vector<recob::Hit const*>& totHits, const std::vector<std::vector<recob::Hit const*>>& trackHits, const std::vector<std::vector<recob::Hit const*>>& showerHits, std::vector<std::vector<recob::Hit const*>>& totHitsInRadius)
 {
   // Perform calorimetry analysis. At this stage we finally calculate all the charge deposited by the hits of track1 and track2 (or shower) within a radius (fCaloCut) from the assumed HSN decay vertex (cleanVertices[i]), for each decay vertex.
   // The second step looks at all the charge deposited by any hit in radius (which may come from hadronic interaction, in the case of background). And we finally calculate the ratio between the two (caloRatio). We would expect this ratio to be closer to 1 for signal, since HSN decaying in the detector don't interact with any particle, and we'd expect charge deposited by the two decay products to be the only charge within a certain radius from the decay point.
@@ -535,8 +687,12 @@ void ScanRecoSelectionParameters::PerformCalorimetry(const std::vector<AuxVertex
 
   // Loop through each clean vertex
   int vertInd = 0;
+  std::cout << vertInd;
   for (std::vector<int>::size_type i=0; i!=cleanVertices.size(); i++)
   {
+    // Initialize the vector of hits that will be pushed back to the vector of vector of hits and returned by the function
+    std::vector<recob::Hit const*> totHitsInRadius_thisDv;
+
     // Get useful quantities about the clean vertex currently being analyzed, like coordinates and parent indices
     int channel0[3] = {cleanVertices[i].GetChannelLoc(0),cleanVertices[i].GetChannelLoc(1),cleanVertices[i].GetChannelLoc(2)};
     double tick0[3] = {cleanVertices[i].GetTickLoc(0),cleanVertices[i].GetTickLoc(1),cleanVertices[i].GetTickLoc(2)};
@@ -584,10 +740,12 @@ void ScanRecoSelectionParameters::PerformCalorimetry(const std::vector<AuxVertex
       bool isInsideRadius = (pow(((hitChannel-channel0[hitPlane])/fChannelNorm),2.) + pow(((hitTick-tick0[hitPlane])/fTickNorm),2.) < pow(fCaloCut,2.));
       if (isInsideRadius)
       {
+        totHitsInRadius_thisDv.push_back(hit);
         double hitCharge = hit->Integral();
         totCharge += hitCharge;
       }
     }
+    totHitsInRadius.push_back(totHitsInRadius_thisDv);
 
     // Determine the ratio for this clean vertex
     double thisCaloRatio = (parCharge1+parCharge2)/totCharge;
@@ -605,6 +763,119 @@ void ScanRecoSelectionParameters::PerformCalorimetry(const std::vector<AuxVertex
   } // End clean vertex loop
   return;
 } // END function PerformCalorimetry
+
+void ScanRecoSelectionParameters::FillDrawTree(const std::vector<AuxVertex::DecayVertex>& cleanVertices, const std::vector<std::vector<recob::Hit const*>>& totHitsInRadius, const std::vector<std::vector<recob::Hit const*>>& trackHits, const std::vector<std::vector<recob::Hit const*>>& showerHits)
+{
+  for (std::vector<int>::size_type i=0; i!=cleanVertices.size(); i++)
+  {
+    // Get clean vertex
+    auto dv = cleanVertices[i];
+    int parIdx1 = dv.GetParIdx1();
+    int parIdx2 = dv.GetParIdx2();
+    std::vector<recob::Hit const*> par1_hits = trackHits[parIdx1];
+    std::vector<recob::Hit const*> par2_hits = trackHits[parIdx2];
+    std::vector<recob::Hit const*> thisTot_hits = totHitsInRadius[i];
+    std::vector<double> thisPar1_hits_p0_tickCoordinates,
+      thisPar1_hits_p1_tickCoordinates,
+      thisPar1_hits_p2_tickCoordinates,
+      thisPar2_hits_p0_tickCoordinates,
+      thisPar2_hits_p1_tickCoordinates,
+      thisPar2_hits_p2_tickCoordinates,
+      thisTot_hits_p0_tickCoordinates,
+      thisTot_hits_p1_tickCoordinates,
+      thisTot_hits_p2_tickCoordinates;
+    std::vector<int> thisPar1_hits_p0_wireCoordinates,
+      thisPar1_hits_p1_wireCoordinates,
+      thisPar1_hits_p2_wireCoordinates,
+      thisPar2_hits_p0_wireCoordinates,
+      thisPar2_hits_p1_wireCoordinates,
+      thisPar2_hits_p2_wireCoordinates,
+      thisTot_hits_p0_wireCoordinates,
+      thisTot_hits_p1_wireCoordinates,
+      thisTot_hits_p2_wireCoordinates;
+
+    for (auto hit : par1_hits)
+    {
+      if (hit->View() == 0) {
+        thisPar1_hits_p0_wireCoordinates.push_back(hit->Channel());
+        thisPar1_hits_p0_tickCoordinates.push_back((hit->StartTick() + hit->EndTick())/2.);
+      }
+      if (hit->View() == 1) {
+        thisPar1_hits_p1_wireCoordinates.push_back(hit->Channel());
+        thisPar1_hits_p1_tickCoordinates.push_back((hit->StartTick() + hit->EndTick())/2.);
+      }
+      if (hit->View() == 2) {
+        thisPar1_hits_p2_wireCoordinates.push_back(hit->Channel());
+        thisPar1_hits_p2_tickCoordinates.push_back((hit->StartTick() + hit->EndTick())/2.);
+      }
+    }
+
+    for (auto hit : par2_hits)
+    {
+      if (hit->View() == 0) {
+        thisPar2_hits_p0_wireCoordinates.push_back(hit->Channel());
+        thisPar2_hits_p0_tickCoordinates.push_back((hit->StartTick() + hit->EndTick())/2.);
+      }
+      if (hit->View() == 1) {
+        thisPar2_hits_p1_wireCoordinates.push_back(hit->Channel());
+        thisPar2_hits_p1_tickCoordinates.push_back((hit->StartTick() + hit->EndTick())/2.);
+      }
+      if (hit->View() == 2) {
+        thisPar2_hits_p2_wireCoordinates.push_back(hit->Channel());
+        thisPar2_hits_p2_tickCoordinates.push_back((hit->StartTick() + hit->EndTick())/2.);
+      }
+    }
+
+    for (auto hit : thisTot_hits)
+    {
+      if (hit->View() == 0) {
+        thisTot_hits_p0_wireCoordinates.push_back(hit->Channel());
+        thisTot_hits_p0_tickCoordinates.push_back((hit->StartTick() + hit->EndTick())/2.);
+      }
+      if (hit->View() == 1) {
+        thisTot_hits_p1_wireCoordinates.push_back(hit->Channel());
+        thisTot_hits_p1_tickCoordinates.push_back((hit->StartTick() + hit->EndTick())/2.);
+      }
+      if (hit->View() == 2) {
+        thisTot_hits_p2_wireCoordinates.push_back(hit->Channel());
+        thisTot_hits_p2_tickCoordinates.push_back((hit->StartTick() + hit->EndTick())/2.);
+      }
+    }
+
+    // Get coordinates
+    dv_xyzCoordinates.push_back({dv.GetX(),dv.GetY(),dv.GetZ()});
+    dv_wireCoordinates.push_back({dv.GetChannelLoc(0),dv.GetChannelLoc(1),dv.GetChannelLoc(2)});
+    dv_tickCoordinates.push_back({dv.GetTickLoc(0),dv.GetTickLoc(1),dv.GetTickLoc(2)});
+    par1_xyzCoordinates.push_back({dv.GetParX(0),dv.GetParY(0),dv.GetParZ(0)});
+    par1_wireCoordinates.push_back({dv.GetParChannelLoc(0,0),dv.GetParChannelLoc(0,1),dv.GetParChannelLoc(0,2)});
+    par1_tickCoordinates.push_back({dv.GetParTickLoc(0,0),dv.GetParTickLoc(0,1),dv.GetParTickLoc(0,2)});
+    par2_xyzCoordinates.push_back({dv.GetParX(1),dv.GetParY(1),dv.GetParZ(1)});
+    par2_wireCoordinates.push_back({dv.GetParChannelLoc(1,0),dv.GetParChannelLoc(1,1),dv.GetParChannelLoc(1,2)});
+    par2_tickCoordinates.push_back({dv.GetParTickLoc(1,0),dv.GetParTickLoc(1,1),dv.GetParTickLoc(1,2)});
+
+    par1_hits_p0_wireCoordinates.push_back(thisPar1_hits_p0_wireCoordinates);
+    par1_hits_p1_wireCoordinates.push_back(thisPar1_hits_p1_wireCoordinates);
+    par1_hits_p2_wireCoordinates.push_back(thisPar1_hits_p2_wireCoordinates);
+    par1_hits_p0_tickCoordinates.push_back(thisPar1_hits_p0_tickCoordinates);
+    par1_hits_p1_tickCoordinates.push_back(thisPar1_hits_p1_tickCoordinates);
+    par1_hits_p2_tickCoordinates.push_back(thisPar1_hits_p2_tickCoordinates);
+
+    par2_hits_p0_wireCoordinates.push_back(thisPar2_hits_p0_wireCoordinates);
+    par2_hits_p1_wireCoordinates.push_back(thisPar2_hits_p1_wireCoordinates);
+    par2_hits_p2_wireCoordinates.push_back(thisPar2_hits_p2_wireCoordinates);
+    par2_hits_p0_tickCoordinates.push_back(thisPar2_hits_p0_tickCoordinates);
+    par2_hits_p1_tickCoordinates.push_back(thisPar2_hits_p1_tickCoordinates);
+    par2_hits_p2_tickCoordinates.push_back(thisPar2_hits_p2_tickCoordinates);
+
+    tot_hits_p0_wireCoordinates.push_back(thisTot_hits_p0_wireCoordinates);
+    tot_hits_p1_wireCoordinates.push_back(thisTot_hits_p1_wireCoordinates);
+    tot_hits_p2_wireCoordinates.push_back(thisTot_hits_p2_wireCoordinates);
+    tot_hits_p0_tickCoordinates.push_back(thisTot_hits_p0_tickCoordinates);
+    tot_hits_p1_tickCoordinates.push_back(thisTot_hits_p1_tickCoordinates);
+    tot_hits_p2_tickCoordinates.push_back(thisTot_hits_p2_tickCoordinates);
+  }
+  return;
+} // END function FillDrawTree
 
 
 void ScanRecoSelectionParameters::analyze(art::Event const & evt)
@@ -637,55 +908,29 @@ void ScanRecoSelectionParameters::analyze(art::Event const & evt)
   if (cleanVertices.size()==0) {printf("No clean vertex candidates found. Moving to next event...\n");}
   else
   {
-  // Get vectors containing hits for each track/shower object in order to perform calorimetry
-  std::vector<recob::Hit const*> totHits;
-  std::vector<std::vector<recob::Hit const*>> trackHits, showerHits;
-  GetHitVectors(evt, tracks, showers, totHits, trackHits, showerHits);
+    // Get vectors containing hits for each track/shower object in order to perform calorimetry
+    std::vector<recob::Hit const*> totHits;
+    std::vector<std::vector<recob::Hit const*>> trackHits, showerHits;
+    GetHitVectors(evt, tracks, showers, totHits, trackHits, showerHits);
 
-  // Perform calorimetry analysis
-  PerformCalorimetry(cleanVertices, totHits, trackHits, showerHits);
+    // Perform calorimetry analysis
+    std::vector<std::vector<recob::Hit const*>> totHitsInRadius;
+    PerformCalorimetry(cleanVertices, totHits, trackHits, showerHits, totHitsInRadius);
+
+    // Fill draw tree (optional)
+    if (fSaveDrawTree)
+    {
+      FillDrawTree(cleanVertices, totHitsInRadius, trackHits, showerHits);
+    }
   }
 
 
   // Fill tree and finish event loop
   tTree->Fill();
+  if (fSaveDrawTree) {drawTree->Fill();}
   printf("------------------------------------------------\n\n");
 } // END function analyze
 
-
-// Geometry functions
-void ScanRecoSelectionParameters::SetDetectorCoordinates(AuxVertex::DecayVertex& vert)
-{
-  // Get spatial coordinates and mark vertex as assigned
-  double xyz[3] = {vert.GetX(),vert.GetY(),vert.GetZ()};
-  vert.SetIsDetLocAssigned(true);
-
-  // Check whether coordinates are inside TPC 
-  bool isInsideX = (xyz[0]>fMinTpcBound[0]+fDistanceCut &&
-    xyz[0]<fMaxTpcBound[0]-fDistanceCut);
-  bool isInsideY = (xyz[1]>fMinTpcBound[1]+fDistanceCut &&
-    xyz[1]<fMaxTpcBound[1]-fDistanceCut);
-  bool isInsideZ = (xyz[2]>fMinTpcBound[2]+fDistanceCut &&
-    xyz[2]<fMaxTpcBound[2]-fDistanceCut);
-
-  // If vertex is inside TPC, determine channel/tick coordinates and assign them
-  if (isInsideX && isInsideY && isInsideZ)
-  {
-    vert.SetIsInsideTPC(true);
-    raw::ChannelID_t channel0 = fGeometry->NearestChannel(xyz,0);
-    raw::ChannelID_t channel1 = fGeometry->NearestChannel(xyz,1);
-    raw::ChannelID_t channel2 = fGeometry->NearestChannel(xyz,2);
-    double tick0 = fDetectorProperties->ConvertXToTicks(xyz[0], 0, 0, 0);
-    double tick1 = fDetectorProperties->ConvertXToTicks(xyz[0], 1, 0, 0);
-    double tick2 = fDetectorProperties->ConvertXToTicks(xyz[0], 2, 0, 0);
-    vert.SetChannelLoc(channel0, channel1, channel2);
-    vert.SetTickLoc(tick0, tick1, tick2);
-    return;
-  }
-
-  // Else flag it as outside the TPC and exit function
-  else {vert.SetIsInsideTPC(false); return;}
-} // END function SetDetectorCoordinates
 
 // Name that will be used by the .fcl to invoke the module
 DEFINE_ART_MODULE(ScanRecoSelectionParameters)

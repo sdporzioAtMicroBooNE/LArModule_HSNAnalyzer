@@ -29,6 +29,9 @@ namespace AuxVertex
     fX = x;
     fY = y;
     fZ = z;
+    fParX = {x,x};
+    fParY = {y,y};
+    fParZ = {z,z};
     fParIdx1 = parIdx1;
     fParIdx2 = parIdx2;
     fParType1 = parType1;
@@ -37,12 +40,17 @@ namespace AuxVertex
     fDirection2 = direction2;
     fChannelLoc = {-1,-1,-1};
     fTickLoc = {-1.,-1.,-1.};
+    fParChannelLoc = {{-1,-1,-1}, {-1,-1,-1}};
+    fParTickLoc = {{-1.,-1.,-1.}, {-1.,-1.,-1.}};
   }
 
   // Getters
   double DecayVertex::GetX() const {return fX;}
   double DecayVertex::GetY() const {return fY;}
   double DecayVertex::GetZ() const {return fZ;}
+  double DecayVertex::GetParX(int par) const {return fParX[par];}
+  double DecayVertex::GetParY(int par) const {return fParY[par];}
+  double DecayVertex::GetParZ(int par) const {return fParZ[par];}
   int DecayVertex::GetParIdx1() const {return fParIdx1;}
   int DecayVertex::GetParIdx2() const {return fParIdx2;}
   std::string DecayVertex::GetParType1() const {return fParType1;}
@@ -53,12 +61,18 @@ namespace AuxVertex
   bool DecayVertex::IsDetLocAssigned() const {return fIsDetLocAssigned;}
   int DecayVertex::GetChannelLoc(int plane) const {return fChannelLoc[plane];}
   double DecayVertex::GetTickLoc(int plane) const {return fTickLoc[plane];}
+  int DecayVertex::GetParChannelLoc(int par,int plane) const {return fParChannelLoc[par][plane];}
+  double DecayVertex::GetParTickLoc(int par,int plane) const {return fParTickLoc[par][plane];}
+
 
   // Setters
-  void DecayVertex::SetChannelLoc(int channel0, int channel1, int channel2) {fChannelLoc = {channel0,channel1,channel2};return;}
-  void DecayVertex::SetTickLoc(double tick0, double tick1, double tick2) {fTickLoc = {tick0, tick1, tick2};return;}
-  void DecayVertex::SetIsInsideTPC(bool val) {fIsInsideTPC = val;return;}
-  void DecayVertex::SetIsDetLocAssigned(bool val) {fIsDetLocAssigned = val;return;}
+  void DecayVertex::SetChannelLoc(int channel0, int channel1, int channel2) {fChannelLoc = {channel0,channel1,channel2}; return;}
+  void DecayVertex::SetTickLoc(double tick0, double tick1, double tick2) {fTickLoc = {tick0, tick1, tick2}; return;}
+  void DecayVertex::SetParChannelLoc(int par, int channel0, int channel1, int channel2) {fParChannelLoc[par] =  {channel0,channel1,channel2}; return;}
+  void DecayVertex::SetParTickLoc(int par, double tick0, double tick1, double tick2) {fParTickLoc[par] = {tick0, tick1, tick2}; return;}
+  void DecayVertex::SetParXYZ(int par, double x, double y, double z) {fParX[par] = x; fParY[par] = y; fParZ[par] = z; return;}
+  void DecayVertex::SetIsInsideTPC(bool val) {fIsInsideTPC = val; return;}
+  void DecayVertex::SetIsDetLocAssigned(bool val) {fIsDetLocAssigned = val; return;}
 
   // Printers
   void DecayVertex::PrintInformation() const{
@@ -107,6 +121,8 @@ namespace AuxVertex
     std::string direction1 = v1.GetDirection1();
     std::string direction2 = v2.GetDirection1();
     DecayVertex meanVertex(x,y,z,pidx1,pidx2,ptype1,ptype2,direction1,direction2);
+    meanVertex.SetParXYZ(0,v1.GetX(),v1.GetY(),v1.GetZ());
+    meanVertex.SetParXYZ(1,v2.GetX(),v2.GetY(),v2.GetZ());
     return meanVertex;
   } // END function MeanVertex
 
