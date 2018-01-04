@@ -108,9 +108,10 @@ namespace AuxVertex
   DecayVertex MeanVertex(DecayVertex v1, DecayVertex v2)
   {
     // Find vertex half-way between two ORIGIN vertices
-    if (v1.GetParIdx1()!=v1.GetParIdx2() || v2.GetParIdx1()!=v2.GetParIdx2()){
-      throw std::runtime_error("Mean vertex is supposed to be calculated only from two origin vertices (vertices which correspond to the actual start or end of a track or shower). Calculating the mean vertex between two mean vertices is not implemented yet.");
-    }
+    // if (v1.GetParIdx1()!=v1.GetParIdx2() || v2.GetParIdx1()!=v2.GetParIdx2())
+    // {
+    //   throw std::runtime_error("Mean vertex is supposed to be calculated only from two origin vertices (vertices which correspond to the actual start or end of a track or shower). Calculating the mean vertex between two mean vertices is not implemented yet.");
+    // }
     double x = (v1.GetX() + v2.GetX())/2.;
     double y = (v1.GetY() + v2.GetY())/2.;
     double z = (v1.GetZ() + v2.GetZ())/2.;
