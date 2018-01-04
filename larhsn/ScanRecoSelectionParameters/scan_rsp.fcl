@@ -34,7 +34,8 @@ physics:
       DecayChannel:         "2"
       SterileMass:          "0.350" # GeV/c^2
 			DistanceCut:					"10" # cm
-      CaloCut:              "10" # cm
+      RadiusProfileLimits:  [0,20] # cm
+      RadiusProfileBins:    20
       ChannelNorm:          "3.3" # number of channels in cm
       TickNorm:             "17.9" # number of ticks in cm
 			PrimaryOnly:					"true"

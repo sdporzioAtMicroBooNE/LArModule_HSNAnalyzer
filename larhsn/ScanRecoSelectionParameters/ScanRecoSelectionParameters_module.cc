@@ -84,7 +84,8 @@ private:
   int fDecayChannel;
   double fSterileMass;
   double fDistanceCut;
-  double fCaloCut;
+  std::vector<double> fRadiusProfileLimits;
+  int fRadiusProfileBins;
   double fChannelNorm;
   double fTickNorm;
   bool fPrimaryOnly;
@@ -104,8 +105,9 @@ private:
 
   // Declare analysis variables
   Int_t run, subrun, event, nTracks, nShowers, nPairs, nTrackVertices, nShowerVertices, nPotVertices, nCleanVertices, pandora_nPrimaryVertices, pandora_nCleanVertices, nCleanVerticesOutsideTPC, nTotHits;
-  std::vector<float> pairDistance, potPairDistance, totChargeInRadius, par1ChargeInRadius, par2ChargeInRadius, caloRatio;
+  std::vector<float> profileTicks, pairDistance, potPairDistance;
   std::vector<int> pandora_primaryVertexPDG, pandora_nDaughters, pandora_nTracks, pandora_nShowers, pandora_nNearTracks, pandora_nNearShowers, nTrackHits, nShowerHits, nTotHitsInRadius, nPar1HitsInRadius, nPar2HitsInRadius;
+  std::vector<std::vector<float>> totChargeInRadius, par1ChargeInRadius, par2ChargeInRadius, caloRatio; // For each dv in event (usually one) and for each radius
 
   // Declare drawTree variables
   std::vector<std::vector<int>> dv_wireCoordinates,
@@ -149,10 +151,10 @@ private:
           const std::vector<recob::Hit const*>& totHits,
           const std::vector<std::vector<recob::Hit const*>>& trackHits,
           const std::vector<std::vector<recob::Hit const*>>& showerHits,
-          std::vector<std::vector<recob::Hit const*>>& totHitsInRadius);
+          std::vector<std::vector<recob::Hit const*>>& totHitsInMaxRadius);
   void FillDrawTree(
           const std::vector<AuxVertex::DecayVertex>& cleanVertices,
-          const std::vector<std::vector<recob::Hit const*>>& totHitsInRadius,
+          const std::vector<std::vector<recob::Hit const*>>& totHitsInMaxRadius,
           const std::vector<std::vector<recob::Hit const*>>& trackHits,
           const std::vector<std::vector<recob::Hit const*>>& showerHits);
 }; // End class ScanRecoSelectionParameters
@@ -169,7 +171,8 @@ ScanRecoSelectionParameters::ScanRecoSelectionParameters(fhicl::ParameterSet con
     fDecayChannel(pset.get<int>("DecayChannel")),
     fSterileMass(pset.get<double>("SterileMass")),
     fDistanceCut(pset.get<double>("DistanceCut")),
-    fCaloCut(pset.get<double>("CaloCut")),
+    fRadiusProfileLimits(pset.get<std::vector<double>>("RadiusProfileLimits")),
+    fRadiusProfileBins(pset.get<double>("RadiusProfileBins")),
     fChannelNorm(pset.get<double>("ChannelNorm")),
     fTickNorm(pset.get<double>("TickNorm")),
     fPrimaryOnly(pset.get<bool>("PrimaryOnly")),
@@ -187,6 +190,14 @@ void ScanRecoSelectionParameters::beginJob()
   // Declare tree variables
   art::ServiceHandle< art::TFileService > tfs;
 
+  double profileStep = (fRadiusProfileLimits[1] - fRadiusProfileLimits[0]) / float(fRadiusProfileBins);
+  double currTick = fRadiusProfileLimits[0];
+  for (int i=0; i<fRadiusProfileBins; i++)
+  {
+    currTick += profileStep;
+    profileTicks.push_back(currTick);
+  }
+
   metaTree = tfs->make<TTree>("Metadata","");
   metaTree->Branch("instanceName",&fInstanceName);
   metaTree->Branch("iteration",&fIteration,"iteration/I"); 
@@ -197,7 +208,9 @@ void ScanRecoSelectionParameters::beginJob()
   metaTree->Branch("hitLabel",&fHitLabel);
   metaTree->Branch("decayChannel",&fDecayChannel,"decayChannel/I");
   metaTree->Branch("distanceCut",&fDistanceCut,"distanceCut/D");
-  metaTree->Branch("caloCut",&fCaloCut,"caloCut/D");
+  metaTree->Branch("radiusProfileLimits",&fRadiusProfileLimits);
+  metaTree->Branch("radiusProfileBins",&fRadiusProfileBins);
+  metaTree->Branch("profileTicks",&profileTicks);
   metaTree->Branch("channelNorm",&fChannelNorm,"channelNorm/D");
   metaTree->Branch("tickNorm",&fTickNorm,"tickNorm/D");
   metaTree->Branch("sterileMass",&fSterileMass,"sterileMass/D");
@@ -679,11 +692,11 @@ void ScanRecoSelectionParameters::GetHitVectors(art::Event const & evt, const st
   return;
 } // END function GetHitVectors
 
-void ScanRecoSelectionParameters::PerformCalorimetry(const std::vector<AuxVertex::DecayVertex>& cleanVertices, const std::vector<recob::Hit const*>& totHits, const std::vector<std::vector<recob::Hit const*>>& trackHits, const std::vector<std::vector<recob::Hit const*>>& showerHits, std::vector<std::vector<recob::Hit const*>>& totHitsInRadius)
+void ScanRecoSelectionParameters::PerformCalorimetry(const std::vector<AuxVertex::DecayVertex>& cleanVertices, const std::vector<recob::Hit const*>& totHits, const std::vector<std::vector<recob::Hit const*>>& trackHits, const std::vector<std::vector<recob::Hit const*>>& showerHits, std::vector<std::vector<recob::Hit const*>>& totHitsInMaxRadius)
 {
-  // Perform calorimetry analysis. At this stage we finally calculate all the charge deposited by the hits of track1 and track2 (or shower) within a radius (fCaloCut) from the assumed HSN decay vertex (cleanVertices[i]), for each decay vertex.
+  // Perform calorimetry analysis. At this stage we finally calculate all the charge deposited by the hits of track1 and track2 (or shower) within a radius from the assumed HSN decay vertex (cleanVertices[i]), for each decay vertex.
   // The second step looks at all the charge deposited by any hit in radius (which may come from hadronic interaction, in the case of background). And we finally calculate the ratio between the two (caloRatio). We would expect this ratio to be closer to 1 for signal, since HSN decaying in the detector don't interact with any particle, and we'd expect charge deposited by the two decay products to be the only charge within a certain radius from the decay point.
-
+  // Now, we actually repeat this step for different radia in order to build up a profile. The width of the profile is given by fRadiusProfileLimits and the number of bins by fRadiusProfileBin.
 
   // Loop through each clean vertex
   int vertInd = 0;
@@ -691,7 +704,8 @@ void ScanRecoSelectionParameters::PerformCalorimetry(const std::vector<AuxVertex
   for (std::vector<int>::size_type i=0; i!=cleanVertices.size(); i++)
   {
     // Initialize the vector of hits that will be pushed back to the vector of vector of hits and returned by the function
-    std::vector<recob::Hit const*> totHitsInRadius_thisDv;
+    std::vector<recob::Hit const*> totHitsInMaxRadius_thisDv;
+
 
     // Get useful quantities about the clean vertex currently being analyzed, like coordinates and parent indices
     int channel0[3] = {cleanVertices[i].GetChannelLoc(0),cleanVertices[i].GetChannelLoc(1),cleanVertices[i].GetChannelLoc(2)};
@@ -701,54 +715,82 @@ void ScanRecoSelectionParameters::PerformCalorimetry(const std::vector<AuxVertex
     if (fVerbose) {cleanVertices[i].PrintInformation();}
 
     // Calculate calorimetry for track 1 within radius
-    double parCharge1 = 0.;
+    // parCharge1 is a vector, which contains all the charge due to particle1 in a circle of radius r around the vertex.
+    // Each element of the vector is that integrated charge in increasing value of r
+    // It starts out as a vector of size equal to the number of bins in radius profile, each element is equal to 0.
+    // A loop goes then through each hit and for each radius size asks whether the hit is in it. If it is, the charge gets added to the total.
+    // Now declare parCharge1 and fill it with zeros
+    std::vector<float> parCharge1;
+    for (int j=0; j<fRadiusProfileBins; j++) parCharge1.push_back(0.);
+
     for (auto hit : trackHits[parIdx1])
     {
       int hitChannel = hit->Channel();
       double hitTick = (hit->EndTick() + hit->StartTick())/2.;
       int hitPlane = hit->View();
-      bool isInsideRadius = (pow(((hitChannel-channel0[hitPlane])/fChannelNorm),2.) + pow(((hitTick-tick0[hitPlane])/fTickNorm),2.) < pow(fCaloCut,2.));
-      if (isInsideRadius)
+
+      for (int j=0; j<fRadiusProfileBins; j++)
       {
-        double hitCharge = hit->Integral();
-        parCharge1 += hitCharge;
+        double caloCut = profileTicks[j];
+        bool isInsideRadius = (pow(((hitChannel-channel0[hitPlane])/fChannelNorm),2.) + pow(((hitTick-tick0[hitPlane])/fTickNorm),2.) < pow(caloCut,2.));
+        if (isInsideRadius)
+        {
+          double hitCharge = hit->Integral();
+          parCharge1[j] += hitCharge;
+        }
       }
     }
 
     // Calculate calorimetry for track 2 within radius
-    double parCharge2 = 0.;
+    std::vector<float> parCharge2;
+    for (int j=0; j<fRadiusProfileBins; j++) parCharge2.push_back(0.);
+
     for (auto hit : trackHits[parIdx2])
     {
       int hitChannel = hit->Channel();
       double hitTick = (hit->EndTick() + hit->StartTick())/2.;
       int hitPlane = hit->View();
-      bool isInsideRadius = (pow(((hitChannel-channel0[hitPlane])/fChannelNorm),2.) + pow(((hitTick-tick0[hitPlane])/fTickNorm),2.) < pow(fCaloCut,2.));
-      if (isInsideRadius)
+      for (int j=0; j<fRadiusProfileBins; j++)
       {
-        double hitCharge = hit->Integral();
-        parCharge2 += hitCharge;
+        double caloCut = profileTicks[j];
+        bool isInsideRadius = (pow(((hitChannel-channel0[hitPlane])/fChannelNorm),2.) + pow(((hitTick-tick0[hitPlane])/fTickNorm),2.) < pow(caloCut,2.));
+        if (isInsideRadius)
+        {
+          double hitCharge = hit->Integral();
+          parCharge2[j] += hitCharge;
+        }
       }
     }
 
     // Calculate total calorimetry within radius
-    double totCharge = 0.;
+    std::vector<float> totCharge;
+    for (int j=0; j<fRadiusProfileBins; j++) totCharge.push_back(0.);
+
     for (auto hit : totHits)
     {
       int hitChannel = hit->Channel();
       double hitTick = (hit->EndTick() + hit->StartTick())/2.;
       int hitPlane = hit->View();
-      bool isInsideRadius = (pow(((hitChannel-channel0[hitPlane])/fChannelNorm),2.) + pow(((hitTick-tick0[hitPlane])/fTickNorm),2.) < pow(fCaloCut,2.));
-      if (isInsideRadius)
+      for (int j=0; j<fRadiusProfileBins; j++)
       {
-        totHitsInRadius_thisDv.push_back(hit);
-        double hitCharge = hit->Integral();
-        totCharge += hitCharge;
-      }
+        double caloCut = profileTicks[j];
+        bool isInsideRadius = (pow(((hitChannel-channel0[hitPlane])/fChannelNorm),2.) + pow(((hitTick-tick0[hitPlane])/fTickNorm),2.) < pow(caloCut,2.));
+        if (isInsideRadius)
+        {
+          double hitCharge = hit->Integral();
+          totCharge[j] += hitCharge;
+
+          // totHitsInMaxRadius are used to draw the evd, you need to do that only for the largest radius
+          if (j == fRadiusProfileBins-1) totHitsInMaxRadius_thisDv.push_back(hit);
+        }
+      } 
     }
-    totHitsInRadius.push_back(totHitsInRadius_thisDv);
+    totHitsInMaxRadius.push_back(totHitsInMaxRadius_thisDv);
+    totHitsInMaxRadius_thisDv.clear();
 
     // Determine the ratio for this clean vertex
-    double thisCaloRatio = (parCharge1+parCharge2)/totCharge;
+    std::vector<float> thisCaloRatio;
+    for (int j=0; j<fRadiusProfileBins; j++) thisCaloRatio.push_back((parCharge1[j]+parCharge2[j])/float(totCharge[j]));
 
     // Calculate tree quantities
     par1ChargeInRadius.push_back(parCharge1);
@@ -757,14 +799,14 @@ void ScanRecoSelectionParameters::PerformCalorimetry(const std::vector<AuxVertex
     caloRatio.push_back(thisCaloRatio);
 
     // Diagnostic message
-    if (fVerbose) {printf("\n-|Clean Vertex %i|\n|_Deposit IP1: %.1f\n|_Deposit IP2: %.1f\n|_Total deposit: %.1f\n|_RATIO: %.1f\n",vertInd,parCharge1,parCharge2,totCharge,thisCaloRatio);}
+    if (fVerbose) {printf("\n-|Clean Vertex %i|\n|_Deposit IP1: %.1f\n|_Deposit IP2: %.1f\n|_Total deposit: %.1f\n|_RATIO: %.1f\n",vertInd,parCharge1[fRadiusProfileBins],parCharge2[fRadiusProfileBins],totCharge[fRadiusProfileBins],thisCaloRatio[fRadiusProfileBins]);}
 
     vertInd++;
   } // End clean vertex loop
   return;
 } // END function PerformCalorimetry
 
-void ScanRecoSelectionParameters::FillDrawTree(const std::vector<AuxVertex::DecayVertex>& cleanVertices, const std::vector<std::vector<recob::Hit const*>>& totHitsInRadius, const std::vector<std::vector<recob::Hit const*>>& trackHits, const std::vector<std::vector<recob::Hit const*>>& showerHits)
+void ScanRecoSelectionParameters::FillDrawTree(const std::vector<AuxVertex::DecayVertex>& cleanVertices, const std::vector<std::vector<recob::Hit const*>>& totHitsInMaxRadius, const std::vector<std::vector<recob::Hit const*>>& trackHits, const std::vector<std::vector<recob::Hit const*>>& showerHits)
 {
   for (std::vector<int>::size_type i=0; i!=cleanVertices.size(); i++)
   {
@@ -774,7 +816,7 @@ void ScanRecoSelectionParameters::FillDrawTree(const std::vector<AuxVertex::Deca
     int parIdx2 = dv.GetParIdx2();
     std::vector<recob::Hit const*> par1_hits = trackHits[parIdx1];
     std::vector<recob::Hit const*> par2_hits = trackHits[parIdx2];
-    std::vector<recob::Hit const*> thisTot_hits = totHitsInRadius[i];
+    std::vector<recob::Hit const*> thisTot_hits = totHitsInMaxRadius[i];
     std::vector<double> thisPar1_hits_p0_tickCoordinates,
       thisPar1_hits_p1_tickCoordinates,
       thisPar1_hits_p2_tickCoordinates,
@@ -914,13 +956,13 @@ void ScanRecoSelectionParameters::analyze(art::Event const & evt)
     GetHitVectors(evt, tracks, showers, totHits, trackHits, showerHits);
 
     // Perform calorimetry analysis
-    std::vector<std::vector<recob::Hit const*>> totHitsInRadius;
-    PerformCalorimetry(cleanVertices, totHits, trackHits, showerHits, totHitsInRadius);
+    std::vector<std::vector<recob::Hit const*>> totHitsInMaxRadius; // for each hit, for each dv
+    PerformCalorimetry(cleanVertices, totHits, trackHits, showerHits, totHitsInMaxRadius);
 
     // Fill draw tree (optional)
     if (fSaveDrawTree)
     {
-      FillDrawTree(cleanVertices, totHitsInRadius, trackHits, showerHits);
+      FillDrawTree(cleanVertices, totHitsInMaxRadius, trackHits, showerHits);
     }
   }
 
