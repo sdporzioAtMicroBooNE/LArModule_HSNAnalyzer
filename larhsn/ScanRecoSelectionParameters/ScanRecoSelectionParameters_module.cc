@@ -51,7 +51,6 @@
 #include "lardataobj/RecoBase/Wire.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/TrackingTypes.h"
-#include "lardataobj/Simulation/SimChannel.h"
 #include "lardataobj/RawData/RawDigit.h"
 #include "larcore/Geometry/geo.h"
 #include "larcore/Geometry/Geometry.h"
@@ -95,6 +94,7 @@ private:
   bool fSaveDrawTree;
 
   // Declare services
+  double profileStep, currTick;
   geo::GeometryCore const* fGeometry; // Pointer to the Geometry service
   detinfo::DetectorProperties const* fDetectorProperties; // Pointer to the Detector Properties
 
@@ -190,8 +190,8 @@ void ScanRecoSelectionParameters::beginJob()
   // Declare tree variables
   art::ServiceHandle< art::TFileService > tfs;
 
-  double profileStep = (fRadiusProfileLimits[1] - fRadiusProfileLimits[0]) / float(fRadiusProfileBins);
-  double currTick = fRadiusProfileLimits[0];
+  profileStep = (fRadiusProfileLimits[1] - fRadiusProfileLimits[0]) / float(fRadiusProfileBins);
+  currTick = fRadiusProfileLimits[0];
   for (int i=0; i<fRadiusProfileBins; i++)
   {
     currTick += profileStep;
@@ -315,6 +315,7 @@ void ScanRecoSelectionParameters::ClearData()
   pandora_nPrimaryVertices = 0;
   pandora_nCleanVertices = 0;
   nCleanVerticesOutsideTPC = 0;
+  profileTicks.clear();
   pairDistance.clear();
   potPairDistance.clear();
   pandora_primaryVertexPDG.clear();
