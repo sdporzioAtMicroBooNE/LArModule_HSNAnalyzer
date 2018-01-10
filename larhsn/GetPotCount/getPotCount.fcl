@@ -1,0 +1,36 @@
+#include "services_microboone.fcl"
+
+process_name: minimalExample
+
+services:
+{
+  TFileService: {fileName: "pot.root"}
+  TimeTracker:            {}
+  MemoryTracker:          {}
+  RandomNumberGenerator:  {}
+  @table::microboone_services
+}
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1
+}
+
+physics:
+{
+	analyzers:
+  {
+    GetPotCount:
+    {
+      module_type:          "GetPotCount"
+    }
+  }
+  analysis: [GetPotCount]
+  end_paths: [analysis]
+}
+
+services.DetectorClocksService.InheritClockConfig: false
+services.DetectorClocksService.TriggerOffsetTPC: -400
+services.DetectorPropertiesService.NumberTimeSamples: 6400
+services.DetectorPropertiesService.ReadOutWindowSize: 6400

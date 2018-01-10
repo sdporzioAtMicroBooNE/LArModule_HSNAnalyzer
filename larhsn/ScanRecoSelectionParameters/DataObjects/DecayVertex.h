@@ -29,15 +29,15 @@ namespace AuxVertex
         DecayVertex();
         virtual ~DecayVertex();
 
-        DecayVertex(double x, double y, double z, int parIdx1, int parIdx2, std::string parType1, std::string parType2, std::string direction1, std::string direction2);
+        DecayVertex(float x, float y, float z, int parIdx1, int parIdx2, std::string parType1, std::string parType2, std::string direction1, std::string direction2);
 
         // Getters
-        double GetX() const;
-        double GetY() const;
-        double GetZ() const;
-        double GetParX(int par) const;
-        double GetParY(int par) const;
-        double GetParZ(int par) const;
+        float GetX() const;
+        float GetY() const;
+        float GetZ() const;
+        float GetParX(int par) const;
+        float GetParY(int par) const;
+        float GetParZ(int par) const;
         int GetParIdx1() const;
         int GetParIdx2() const;
         std::string GetParType1() const;
@@ -47,16 +47,16 @@ namespace AuxVertex
         bool IsInsideTPC() const;
         bool IsDetLocAssigned() const;
         int GetChannelLoc(int plane) const;
-        double GetTickLoc(int plane) const;
+        float GetTickLoc(int plane) const;
         int GetParChannelLoc(int par,int plane) const;
-        double GetParTickLoc(int par,int plane) const;
+        float GetParTickLoc(int par,int plane) const;
 
         // Setters
         void SetChannelLoc(int channel0, int channel1, int channel2);
-        void SetTickLoc(double tick0, double tick1, double tick2);
+        void SetTickLoc(float tick0, float tick1, float tick2);
         void SetParChannelLoc(int par, int channel0, int channel1, int channel2);
-        void SetParTickLoc(int par, double tick0, double tick1, double tick2);
-        void SetParXYZ(int par, double x, double y, double z);
+        void SetParTickLoc(int par, float tick0, float tick1, float tick2);
+        void SetParXYZ(int par, float x, float y, float z);
         void SetIsInsideTPC(bool val);
         void SetIsDetLocAssigned(bool val);
 
@@ -66,18 +66,18 @@ namespace AuxVertex
     private:
     bool fIsInsideTPC; // Whetehr the vertex is inside the TPC.
     bool fIsDetLocAssigned; // Whether channel/tick coordinates have been determined.
-    double fX, fY, fZ; // Spatial coordinates of the vertex inside the detector.
-    std::vector<double> fParX, fParY, fParZ; // Spatial coordinates of the parent of the vertex inside the detector.
+    float fX, fY, fZ; // Spatial coordinates of the vertex inside the detector.
+    std::vector<float> fParX, fParY, fParZ; // Spatial coordinates of the parent of the vertex inside the detector.
     int fParIdx1,  fParIdx2; // Index of parent in track/shower vector (same for origin vertices).
     std::string fParType1, fParType2; // Type of parent ('t'=track,'s'=shower,'n'=neutral).
     std::string fDirection1, fDirection2; // Whether the vertex was coming from the origin ('start') or end ('end') of a track/shower.
     std::vector<int> fChannelLoc; // Nearest channel in each plane.
-    std::vector<double> fTickLoc; // Nearest time tick in each plane.
+    std::vector<float> fTickLoc; // Nearest time tick in each plane.
     std::vector<std::vector<int>> fParChannelLoc; // Nearest channel in each plane for the vertex parent.
-    std::vector<std::vector<double>> fParTickLoc; // Nearest time tick in each plane for the vertex parent.
+    std::vector<std::vector<float>> fParTickLoc; // Nearest time tick in each plane for the vertex parent.
 };
 
-double Distance(DecayVertex v1, DecayVertex v2);
+float Distance(DecayVertex v1, DecayVertex v2);
 DecayVertex MeanVertex(DecayVertex v1, DecayVertex v2);
 
 } //END namespace AuxVertex

@@ -15,9 +15,9 @@ namespace AuxVertex
   DecayVertex::~DecayVertex()
   {}
 
-  DecayVertex::DecayVertex(double x,
-                           double y,
-                           double z,
+  DecayVertex::DecayVertex(float x,
+                           float y,
+                           float z,
                            int parIdx1,
                            int parIdx2,
                            std::string parType1,
@@ -45,12 +45,12 @@ namespace AuxVertex
   }
 
   // Getters
-  double DecayVertex::GetX() const {return fX;}
-  double DecayVertex::GetY() const {return fY;}
-  double DecayVertex::GetZ() const {return fZ;}
-  double DecayVertex::GetParX(int par) const {return fParX[par];}
-  double DecayVertex::GetParY(int par) const {return fParY[par];}
-  double DecayVertex::GetParZ(int par) const {return fParZ[par];}
+  float DecayVertex::GetX() const {return fX;}
+  float DecayVertex::GetY() const {return fY;}
+  float DecayVertex::GetZ() const {return fZ;}
+  float DecayVertex::GetParX(int par) const {return fParX[par];}
+  float DecayVertex::GetParY(int par) const {return fParY[par];}
+  float DecayVertex::GetParZ(int par) const {return fParZ[par];}
   int DecayVertex::GetParIdx1() const {return fParIdx1;}
   int DecayVertex::GetParIdx2() const {return fParIdx2;}
   std::string DecayVertex::GetParType1() const {return fParType1;}
@@ -60,17 +60,17 @@ namespace AuxVertex
   bool DecayVertex::IsInsideTPC() const {return fIsInsideTPC;}
   bool DecayVertex::IsDetLocAssigned() const {return fIsDetLocAssigned;}
   int DecayVertex::GetChannelLoc(int plane) const {return fChannelLoc[plane];}
-  double DecayVertex::GetTickLoc(int plane) const {return fTickLoc[plane];}
+  float DecayVertex::GetTickLoc(int plane) const {return fTickLoc[plane];}
   int DecayVertex::GetParChannelLoc(int par,int plane) const {return fParChannelLoc[par][plane];}
-  double DecayVertex::GetParTickLoc(int par,int plane) const {return fParTickLoc[par][plane];}
+  float DecayVertex::GetParTickLoc(int par,int plane) const {return fParTickLoc[par][plane];}
 
 
   // Setters
   void DecayVertex::SetChannelLoc(int channel0, int channel1, int channel2) {fChannelLoc = {channel0,channel1,channel2}; return;}
-  void DecayVertex::SetTickLoc(double tick0, double tick1, double tick2) {fTickLoc = {tick0, tick1, tick2}; return;}
+  void DecayVertex::SetTickLoc(float tick0, float tick1, float tick2) {fTickLoc = {tick0, tick1, tick2}; return;}
   void DecayVertex::SetParChannelLoc(int par, int channel0, int channel1, int channel2) {fParChannelLoc[par] =  {channel0,channel1,channel2}; return;}
-  void DecayVertex::SetParTickLoc(int par, double tick0, double tick1, double tick2) {fParTickLoc[par] = {tick0, tick1, tick2}; return;}
-  void DecayVertex::SetParXYZ(int par, double x, double y, double z) {fParX[par] = x; fParY[par] = y; fParZ[par] = z; return;}
+  void DecayVertex::SetParTickLoc(int par, float tick0, float tick1, float tick2) {fParTickLoc[par] = {tick0, tick1, tick2}; return;}
+  void DecayVertex::SetParXYZ(int par, float x, float y, float z) {fParX[par] = x; fParY[par] = y; fParZ[par] = z; return;}
   void DecayVertex::SetIsInsideTPC(bool val) {fIsInsideTPC = val; return;}
   void DecayVertex::SetIsDetLocAssigned(bool val) {fIsDetLocAssigned = val; return;}
 
@@ -94,10 +94,10 @@ namespace AuxVertex
 
 
   // Aux Functions
-  double Distance(DecayVertex v1, DecayVertex v2)
+  float Distance(DecayVertex v1, DecayVertex v2)
   {
     // Calculate distance between vertices
-    double dist = sqrt(
+    float dist = sqrt(
       pow((v1.GetX() - v2.GetX()),2.) +
       pow((v1.GetY() - v2.GetY()),2.) +
       pow((v1.GetZ() - v2.GetZ()),2.)
@@ -112,9 +112,9 @@ namespace AuxVertex
     // {
     //   throw std::runtime_error("Mean vertex is supposed to be calculated only from two origin vertices (vertices which correspond to the actual start or end of a track or shower). Calculating the mean vertex between two mean vertices is not implemented yet.");
     // }
-    double x = (v1.GetX() + v2.GetX())/2.;
-    double y = (v1.GetY() + v2.GetY())/2.;
-    double z = (v1.GetZ() + v2.GetZ())/2.;
+    float x = (v1.GetX() + v2.GetX())/2.;
+    float y = (v1.GetY() + v2.GetY())/2.;
+    float z = (v1.GetZ() + v2.GetZ())/2.;
     int pidx1 = v1.GetParIdx1();
     int pidx2 = v2.GetParIdx1();
     std::string ptype1 = v1.GetParType1();

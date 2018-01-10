@@ -94,7 +94,6 @@ private:
   bool fSaveDrawTree;
 
   // Declare services
-  double profileStep, currTick;
   geo::GeometryCore const* fGeometry; // Pointer to the Geometry service
   detinfo::DetectorProperties const* fDetectorProperties; // Pointer to the Detector Properties
 
@@ -116,7 +115,7 @@ private:
     par2_hits_p0_wireCoordinates, par2_hits_p1_wireCoordinates, par2_hits_p2_wireCoordinates,
     tot_hits_p0_wireCoordinates, tot_hits_p1_wireCoordinates, tot_hits_p2_wireCoordinates;
 
-  std::vector<std::vector<double>> dv_xyzCoordinates, dv_tickCoordinates,
+  std::vector<std::vector<float>> dv_xyzCoordinates, dv_tickCoordinates,
     par1_xyzCoordinates, par1_tickCoordinates,
     par2_xyzCoordinates, par2_tickCoordinates,
     par1_hits_p0_tickCoordinates, par1_hits_p1_tickCoordinates, par1_hits_p2_tickCoordinates,
@@ -190,14 +189,6 @@ void ScanRecoSelectionParameters::beginJob()
   // Declare tree variables
   art::ServiceHandle< art::TFileService > tfs;
 
-  profileStep = (fRadiusProfileLimits[1] - fRadiusProfileLimits[0]) / float(fRadiusProfileBins);
-  currTick = fRadiusProfileLimits[0];
-  for (int i=0; i<fRadiusProfileBins; i++)
-  {
-    currTick += profileStep;
-    profileTicks.push_back(currTick);
-  }
-
   metaTree = tfs->make<TTree>("Metadata","");
   metaTree->Branch("instanceName",&fInstanceName);
   metaTree->Branch("iteration",&fIteration,"iteration/I"); 
@@ -210,7 +201,6 @@ void ScanRecoSelectionParameters::beginJob()
   metaTree->Branch("distanceCut",&fDistanceCut,"distanceCut/D");
   metaTree->Branch("radiusProfileLimits",&fRadiusProfileLimits);
   metaTree->Branch("radiusProfileBins",&fRadiusProfileBins);
-  metaTree->Branch("profileTicks",&profileTicks);
   metaTree->Branch("channelNorm",&fChannelNorm,"channelNorm/D");
   metaTree->Branch("tickNorm",&fTickNorm,"tickNorm/D");
   metaTree->Branch("sterileMass",&fSterileMass,"sterileMass/D");
@@ -241,6 +231,7 @@ void ScanRecoSelectionParameters::beginJob()
   tTree->Branch("nTotHitsInRadius",&nTotHitsInRadius);
   tTree->Branch("nPar1HitsInRadius",&nPar1HitsInRadius);
   tTree->Branch("nPar2HitsInRadius",&nPar2HitsInRadius);
+  tTree->Branch("profileTicks",&profileTicks);
   tTree->Branch("totChargeInRadius",&totChargeInRadius);
   tTree->Branch("par1ChargeInRadius",&par1ChargeInRadius);
   tTree->Branch("par2ChargeInRadius",&par2ChargeInRadius);
@@ -367,9 +358,9 @@ void ScanRecoSelectionParameters::ClearData()
 void ScanRecoSelectionParameters::SetDetectorCoordinates(AuxVertex::DecayVertex& vert)
 {
   // Get spatial coordinates and mark vertex as assigned
-  double xyz[3] = {vert.GetX(),vert.GetY(),vert.GetZ()};
-  double par1_xyz[3] = {vert.GetParX(0),vert.GetParY(0),vert.GetParZ(0)};
-  double par2_xyz[3] = {vert.GetParX(1),vert.GetParY(1),vert.GetParZ(1)};
+  float xyz[3] = {vert.GetX(),vert.GetY(),vert.GetZ()};
+  float par1_xyz[3] = {vert.GetParX(0),vert.GetParY(0),vert.GetParZ(0)};
+  float par2_xyz[3] = {vert.GetParX(1),vert.GetParY(1),vert.GetParZ(1)};
 
   vert.SetIsDetLocAssigned(true);
 
@@ -710,7 +701,7 @@ void ScanRecoSelectionParameters::PerformCalorimetry(const std::vector<AuxVertex
 
     // Get useful quantities about the clean vertex currently being analyzed, like coordinates and parent indices
     int channel0[3] = {cleanVertices[i].GetChannelLoc(0),cleanVertices[i].GetChannelLoc(1),cleanVertices[i].GetChannelLoc(2)};
-    double tick0[3] = {cleanVertices[i].GetTickLoc(0),cleanVertices[i].GetTickLoc(1),cleanVertices[i].GetTickLoc(2)};
+    float tick0[3] = {cleanVertices[i].GetTickLoc(0),cleanVertices[i].GetTickLoc(1),cleanVertices[i].GetTickLoc(2)};
     int parIdx1 = cleanVertices[i].GetParIdx1();
     int parIdx2 = cleanVertices[i].GetParIdx2();
     if (fVerbose) {cleanVertices[i].PrintInformation();}
@@ -818,7 +809,7 @@ void ScanRecoSelectionParameters::FillDrawTree(const std::vector<AuxVertex::Deca
     std::vector<recob::Hit const*> par1_hits = trackHits[parIdx1];
     std::vector<recob::Hit const*> par2_hits = trackHits[parIdx2];
     std::vector<recob::Hit const*> thisTot_hits = totHitsInMaxRadius[i];
-    std::vector<double> thisPar1_hits_p0_tickCoordinates,
+    std::vector<float> thisPar1_hits_p0_tickCoordinates,
       thisPar1_hits_p1_tickCoordinates,
       thisPar1_hits_p2_tickCoordinates,
       thisPar2_hits_p0_tickCoordinates,
@@ -886,7 +877,7 @@ void ScanRecoSelectionParameters::FillDrawTree(const std::vector<AuxVertex::Deca
     }
 
     // Get coordinates
-    dv_xyzCoordinates.push_back({dv.GetX(),dv.GetY(),dv.GetZ()});
+    dv_xyzCoordinates.push_back({dv.GetX(),dv.GetY(), (float)dv.GetZ()});
     dv_wireCoordinates.push_back({dv.GetChannelLoc(0),dv.GetChannelLoc(1),dv.GetChannelLoc(2)});
     dv_tickCoordinates.push_back({dv.GetTickLoc(0),dv.GetTickLoc(1),dv.GetTickLoc(2)});
     par1_xyzCoordinates.push_back({dv.GetParX(0),dv.GetParY(0),dv.GetParZ(0)});
@@ -928,6 +919,15 @@ void ScanRecoSelectionParameters::analyze(art::Event const & evt)
 
   // Start by clearing all the vectors.
   ClearData();
+
+  // Determine profile ticks
+  double profileStep = (fRadiusProfileLimits[1] - fRadiusProfileLimits[0]) / float(fRadiusProfileBins);
+  double currTick = fRadiusProfileLimits[0];
+  for (int i=0; i<fRadiusProfileBins; i++)
+  {
+    currTick += profileStep;
+    profileTicks.push_back(currTick);
+  }
 
   // Determine event ID
   run = evt.id().run();
