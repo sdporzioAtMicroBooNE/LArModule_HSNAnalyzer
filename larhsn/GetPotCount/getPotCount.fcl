@@ -24,6 +24,7 @@ physics:
     GetPotCount:
     {
       module_type:          "GetPotCount"
+      verbose:              true
     }
   }
   analysis: [GetPotCount]

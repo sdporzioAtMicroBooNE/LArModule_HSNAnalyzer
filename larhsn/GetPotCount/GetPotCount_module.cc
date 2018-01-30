@@ -17,6 +17,7 @@ private:
   // Declare trees
   TTree *tPotCount;
   TTree *tEventCount;
+  bool fVerbose;
 
   // Declare analysis variables
   int run, subrun, event;
@@ -27,7 +28,8 @@ private:
 }; // End class GetPotCount
 
 GetPotCount::GetPotCount(fhicl::ParameterSet const & pset) :
-    EDAnalyzer(pset)
+    EDAnalyzer(pset),
+    fVerbose(pset.get<bool>("verbose"))
 {} // END constructor GetPotCount
 
 GetPotCount::~GetPotCount()
@@ -59,8 +61,9 @@ void GetPotCount::ClearData()
 void GetPotCount::analyze(art::Event const & evt)
 {
   // Core analysis. Use all the previously defined functions to determine success rate. This will be repeated event by event.
-  printf("\n-------------------------------------------------------\n");
-  
+  if (fVerbose) printf("\n|-----------------------------------------------------|");
+  if (fVerbose) printf("\n|  GETPOTCOUNT MODULE                                 |");
+  if (fVerbose) printf("\n|-----------------------------------------------------|\n");  
   // Start by clearing all the vectors.
   ClearData();
 
@@ -68,13 +71,13 @@ void GetPotCount::analyze(art::Event const & evt)
   run = evt.id().run();
   subrun = evt.id().subRun();
   event = evt.id().event();
-  printf("||INFORMATION FOR EVENT %i [RUN %i, SUBRUN %i]||\n", event, run, subrun);
+  if (fVerbose) printf("||INFORMATION FOR EVENT %i [RUN %i, SUBRUN %i]||\n", event, run, subrun);
   
   // Start performing analysis
 
   // Fill tree and finish event loop
   tEventCount->Fill();
-  printf("-------------------------------------------------------\n\n");
+  if (fVerbose) printf("-------------------------------------------------------\n\n");
 } // END function analyze
 
 void GetPotCount::endSubRun(art::SubRun const & sr) 

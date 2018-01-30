@@ -15,7 +15,7 @@ services:
 source:
 {
   module_type: RootInput
-  maxEvents:  -1
+  maxEvents:  20
 }
 
 physics:

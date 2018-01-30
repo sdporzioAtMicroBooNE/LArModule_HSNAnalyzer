@@ -468,12 +468,18 @@ void ScanRecoSelectionParameters::GetOriginVertices(art::Event const & evt, cons
       // Create vertex
       AuxVertex::DecayVertex tempV1(track->Vertex().X(),track->Vertex().Y(),track->Vertex().Z(),i,i,"t","t","front","front");
       SetDetectorCoordinates(tempV1);
-      trackVertices.push_back(tempV1);
+      if (tempV1.IsInsideTPC())
+      {
+        trackVertices.push_back(tempV1);
+      }
       if (fEndVerticesAlso)
       {
         AuxVertex::DecayVertex tempV2(track->End().X(),track->End().Y(),track->End().Z(),i,i,"t","t","end","end");
         SetDetectorCoordinates(tempV2);
-        trackVertices.push_back(tempV2);
+        if (tempV2.IsInsideTPC())
+        {
+          trackVertices.push_back(tempV2);
+        }
       }
     }
     else {printf("WHAT THE HELL! Why does the association doesn't lead to an object?\nIt looks like one track/object might be missing, don't trust this event.\n");}
@@ -492,7 +498,10 @@ void ScanRecoSelectionParameters::GetOriginVertices(art::Event const & evt, cons
       // Create vertex
       AuxVertex::DecayVertex tempV(shower->ShowerStart().X(),shower->ShowerStart().Y(),shower->ShowerStart().Z(),i,i,"s","s","front","front");
       SetDetectorCoordinates(tempV);
-      showerVertices.push_back(tempV);
+      if (tempV.IsInsideTPC())
+      {
+        showerVertices.push_back(tempV);
+      }
     }
     else {printf("WHAT THE HELL! Why does the association doesn't lead to an object?\nIt looks like one track/object might be missing, don't trust this event.\n");}
   }
