@@ -28,6 +28,7 @@ physics:
       queriedRun:           [1,1,1,1,1]
       queriedSubrun:        [0,0,0,0,0]
       queriedEvent:         [1,4,5,6,9]
+      queryAll:                  false #if all==true, module ignores queriedEvent and creates database of all events
     }
   }
   analysis: [FindFileWithEvent]

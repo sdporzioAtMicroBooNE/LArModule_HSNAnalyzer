@@ -18,6 +18,7 @@ private:
   std::vector<int> q_run;
   std::vector<int> q_subrun;
   std::vector<int> q_event;
+  bool q_all;
 
   // Declare trees
   TTree *tDataTree;
@@ -28,7 +29,7 @@ private:
   std::string fileName;
   std::string f_fileName;
   int lenQueriedEvents;
-  bool isRightRun, isRightSubrun, isRightEvent, isRightAll;
+  bool isCorrectRun, isCorrectSubrun, isCorrectEvent, isToStore;
 
   // Declare analysis functions
   void ClearData();
@@ -38,7 +39,8 @@ FindFileWithEvent::FindFileWithEvent(fhicl::ParameterSet const & pset) :
     EDAnalyzer(pset),
     q_run(pset.get<std::vector<int>>("queriedRun")),
     q_subrun(pset.get<std::vector<int>>("queriedSubrun")),
-    q_event(pset.get<std::vector<int>>("queriedEvent"))  
+    q_event(pset.get<std::vector<int>>("queriedEvent")),
+    q_all(pset.get<bool>("queryAll"))
 {} // END constructor FindFileWithEvent
 
 FindFileWithEvent::~FindFileWithEvent()
@@ -73,30 +75,36 @@ void FindFileWithEvent::ClearData()
   f_subrun = -1;
   f_event = -1;
   f_fileName = "";
-  isRightAll = false;
+  isToStore = false;
 } // END function ClearData
 
 void FindFileWithEvent::analyze(art::Event const & evt)
 {
-  // Core analysis. Use all the previously defined functions to determine success rate. This will be repeated event by event.
-  printf("\n-------------------------------------------------------\n");
+  // Core analysis. This will be repeated event by event.
 
   // Start by clearing all data.
   ClearData();
+
   // Determine event ID
   run = evt.id().run();
   subrun = evt.id().subRun();
   event = evt.id().event();
 
-  for (int i=0;i<lenQueriedEvents;i++)
+  // Check if event is contained in the list of events to be found. If queryAll == true, then information for all events will be stored.
+  if (q_all) isToStore = true;
+  else
   {
-    isRightRun = (q_run[i] == run);
-    isRightSubrun = (q_subrun[i] == subrun);
-    isRightEvent = (q_event[i] == event);
-    if (isRightRun && isRightSubrun && isRightEvent) isRightAll = true;
+    for (int i=0;i<lenQueriedEvents;i++)
+    {
+      isCorrectRun = (q_run[i] == run);
+      isCorrectSubrun = (q_subrun[i] == subrun);
+      isCorrectEvent = (q_event[i] == event);
+      if (isCorrectRun && isCorrectSubrun && isCorrectEvent) isToStore = true;
+    }
   }
 
-  if (isRightAll)
+  // If event information is to be stored, fill tree.
+  if (isToStore)
   {
     printf("||FOUND EVENT %i [RUN %i, SUBRUN %i] in file %s||\n", event, run, subrun, fileName.c_str());
     f_run = run;
@@ -104,10 +112,9 @@ void FindFileWithEvent::analyze(art::Event const & evt)
     f_event = event;
     f_fileName = fileName;
     tDataTree->Fill();
+    printf("-------------------------------------------------------\n\n");
   }
-  printf("-------------------------------------------------------\n\n");
 } // END function analyze
-
 
 // Name that will be used by the .fcl to invoke the module
 DEFINE_ART_MODULE(FindFileWithEvent)
