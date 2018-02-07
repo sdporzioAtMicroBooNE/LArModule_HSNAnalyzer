@@ -26,12 +26,13 @@ private:
   // Declare trees
   TTree *tDataTree;
   int run, subrun, event;
-  int int_CCNC, int_mode, int_interactionType, int_target, int_hitNuc, int_hitQuark, nu_pdgCode, lepton_pdgCode;
-  std::vector<int> cosmic_pdgCode;
+  int int_CCNC, int_mode, int_interactionType, int_target, int_hitNuc, int_hitQuark, nu_pdgCode, lepton_pdgCode, piGamma_nPi, piGamma_nGamma;
+  std::vector<int> cosmic_pdgCode, piGamma_pdgCode;
   double int_w, int_x, int_y, int_qSqr, int_pT, int_theta;
   double nu_vX, nu_vY, nu_vZ, nu_T, nu_endX, nu_endY, nu_endZ, nu_endT, nu_pX, nu_pY, nu_pZ, nu_e, nu_p, nu_pT, nu_mass, nu_endPx, nu_endPy, nu_endPz, nu_endE;
   double lepton_vX, lepton_vY, lepton_vZ, lepton_T, lepton_endX, lepton_endY, lepton_endZ, lepton_endT, lepton_pX, lepton_pY, lepton_pZ, lepton_e, lepton_p, lepton_pT, lepton_mass, lepton_endPx, lepton_endPy, lepton_endPz, lepton_endE;
   std::vector<double> cosmic_vX, cosmic_vY, cosmic_vZ, cosmic_T, cosmic_endX, cosmic_endY, cosmic_endZ, cosmic_endT, cosmic_pX, cosmic_pY, cosmic_pZ, cosmic_e, cosmic_p, cosmic_pT, cosmic_mass, cosmic_endPx, cosmic_endPy, cosmic_endPz, cosmic_endE;
+  std::vector<double> piGamma_vX, piGamma_vY, piGamma_vZ, piGamma_T, piGamma_endX, piGamma_endY, piGamma_endZ, piGamma_endT, piGamma_pX, piGamma_pY, piGamma_pZ, piGamma_e, piGamma_p, piGamma_pT, piGamma_mass, piGamma_endPx, piGamma_endPy, piGamma_endPz, piGamma_endE;
 
   void ClearData();
 }; // End class PiGammaFinder
@@ -131,6 +132,29 @@ void PiGammaFinder::beginJob()
   tDataTree->Branch("cosmic_endPz",&cosmic_endPz);
   tDataTree->Branch("cosmic_endE",&cosmic_endE);
 
+  tDataTree->Branch("piGamma_nPi",&piGamma_nPi);
+  tDataTree->Branch("piGamma_nGamma",&piGamma_nGamma);
+  tDataTree->Branch("piGamma_pdgCode",&piGamma_pdgCode);
+  tDataTree->Branch("piGamma_vX",&piGamma_vX);
+  tDataTree->Branch("piGamma_vY",&piGamma_vY);
+  tDataTree->Branch("piGamma_vZ",&piGamma_vZ);
+  tDataTree->Branch("piGamma_T",&piGamma_T);
+  tDataTree->Branch("piGamma_endX",&piGamma_endX);
+  tDataTree->Branch("piGamma_endY",&piGamma_endY);
+  tDataTree->Branch("piGamma_endZ",&piGamma_endZ);
+  tDataTree->Branch("piGamma_endT",&piGamma_endT);
+  tDataTree->Branch("piGamma_pX",&piGamma_pX);
+  tDataTree->Branch("piGamma_pY",&piGamma_pY);
+  tDataTree->Branch("piGamma_pZ",&piGamma_pZ);
+  tDataTree->Branch("piGamma_e",&piGamma_e);
+  tDataTree->Branch("piGamma_p",&piGamma_p);
+  tDataTree->Branch("piGamma_pT",&piGamma_pT);
+  tDataTree->Branch("piGamma_mass",&piGamma_mass);
+  tDataTree->Branch("piGamma_endPx",&piGamma_endPx);
+  tDataTree->Branch("piGamma_endPy",&piGamma_endPy);
+  tDataTree->Branch("piGamma_endPz",&piGamma_endPz);
+  tDataTree->Branch("piGamma_endE",&cosmic_endE);
+
   // fGeometry = lar::providerFrom<geo::Geometry>();
   // fDetectorProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
 } // END function beginJob
@@ -144,6 +168,8 @@ void PiGammaFinder::ClearData()
   run = -1;
   subrun = -1;
   event = -1;
+  piGamma_nGamma = 0;
+  piGamma_nPi = 0;
   cosmic_pdgCode.clear();
   cosmic_vX.clear();
   cosmic_vY.clear();
@@ -164,6 +190,26 @@ void PiGammaFinder::ClearData()
   cosmic_endPy.clear();
   cosmic_endPz.clear();
   cosmic_endE.clear();
+  piGamma_pdgCode.clear();
+  piGamma_vX.clear();
+  piGamma_vY.clear();
+  piGamma_vZ.clear();
+  piGamma_T.clear();
+  piGamma_endX.clear();
+  piGamma_endY.clear();
+  piGamma_endZ.clear();
+  piGamma_endT.clear();
+  piGamma_pX.clear();
+  piGamma_pY.clear();
+  piGamma_pZ.clear();
+  piGamma_e.clear();
+  piGamma_p.clear();
+  piGamma_pT.clear();
+  piGamma_mass.clear();
+  piGamma_endPx.clear();
+  piGamma_endPy.clear();
+  piGamma_endPz.clear();
+  piGamma_endE.clear();
 } // END function ClearData
 
 void PiGammaFinder::GetTruthInformation(art::Event const & evt)
@@ -238,6 +284,49 @@ void PiGammaFinder::GetTruthInformation(art::Event const & evt)
     lepton_endPy = lepton.EndPy();
     lepton_endPz = lepton.EndPz();
     lepton_endE = lepton.EndE();
+
+    // Find pi-gamma MCParticles
+    int nParticles = mct.NParticles();
+    for (int i=0; i<nParticles; i++)
+    {
+      const simb::MCParticle& mcp = mct.GetParticle(i);
+      bool isGammaPi = false;
+      int pdg = mcp.PdgCode();
+      if (pdg==11 || pdg==-11)
+      {
+        piGamma_nGamma += 1;
+        isGammaPi = true;
+      }
+      if (pdg==111 || pdg==-111)
+      {
+        piGamma_nPi += 1;
+        isGammaPi = true;
+      }
+      // Save information if gamma or pi
+      if (isGammaPi)
+      {
+        piGamma_pdgCode.push_back(mcp.PdgCode());
+        piGamma_vX.push_back(mcp.Vx());
+        piGamma_vY.push_back(mcp.Vy());
+        piGamma_vZ.push_back(mcp.Vz());
+        piGamma_T.push_back(mcp.T());
+        piGamma_endX.push_back(mcp.EndX());
+        piGamma_endY.push_back(mcp.EndY());
+        piGamma_endZ.push_back(mcp.EndZ());
+        piGamma_endT.push_back(mcp.EndT());
+        piGamma_pX.push_back(mcp.Px());
+        piGamma_pY.push_back(mcp.Py());
+        piGamma_pZ.push_back(mcp.Pz());
+        piGamma_e.push_back(mcp.E());
+        piGamma_p.push_back(mcp.P());
+        piGamma_pT.push_back(mcp.Pt());
+        piGamma_mass.push_back(mcp.Mass());
+        piGamma_endPx.push_back(mcp.EndPx());
+        piGamma_endPy.push_back(mcp.EndPy());
+        piGamma_endPz.push_back(mcp.EndPz());
+        piGamma_endE.push_back(mcp.EndE());
+      } // End of isGammaPi if
+    } // End of mcparticle loop
   } // End of mctruth loop
 
   // Find cosmic mcTruth
@@ -287,7 +376,7 @@ void PiGammaFinder::analyze(art::Event const & evt)
 {
   // Core analysis. Use all the previously defined functions to determine success rate. This will be repeated event by event.
   if (fVerbose) printf("\n|-----------------------------------------------------|");
-  if (fVerbose) printf("\n|   CUSTOMANATREE MODULE                              |");
+  if (fVerbose) printf("\n|   PIGAMMAFINDER MODULE                              |");
   if (fVerbose) printf("\n|-----------------------------------------------------|\n\n");  
   
   // Start by clearing all the vectors.
