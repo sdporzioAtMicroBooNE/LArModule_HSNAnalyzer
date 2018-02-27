@@ -1,10 +1,10 @@
 #include "services_microboone.fcl"
 
-process_name: minimalExample
+process_name: scanrsp
 
 services:
 {
-  TFileService: {fileName: "findFileWithEvent.root"}
+  TFileService: {fileName: "RecoSelectionParametersTree.root"}
   TimeTracker:            {}
   MemoryTracker:          {}
   RandomNumberGenerator:  {}
@@ -15,23 +15,19 @@ services:
 source:
 {
   module_type: RootInput
-  maxEvents:  -1
+  maxEvents:  20
 }
 
 physics:
 {
 	analyzers:
   {
-    FindFileWithEvent:
+    TestGeoDetTransfer0:
     {
-      module_type:          "FindFileWithEvent"
-      queriedRun:           [1,1,1,1,1]
-      queriedSubrun:        [0,0,0,0,0]
-      queriedEvent:         [1,4,5,6,9]
-      queryAll:             true #if all==true, module ignores queriedEvent and creates database of all events
+		 	module_type:          "TestGeoDetTransfer"
     }
   }
-  analysis: [FindFileWithEvent]
+  analysis: [TestGeoDetTransfer0]
   end_paths: [analysis]
 }
 

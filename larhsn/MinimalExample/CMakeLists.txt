@@ -16,7 +16,6 @@ art_make(BASENAME_ONLY
 		${ROOT_BASIC_LIB_LIST}
 		${G4_LIB_LIST}
 	MODULE_LIBRARIES  
-		LArHSNDataObjects
 		larreco_RecoAlg
 		larreco_RecoAlg_Cluster3DAlgs
 		larsim_Simulation

@@ -1,21 +1,7 @@
-# basic source code CMakeLists.txt
-
-art_make(BASENAME_ONLY
-	LIB_LIBRARIES 
-		lardataobj_RecoBase
-		lardataobj_AnalysisBase
-		larcore_Geometry
-    larcore_Geometry_Geometry_service
-		lardata_Utilities
-		${SIMULATIONBASE}
-		${MF_MESSAGELOGGER}
-		${MF_UTILITIES}
-		${FHICLCPP}
-		${CETLIB}
-		${CLHEP}
-		${ROOT_BASIC_LIB_LIST}
-		${G4_LIB_LIST}
-	MODULE_LIBRARIES  
+art_make( BASENAME_ONLY
+	LIBRARY_NAME PreSelectAlgorithms
+	LIB_LIBRARIES
+		PreSelectDataObjects
 		larreco_RecoAlg
 		larreco_RecoAlg_Cluster3DAlgs
 		larsim_Simulation
@@ -35,9 +21,10 @@ art_make(BASENAME_ONLY
 		${ART_FRAMEWORK_SERVICES_OPTIONAL}
 		${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
 		${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
-		art_Persistency_Common
-		art_Persistency_Provenance
-		art_Utilities
+		art_Persistency_Common canvas_Persistency_Common
+		art_Persistency_Provenance canvas_Persistency_Provenance
+		art_Utilities canvas_Utilities
+		${ART_UTILITIES}
 		${MF_MESSAGELOGGER}
 		${MF_UTILITIES}
 		${FHICLCPP}
@@ -45,8 +32,9 @@ art_make(BASENAME_ONLY
 		${CLHEP}
 		${ROOT_BASIC_LIB_LIST}
 		${G4_LIB_LIST}
+		${Boost_SYSTEM_LIBRARY}
 	)
 
 install_headers()
-install_source()
 install_fhicl()
+install_source()

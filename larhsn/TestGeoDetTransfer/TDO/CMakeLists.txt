@@ -1,6 +1,8 @@
 art_make( BASENAME_ONLY
-	LIBRARY_NAME LArHSNDataObjects
-	LIB_LIBRARIES 
+	LIBRARY_NAME TestDataObjects
+	LIB_LIBRARIES
+		larcore_Geometry
+    larcore_Geometry_Geometry_service
 		lardataobj_RawData
 		lardataobj_RecoBase
 		lardata_RecoObjects

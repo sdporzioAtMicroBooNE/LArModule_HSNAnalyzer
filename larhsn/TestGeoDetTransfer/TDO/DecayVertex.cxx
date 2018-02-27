@@ -92,7 +92,6 @@ namespace AuxVertex
     return;
   }
 
-
   // Aux Functions
   float Distance(DecayVertex v1, DecayVertex v2)
   {
@@ -126,5 +125,22 @@ namespace AuxVertex
     meanVertex.SetParXYZ(1,v2.GetX(),v2.GetY(),v2.GetZ());
     return meanVertex;
   } // END function MeanVertex
+
+
+  void PrintCoordinates(geo::GeometryCore const* geometry, detinfo::DetectorProperties const* detectorProperties ,float* xyz)
+{
+  raw::ChannelID_t channel0 = geometry->NearestChannel(xyz,0);
+  raw::ChannelID_t channel1 = geometry->NearestChannel(xyz,1);
+  raw::ChannelID_t channel2 = geometry->NearestChannel(xyz,2);
+  double tick0 = detectorProperties->ConvertXToTicks(xyz[0], 0, 0, 0);
+  double tick1 = detectorProperties->ConvertXToTicks(xyz[0], 1, 0, 0);
+  double tick2 = detectorProperties->ConvertXToTicks(xyz[0], 2, 0, 0);
+  std::printf("\n\n----> OutsideFunction\n");
+  std::printf("----> XYZ: [%.1f,%.1f,%.1f]\n", xyz[0], xyz[1], xyz[2]);
+  std::printf("----> Channels: [%i,%i,%i]\n", channel0, channel1, channel2);
+  std::printf("----> Ticks: [%.1f,%.1f,%.1f]\n", tick0, tick1, tick2);
+
+  return;
+} // END function SetDetectorCoordinates
 
 } // END namespace AuxVertex

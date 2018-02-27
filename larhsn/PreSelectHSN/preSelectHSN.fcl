@@ -1,10 +1,10 @@
 #include "services_microboone.fcl"
 
-process_name: scanrsp
+process_name: preselecthsn
 
 services:
 {
-  TFileService: {fileName: "RecoSelectionParametersTree.root"}
+  TFileService: {fileName: "preSelection_HSN.root"}
   TimeTracker:            {}
   MemoryTracker:          {}
   RandomNumberGenerator:  {}
@@ -22,13 +22,15 @@ physics:
 {
 	analyzers:
   {
-    ScanRecoSelectionParameters0:
+    PreSelectHSN0:
     {
-		 	module_type:          "ScanRecoSelectionParameters"
-      InstanceName:         "ScanRecoSelectionParameters0"
+		 	module_type:          "PreSelectHSN"
+      InstanceName:         "PreSelectHSN0"
       Iteration:            "0"
       MinTpcBound:          [10., -105.53, 10.1]
       MaxTpcBound:          [246.35, 107.47, 1026.9]
+      ManualSearch:         "true"
+      PandoraSearch:        "true"
 			PfpLabel:	       			"pandoraNu"
       HitLabel:             "gaushit" 
       DataType:             "signal"
@@ -46,7 +48,7 @@ physics:
       SaveDrawTree:         "true" # Optional. Takes more space.
     }
   }
-  analysis: [ScanRecoSelectionParameters0]
+  analysis: [PreSelectHSN0]
   end_paths: [analysis]
 }
 

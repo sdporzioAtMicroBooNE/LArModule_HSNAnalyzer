@@ -15,7 +15,8 @@ art_make(BASENAME_ONLY
 		${CLHEP}
 		${ROOT_BASIC_LIB_LIST}
 		${G4_LIB_LIST}
-	MODULE_LIBRARIES  
+	MODULE_LIBRARIES
+		TestDataObjects
 		larreco_RecoAlg
 		larreco_RecoAlg_Cluster3DAlgs
 		larsim_Simulation
@@ -46,6 +47,8 @@ art_make(BASENAME_ONLY
 		${ROOT_BASIC_LIB_LIST}
 		${G4_LIB_LIST}
 	)
+
+add_subdirectory(TDO)
 
 install_headers()
 install_source()

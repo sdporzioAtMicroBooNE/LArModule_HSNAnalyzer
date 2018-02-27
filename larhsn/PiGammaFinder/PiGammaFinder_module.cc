@@ -292,7 +292,7 @@ void PiGammaFinder::GetTruthInformation(art::Event const & evt)
       const simb::MCParticle& mcp = mct.GetParticle(i);
       bool isGammaPi = false;
       int pdg = mcp.PdgCode();
-      if (pdg==11 || pdg==-11)
+      if (pdg==22 || pdg==-22)
       {
         piGamma_nGamma += 1;
         isGammaPi = true;
