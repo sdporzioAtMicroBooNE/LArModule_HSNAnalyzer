@@ -62,6 +62,8 @@
 #include "Algorithms/FindPandoraVertexAlg.h"
 #include "Algorithms/CalorimetryRadiusAlg.h"
 #include "DataObjects/DecayVertex.h"
+#include "DataObjects/EventDescriptor.h"
+
 
 // Analyzer class
 class PreSelectHSN : public art::EDAnalyzer
@@ -107,26 +109,31 @@ private:
 
   // Declare trees
   TTree *metaTree;
-  TTree *tTree;
-  TTree *drawTree;
+  TTree *manualTree;
+  TTree *manualDrawTree;
   TTree *pandoraTree;
   TTree *pandoraDrawTree;
 
+  // Declare tree helpers
+  AuxEvent::EventDescriptor evd;
+
   // Declare analysis variables
-  Int_t run, subrun, event, nTracks, nShowers, nPairs, nTrackVertices, nShowerVertices, nPotVertices, nCleanVertices, nCleanVerticesOutsideTPC, nTotHits;
   std::vector<float> profileTicks, pairDistance, potPairDistance;
   std::vector<int> nTrackHits, nShowerHits;
   std::vector<std::vector<float>> totChargeInRadius, par1ChargeInRadius, par2ChargeInRadius, caloRatio; // For each dv in event (usually one) and for each radius
+  std::vector<bool> tree_diagnostic_pathologicalVertex;
 
   // Declare pandora analysis variables
-  std::vector<recob::PFParticle const*> ana_pandora_neutrinos, ana_pandora_tracks, ana_pandora_showers;
   std::vector<AuxVertex::DecayVertex> ana_pandora_decayVertices;
+  std::vector<recob::PFParticle const*> ana_pandora_neutrinos, ana_pandora_tracks, ana_pandora_showers;
   int tree_pandora_nNeutrinos, tree_pandora_nTwoProngedNeutrinos, tree_pandora_nInsideTwoProngedNeutrinos;
   std::vector<int> tree_pandora_neutrinoPdgCode, tree_pandora_neutrinoNumDaughters, tree_pandora_neutrinoNumTracks, tree_pandora_neutrinoNumShowers;
   std::vector<bool> tree_pandora_neutrinoInTPC;
   std::vector<std::vector<float>> tree_pandoraCalo_totChargeInRadius, tree_pandoraCalo_par1ChargeInRadius, tree_pandoraCalo_par2ChargeInRadius, tree_pandoraCalo_caloRatio; // For each dv in event (usually one) and for each radius
   int tree_pandoraCalo_nTotHits;
   std::vector<int> tree_pandoraCalo_nTrackHits, tree_pandoraCalo_nShowerHits;
+  std::vector<std::vector<int>> tree_pandoraDiagnostic_nVerticesInPfp;
+  std::vector<bool> tree_pandoraDiagnostic_pathologicalVertex;
 
   // Declare drawTree variables
   std::vector<std::vector<int>> dv_wireCoordinates,

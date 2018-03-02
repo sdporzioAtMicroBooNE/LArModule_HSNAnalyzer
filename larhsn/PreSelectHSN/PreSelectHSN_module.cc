@@ -33,15 +33,14 @@ PreSelectHSN::PreSelectHSN(fhicl::ParameterSet const & pset) :
   fGeometry = lar::providerFrom<geo::Geometry>();
   fDetectorProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
 
-    // Determine profile ticks
-    double profileStep = (fRadiusProfileLimits[1] - fRadiusProfileLimits[0]) / float(fRadiusProfileBins);
-    double currTick = fRadiusProfileLimits[0];
-    for (int i=0; i<fRadiusProfileBins; i++)
-    {
-      currTick += profileStep;
-      profileTicks.push_back(currTick);
-    }
-
+  // Determine profile ticks
+  double profileStep = (fRadiusProfileLimits[1] - fRadiusProfileLimits[0]) / float(fRadiusProfileBins);
+  double currTick = fRadiusProfileLimits[0];
+  for (int i=0; i<fRadiusProfileBins; i++)
+  {
+    currTick += profileStep;
+    profileTicks.push_back(currTick);
+  }
 } // END constructor PreSelectHSN
 
 PreSelectHSN::~PreSelectHSN()
@@ -49,7 +48,7 @@ PreSelectHSN::~PreSelectHSN()
 
 void PreSelectHSN::beginJob()
 {
-  // Declare tree variables
+  // Declare file service handle
   art::ServiceHandle< art::TFileService > tfs;
 
   // Meta tree containing fcl file parameters
@@ -72,63 +71,70 @@ void PreSelectHSN::beginJob()
   metaTree->Branch("endVerticesAlso",&fEndVerticesAlso,"endVerticesAlso/O");
   metaTree->Branch("anaType",&fAnaType);
   metaTree->Branch("saveDrawTree",&fSaveDrawTree,"saveDrawTree/O");
+  metaTree->Branch("profileTicks",&profileTicks);
   metaTree->Fill();
 
   // Tree for manual search
   if (fManualSearch)
   {
-    tTree = tfs->make<TTree>("Data","");
-    tTree->Branch("run",&run,"run/I");
-    tTree->Branch("subrun",&subrun,"subrun/I");
-    tTree->Branch("event",&event,"event/I");
-    tTree->Branch("nTracks",&nTracks,"nTracks/I");
-    tTree->Branch("nShowers",&nShowers,"nShowers/I");
-    tTree->Branch("pairDistance",&pairDistance);
-    tTree->Branch("nPairs",&nPairs,"nPairs/I");
-    tTree->Branch("nTrackVertices",&nTrackVertices,"nTrackVertices/I");
-    tTree->Branch("nShowerVertices",&nShowerVertices,"nShowerVertices/I");
-    tTree->Branch("potPairDistance",&potPairDistance);
-    tTree->Branch("nPotVertices",&nPotVertices,"nPotVertices/I");
-    tTree->Branch("nCleanVertices",&nCleanVertices,"nCleanVertices/I");
-    tTree->Branch("nTotHits",&nTotHits);
-    tTree->Branch("nTrackHits",&nTrackHits);
-    tTree->Branch("nShowerHits",&nShowerHits);
-    tTree->Branch("profileTicks",&profileTicks);
-    tTree->Branch("totChargeInRadius",&totChargeInRadius);
-    tTree->Branch("par1ChargeInRadius",&par1ChargeInRadius);
-    tTree->Branch("par2ChargeInRadius",&par2ChargeInRadius);
-    tTree->Branch("caloRatio",&caloRatio);
+    manualTree = tfs->make<TTree>("Data","");
+    manualTree->Branch("run",&evd.run);
+    manualTree->Branch("subrun",&evd.subrun);
+    manualTree->Branch("event",&evd.event);
+    manualTree->Branch("nPrimaries",&evd.manual_NumPrimaries);
+    manualTree->Branch("nTracks",&evd.manual_NumTracks);
+    manualTree->Branch("nShowers",&evd.manual_NumShowers);
+    manualTree->Branch("nTrackVertices",&evd.manual_NumTrackVertices);
+    manualTree->Branch("nShowerVertices",&evd.manual_NumShowerVertices);
+    manualTree->Branch("nPairs",&evd.manual_NumVertexPairs);
+    manualTree->Branch("nPotVertices",&evd.manual_NumPotVertices);
+    manualTree->Branch("nCleanVertices",&evd.manual_NumCleanVertices);
+    manualTree->Branch("pairDistances",&evd.manual_pairDistances);
+    manualTree->Branch("potPairDistances",&evd.manual_potPairDistances);
+
+    manualTree->Branch("nTotHits",&nTotHits);
+    manualTree->Branch("nTrackHits",&nTrackHits);
+    manualTree->Branch("nShowerHits",&nShowerHits);
+    
+    manualTree->Branch("totChargeInRadius",&totChargeInRadius);
+    manualTree->Branch("par1ChargeInRadius",&par1ChargeInRadius);
+    manualTree->Branch("par2ChargeInRadius",&par2ChargeInRadius);
+    manualTree->Branch("caloRatio",&caloRatio);
+
+    manualTree->Branch("nUnassociatedTracks",&manual_NumUnassociatedTracks);
+    manualTree->Branch("nUnassociatedShowers",&manual_NumUnassociatedTracks);
+
 
     if (fSaveDrawTree)
     {
-      drawTree = tfs->make<TTree>("DrawTree","");
-      drawTree->Branch("dv_xyzCoordinates",&dv_xyzCoordinates);
-      drawTree->Branch("dv_wireCoordinates",&dv_wireCoordinates);
-      drawTree->Branch("dv_tickCoordinates",&dv_tickCoordinates);
-      drawTree->Branch("par1_xyzCoordinates",&par1_xyzCoordinates);
-      drawTree->Branch("par1_wireCoordinates",&par1_wireCoordinates);
-      drawTree->Branch("par1_tickCoordinates",&par1_tickCoordinates);
-      drawTree->Branch("par2_xyzCoordinates",&par2_xyzCoordinates);
-      drawTree->Branch("par2_wireCoordinates",&par2_wireCoordinates);
-      drawTree->Branch("par2_tickCoordinates",&par2_tickCoordinates);
-      drawTree->Branch("par1_hits_p0_wireCoordinates",&par1_hits_p0_wireCoordinates);
-      drawTree->Branch("par1_hits_p1_wireCoordinates",&par1_hits_p1_wireCoordinates);
-      drawTree->Branch("par1_hits_p2_wireCoordinates",&par1_hits_p2_wireCoordinates);
-      drawTree->Branch("par1_hits_p0_tickCoordinates",&par1_hits_p0_tickCoordinates);
-      drawTree->Branch("par1_hits_p1_tickCoordinates",&par1_hits_p1_tickCoordinates);
-      drawTree->Branch("par1_hits_p2_tickCoordinates",&par1_hits_p2_tickCoordinates);
-      drawTree->Branch("par2_hits_p0_wireCoordinates",&par2_hits_p0_wireCoordinates);
-      drawTree->Branch("par2_hits_p1_wireCoordinates",&par2_hits_p1_wireCoordinates);
-      drawTree->Branch("par2_hits_p2_wireCoordinates",&par2_hits_p2_wireCoordinates);
-      drawTree->Branch("par2_hits_p0_tickCoordinates",&par2_hits_p0_tickCoordinates);
-      drawTree->Branch("par2_hits_p1_tickCoordinates",&par2_hits_p1_tickCoordinates);
-      drawTree->Branch("par2_hits_p2_tickCoordinates",&par2_hits_p2_tickCoordinates);
-      drawTree->Branch("tot_hits_p0_wireCoordinates",&tot_hits_p0_wireCoordinates);
-      drawTree->Branch("tot_hits_p1_wireCoordinates",&tot_hits_p1_wireCoordinates);
-      drawTree->Branch("tot_hits_p2_wireCoordinates",&tot_hits_p2_wireCoordinates);
-      drawTree->Branch("tot_hits_p0_tickCoordinates",&tot_hits_p0_tickCoordinates);
-      drawTree->Branch("tot_hits_p1_tickCoordinates",&tot_hits_p1_tickCoordinates);
-      drawTree->Branch("tot_hits_p2_tickCoordinates",&tot_hits_p2_tickCoordinates);
+      manualDrawTree = tfs->make<TTree>("DrawTree","");
+      manualDrawTree->Branch("dv_xyzCoordinates",&dv_xyzCoordinates);
+      manualDrawTree->Branch("dv_wireCoordinates",&dv_wireCoordinates);
+      manualDrawTree->Branch("dv_tickCoordinates",&dv_tickCoordinates);
+      manualDrawTree->Branch("par1_xyzCoordinates",&par1_xyzCoordinates);
+      manualDrawTree->Branch("par1_wireCoordinates",&par1_wireCoordinates);
+      manualDrawTree->Branch("par1_tickCoordinates",&par1_tickCoordinates);
+      manualDrawTree->Branch("par2_xyzCoordinates",&par2_xyzCoordinates);
+      manualDrawTree->Branch("par2_wireCoordinates",&par2_wireCoordinates);
+      manualDrawTree->Branch("par2_tickCoordinates",&par2_tickCoordinates);
+      manualDrawTree->Branch("par1_hits_p0_wireCoordinates",&par1_hits_p0_wireCoordinates);
+      manualDrawTree->Branch("par1_hits_p1_wireCoordinates",&par1_hits_p1_wireCoordinates);
+      manualDrawTree->Branch("par1_hits_p2_wireCoordinates",&par1_hits_p2_wireCoordinates);
+      manualDrawTree->Branch("par1_hits_p0_tickCoordinates",&par1_hits_p0_tickCoordinates);
+      manualDrawTree->Branch("par1_hits_p1_tickCoordinates",&par1_hits_p1_tickCoordinates);
+      manualDrawTree->Branch("par1_hits_p2_tickCoordinates",&par1_hits_p2_tickCoordinates);
+      manualDrawTree->Branch("par2_hits_p0_wireCoordinates",&par2_hits_p0_wireCoordinates);
+      manualDrawTree->Branch("par2_hits_p1_wireCoordinates",&par2_hits_p1_wireCoordinates);
+      manualDrawTree->Branch("par2_hits_p2_wireCoordinates",&par2_hits_p2_wireCoordinates);
+      manualDrawTree->Branch("par2_hits_p0_tickCoordinates",&par2_hits_p0_tickCoordinates);
+      manualDrawTree->Branch("par2_hits_p1_tickCoordinates",&par2_hits_p1_tickCoordinates);
+      manualDrawTree->Branch("par2_hits_p2_tickCoordinates",&par2_hits_p2_tickCoordinates);
+      manualDrawTree->Branch("tot_hits_p0_wireCoordinates",&tot_hits_p0_wireCoordinates);
+      manualDrawTree->Branch("tot_hits_p1_wireCoordinates",&tot_hits_p1_wireCoordinates);
+      manualDrawTree->Branch("tot_hits_p2_wireCoordinates",&tot_hits_p2_wireCoordinates);
+      manualDrawTree->Branch("tot_hits_p0_tickCoordinates",&tot_hits_p0_tickCoordinates);
+      manualDrawTree->Branch("tot_hits_p1_tickCoordinates",&tot_hits_p1_tickCoordinates);
+      manualDrawTree->Branch("tot_hits_p2_tickCoordinates",&tot_hits_p2_tickCoordinates);
     }
   }
 
@@ -150,6 +156,8 @@ void PreSelectHSN::beginJob()
     pandoraTree->Branch("nTotHits",&tree_pandoraCalo_nTotHits);
     pandoraTree->Branch("nTrackHits",&tree_pandoraCalo_nTrackHits);
     pandoraTree->Branch("nShowerHits",&tree_pandoraCalo_nShowerHits);
+    pandoraTree->Branch("diagnostic_nVerticesInPfp",&tree_pandoraDiagnostic_nVerticesInPfp);
+    pandoraTree->Branch("diagnostic_pathologicalVertex",&tree_pandoraDiagnostic_pathologicalVertex);
     pandoraTree->Branch("profileTicks",&profileTicks);
     pandoraTree->Branch("totChargeInRadius",&tree_pandoraCalo_totChargeInRadius);
     pandoraTree->Branch("par1ChargeInRadius",&tree_pandoraCalo_par1ChargeInRadius);
@@ -212,6 +220,7 @@ void PreSelectHSN::ClearData()
   par1ChargeInRadius.clear();
   par2ChargeInRadius.clear();
   caloRatio.clear();
+  tree_diagnostic_pathologicalVertex.clear();
 
   // Pandora variables
   tree_pandoraCalo_nTotHits = 0;
@@ -221,6 +230,7 @@ void PreSelectHSN::ClearData()
   tree_pandoraCalo_par2ChargeInRadius.clear();
   tree_pandoraCalo_totChargeInRadius.clear();
   tree_pandoraCalo_caloRatio.clear();
+  tree_pandoraDiagnostic_pathologicalVertex.clear();
 
   // Drawing vectors
   dv_xyzCoordinates.clear();
@@ -371,10 +381,11 @@ void PreSelectHSN::analyze(art::Event const & evt)
 {
   if (fVerbose) {printf("\n------------------------------------------------\n");}
 
-  // Determine event ID
+  // Determine event ID and create an event descriptor
   run = evt.id().run();
   subrun = evt.id().subRun();
   event = evt.id().event();
+  evd.Initialize(run,subrun,event);
   if (fVerbose) {printf("||INFORMATION FOR EVENT %i [RUN %i, SUBRUN %i]||\n", event, run, subrun);}
 
 
@@ -384,22 +395,20 @@ void PreSelectHSN::analyze(art::Event const & evt)
     // Start by clearing vectors from previous searches
     ClearData();
     // Find all PFParticles in the event. Separate them in track pfps, shower pfps, and primary pfps
-    fFindDecayVertexAlg.GetTrackShowerVectors(evt);
-    std::vector<recob::PFParticle const*> tracks = fFindDecayVertexAlg.ana_tracks;
-    std::vector<recob::PFParticle const*> showers = fFindDecayVertexAlg.ana_showers;
-    std::vector<recob::PFParticle const*> pandora_primaryPFP = fFindDecayVertexAlg.ana_pandora_primaryPFP;
+    fFindDecayVertexAlg.GetTrackShowerVectors(evd, evt);
+    std::vector<recob::PFParticle const*> primaries = fFindDecayVertexAlg.ana_manual_primaries;
+    std::vector<recob::PFParticle const*> tracks = fFindDecayVertexAlg.ana_manual_tracks;
+    std::vector<recob::PFParticle const*> showers = fFindDecayVertexAlg.ana_manual_showers;
 
     // Determine origin points for all tracks and for all showers
-    fFindDecayVertexAlg.GetOriginVertices(evt, tracks, showers);
-    std::vector<AuxVertex::DecayVertex> trackVertices = fFindDecayVertexAlg.ana_trackVertices;
-    std::vector<AuxVertex::DecayVertex> showerVertices = fFindDecayVertexAlg.ana_showerVertices;
+    fFindDecayVertexAlg.GetOriginVertices(evd, evt, tracks, showers);
+    std::vector<AuxVertex::DecayVertex> trackVertices = fFindDecayVertexAlg.ana_manual_trackVertices;
+    std::vector<AuxVertex::DecayVertex> showerVertices = fFindDecayVertexAlg.ana_manual_showerVertices;
 
     // Use all vertices to determine potential decay vertices
-    fFindDecayVertexAlg.GetDecayVertices(trackVertices, showerVertices);
-    std::vector<AuxVertex::DecayVertex> potVertices = fFindDecayVertexAlg.ana_potVertices;
-    std::vector<AuxVertex::DecayVertex> cleanVertices = fFindDecayVertexAlg.ana_cleanVertices;
-    pairDistance = fFindDecayVertexAlg.ana_pairDistance;
-    potPairDistance = fFindDecayVertexAlg.ana_potPairDistance;
+    fFindDecayVertexAlg.GetDecayVertices(evd, trackVertices, showerVertices);
+    std::vector<AuxVertex::DecayVertex> potVertices = fFindDecayVertexAlg.ana_manual_potVertices;
+    std::vector<AuxVertex::DecayVertex> cleanVertices = fFindDecayVertexAlg.ana_manual_cleanVertices;
 
     // Determine useful additional quantities that will go in the tree
     nTracks = tracks.size();
@@ -420,6 +429,7 @@ void PreSelectHSN::analyze(art::Event const & evt)
       std::vector<std::vector<recob::Hit const*>> trackHits = fCalorimetryRadiusAlg.ana_trackHits;
       std::vector<std::vector<recob::Hit const*>> showerHits = fCalorimetryRadiusAlg.ana_showerHits;
 
+
       // Perform calorimetry analysis
       fCalorimetryRadiusAlg.PerformCalorimetry(cleanVertices, totHits, trackHits, showerHits);
       std::vector<std::vector<recob::Hit const*>> totHitsInMaxRadius = fCalorimetryRadiusAlg.ana_totHitsInMaxRadius;
@@ -437,8 +447,8 @@ void PreSelectHSN::analyze(art::Event const & evt)
       if (fSaveDrawTree) FillDrawTree(cleanVertices, totHitsInMaxRadius, trackHits, showerHits);
     }
     // Fill tree
-    tTree->Fill();
-    if (fSaveDrawTree) drawTree->Fill();
+    manualTree->Fill();
+    if (fSaveDrawTree) manualDrawTree->Fill();
   }
 
 
@@ -453,6 +463,7 @@ void PreSelectHSN::analyze(art::Event const & evt)
     std::vector<recob::PFParticle const*> ana_pandora_tracks = fFindPandoraVertexAlg.ana_pandora_tracks;
     std::vector<recob::PFParticle const*> ana_pandora_showers = fFindPandoraVertexAlg.ana_pandora_showers;
     std::vector<AuxVertex::DecayVertex> ana_pandora_decayVertices = fFindPandoraVertexAlg.ana_pandora_decayVertices;
+
     tree_pandora_nNeutrinos = fFindPandoraVertexAlg.tree_pandora_nNeutrinos;
     tree_pandora_nTwoProngedNeutrinos = fFindPandoraVertexAlg.tree_pandora_nTwoProngedNeutrinos;
     tree_pandora_nInsideTwoProngedNeutrinos = fFindPandoraVertexAlg.tree_pandora_nInsideTwoProngedNeutrinos;

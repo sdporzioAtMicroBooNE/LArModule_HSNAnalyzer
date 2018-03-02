@@ -59,6 +59,7 @@
 
 // Auxiliary objects includes
 #include "larhsn/PreSelectHSN/DataObjects/DecayVertex.h"
+#include "larhsn/PreSelectHSN/DataObjects/EventDescriptor.h"
 
 namespace FindDecayVertex
 {
@@ -71,22 +72,25 @@ namespace FindDecayVertex
     void reconfigure(fhicl::ParameterSet const & pset);
 
     // algorithms
-    void GetTrackShowerVectors(art::Event const & evt);
+    void GetTrackShowerVectors(
+            AuxEvent::EventDescriptor & evd,
+            art::Event const & evt);
 
     void GetOriginVertices(
+            AuxEvent::EventDescriptor & evd,
             art::Event const & evt,
             const std::vector<recob::PFParticle const*>& tracks,
             const std::vector<recob::PFParticle const*>& showers);
 
     void GetDecayVertices(
+            AuxEvent::EventDescriptor & evd,
             const std::vector<AuxVertex::DecayVertex>& trackVertices,
             const std::vector<AuxVertex::DecayVertex>& showerVertices);
 
     // analysis variables
-    std::vector<recob::PFParticle const*> ana_tracks, ana_showers, ana_pandora_primaryPFP;
-    std::vector<AuxVertex::DecayVertex> ana_trackVertices, ana_showerVertices;
-    std::vector<AuxVertex::DecayVertex> ana_potVertices, ana_cleanVertices;
-    std::vector<float> ana_pairDistance, ana_potPairDistance;
+    std::vector<recob::PFParticle const*>  ana_manual_primaries, ana_manual_tracks, ana_manual_showers;
+    std::vector<AuxVertex::DecayVertex> ana_manual_trackVertices, ana_manual_showerVertices;
+    std::vector<AuxVertex::DecayVertex> ana_manual_potVertices, ana_manual_cleanVertices;
 
   private:
     // fhicl parameters

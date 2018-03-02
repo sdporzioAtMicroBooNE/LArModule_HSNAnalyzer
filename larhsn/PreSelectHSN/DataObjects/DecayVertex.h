@@ -63,6 +63,8 @@ namespace AuxVertex
     std::string GetDirection2() const;
     bool IsInsideTPC() const;
     bool IsDetLocAssigned() const;
+    bool IsPathological() const;
+    std::vector<int> GetPathologyCode() const;
     int GetChannelLoc(int plane) const;
     float GetTickLoc(int plane) const;
     int GetParChannelLoc(int par,int plane) const;
@@ -82,6 +84,9 @@ namespace AuxVertex
     void SetParXYZ(int par, float x, float y, float z);
     void SetIsInsideTPC(bool val);
     void SetIsDetLocAssigned(bool val);
+    void SetIsPathological(bool val, int pathologyCode);
+    void SetPathologyCode(std::vector<int> val);
+    void AddPathologyCode(int val);
 
     // Printers
     void PrintInformation() const;
@@ -89,6 +94,8 @@ namespace AuxVertex
     private:
       bool fIsInsideTPC; // Whetehr the vertex is inside the TPC.
       bool fIsDetLocAssigned; // Whether channel/tick coordinates have been determined.
+      bool fIsPathological; // Whether the decay vertex is pathological.
+      std::vector<int> fPathologyCode; // The code of the pathology
       float fX, fY, fZ; // Spatial coordinates of the vertex inside the detector.
       std::vector<float> fParX, fParY, fParZ; // Spatial coordinates of the parent of the vertex inside the detector.
       int fParIdx1,  fParIdx2; // Index of parent in track/shower vector (same for origin vertices).

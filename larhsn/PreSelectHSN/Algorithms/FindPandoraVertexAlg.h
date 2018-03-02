@@ -79,6 +79,7 @@ namespace FindPandoraVertex
     
     int tree_pandora_nNeutrinos, tree_pandora_nTwoProngedNeutrinos, tree_pandora_nInsideTwoProngedNeutrinos;
     std::vector<int> tree_pandora_neutrinoPdgCode, tree_pandora_neutrinoNumDaughters, tree_pandora_neutrinoNumTracks, tree_pandora_neutrinoNumShowers;
+    std::vector<std::vector<int>> tree_pandoraDiagnostic_nVerticesInPfp;
     std::vector<bool> tree_pandora_neutrinoInTPC;
 
   private:

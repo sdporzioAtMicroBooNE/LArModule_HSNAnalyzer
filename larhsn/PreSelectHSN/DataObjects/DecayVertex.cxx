@@ -26,6 +26,7 @@ namespace AuxVertex
                            std::string direction2)
   {
     fIsDetLocAssigned = false;
+    fIsPathological = false;
     fX = x;
     fY = y;
     fZ = z;
@@ -42,6 +43,7 @@ namespace AuxVertex
     fTickLoc = {-1.,-1.,-1.};
     fParChannelLoc = {{-1,-1,-1}, {-1,-1,-1}};
     fParTickLoc = {{-1.,-1.,-1.}, {-1.,-1.,-1.}};
+    fPathologyCode = {};
   }
 
   // Getters
@@ -59,10 +61,12 @@ namespace AuxVertex
   std::string DecayVertex::GetDirection2() const {return fDirection2;}
   bool DecayVertex::IsInsideTPC() const {return fIsInsideTPC;}
   bool DecayVertex::IsDetLocAssigned() const {return fIsDetLocAssigned;}
+  bool DecayVertex::IsPathological() const {return fIsPathological;}
   int DecayVertex::GetChannelLoc(int plane) const {return fChannelLoc[plane];}
   float DecayVertex::GetTickLoc(int plane) const {return fTickLoc[plane];}
   int DecayVertex::GetParChannelLoc(int par,int plane) const {return fParChannelLoc[par][plane];}
   float DecayVertex::GetParTickLoc(int par,int plane) const {return fParTickLoc[par][plane];}
+  std::vector<int> DecayVertex::GetPathologyCode() const {return fPathologyCode;}
 
 
   // Setters
@@ -73,6 +77,9 @@ namespace AuxVertex
   void DecayVertex::SetParXYZ(int par, float x, float y, float z) {fParX[par] = x; fParY[par] = y; fParZ[par] = z; return;}
   void DecayVertex::SetIsInsideTPC(bool val) {fIsInsideTPC = val; return;}
   void DecayVertex::SetIsDetLocAssigned(bool val) {fIsDetLocAssigned = val; return;}
+  void DecayVertex::SetIsPathological(bool val, int pathologyCode) {fIsPathological = val; fPathologyCode.push_back(pathologyCode); return;}
+  void DecayVertex::SetPathologyCode(std::vector<int> val) {fPathologyCode = val; return;}
+  void DecayVertex::AddPathologyCode(int val) {fPathologyCode.push_back(val); return;}
   void DecayVertex::SetDetectorCoordinates(
     const std::vector<double>& minTpcBound,
     const std::vector<double>& maxTpcBound,
@@ -129,7 +136,13 @@ namespace AuxVertex
     }
 
     // Else flag it as outside the TPC and exit function
-    else {fIsInsideTPC = false; return;}
+    else
+      {
+        fIsInsideTPC = false;
+        fIsPathological = true;
+        fPathologyCode.push_back(1);
+        return;
+      }
   } // END function SetDetectorCoordinates
 
 

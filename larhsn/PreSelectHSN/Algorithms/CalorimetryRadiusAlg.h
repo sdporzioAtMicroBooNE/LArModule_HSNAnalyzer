@@ -59,6 +59,7 @@
 
 // Auxiliary objects includes
 #include "larhsn/PreSelectHSN/DataObjects/DecayVertex.h"
+#include "larhsn/PreSelectHSN/DataObjects/EventDescriptor.h"
 
 namespace CalorimetryRadius
 {
@@ -76,7 +77,7 @@ namespace CalorimetryRadius
           const std::vector<recob::PFParticle const*>& tracks,
           const std::vector<recob::PFParticle const*>& showers);
   void PerformCalorimetry(
-          const std::vector<AuxVertex::DecayVertex>& cleanVertices,
+          std::vector<AuxVertex::DecayVertex>& cleanVertices,
           const std::vector<recob::Hit const*>& totHits,
           const std::vector<std::vector<recob::Hit const*>>& trackHits,
           const std::vector<std::vector<recob::Hit const*>>& showerHits);
@@ -86,6 +87,7 @@ namespace CalorimetryRadius
   std::vector<std::vector<recob::Hit const*>> ana_trackHits, ana_showerHits; // for each hit, for each track/shower
   std::vector<std::vector<recob::Hit const*>> ana_totHitsInMaxRadius; // for each hit, for each dv
   std::vector<std::vector<float>> ana_totChargeInRadius, ana_par1ChargeInRadius, ana_par2ChargeInRadius, ana_caloRatio;
+  std::vector<bool> tree_diagnostic_pathologicalVertex;
 
   private:
     // fhicl parameters

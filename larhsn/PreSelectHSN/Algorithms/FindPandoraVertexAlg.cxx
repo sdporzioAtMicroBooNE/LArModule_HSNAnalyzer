@@ -42,6 +42,7 @@ namespace FindPandoraVertex
     tree_pandora_neutrinoNumTracks.clear();
     tree_pandora_neutrinoNumShowers.clear();
     tree_pandora_neutrinoInTPC.clear();
+    tree_pandoraDiagnostic_nVerticesInPfp.clear();
 
     // Prepare the pfp handle and the vertex associations
     art::InputTag pfpTag {fPfpLabel};
@@ -49,11 +50,9 @@ namespace FindPandoraVertex
     art::FindMany<recob::Vertex> pva(pfpHandle,evt,pfpTag);
 
     // Loop through each pfp
-
     for(std::vector<int>::size_type i=0; i!=(*pfpHandle).size(); i++)
     {
       recob::PFParticle pfp = (*pfpHandle)[i];
-
       // Find neutrino
       if (pfp.IsPrimary())
       {
@@ -69,6 +68,8 @@ namespace FindPandoraVertex
         std::vector<int> trackIndices;
         // The indices of the tracks belonging to this neutrino in the pfp original vector
         std::vector<int> trackIndicesInPfpHandle;
+        // Assume neutrino vertex is not pathological and assign unknown number of vertices
+        std::vector<int> thisNu_nVerticesInPfp = {-1,-1,-1};
 
         // Diagnostic message
         if (fVerbose) printf("\n Found neutrino %i in this event.\n", tree_pandora_nNeutrinos); 
@@ -114,31 +115,45 @@ namespace FindPandoraVertex
           pva.get(i,nuVertices);
           pva.get(trackIndicesInPfpHandle[0],t1Vertices);
           pva.get(trackIndicesInPfpHandle[1],t2Vertices);
-          printf(" Neutrino has %i vertices.\n", (int) nuVertices.size());
-          recob::Vertex const * nuVertex = nuVertices[0];
-          recob::Vertex const * t1Vertex = t1Vertices[0];
-          recob::Vertex const * t2Vertex = t2Vertices[0];
-
-          // Get vertex and daughters coordinates
-          double nuVertexPosition[3], t1VertexPosition[3], t2VertexPosition[3];
-          nuVertex->XYZ(nuVertexPosition);
-          t1Vertex->XYZ(t1VertexPosition);
-          t2Vertex->XYZ(t2VertexPosition);
-          // double x1 = ana_pandora_tracks[trackIndices[0]].
-
-          AuxVertex::DecayVertex nuV(nuVertexPosition[0],nuVertexPosition[1],nuVertexPosition[2],trackIndices[0],trackIndices[1],"t","t","front","front");
-          nuV.SetParXYZ(0, t1VertexPosition[0], t1VertexPosition[1], t1VertexPosition[2]);
-          nuV.SetParXYZ(1, t2VertexPosition[0], t2VertexPosition[1], t2VertexPosition[2]) ;
-          nuV.SetDetectorCoordinates(fMinTpcBound,fMaxTpcBound,fDistanceCut,fGeometry,fDetectorProperties);
-          if (nuV.IsInsideTPC())
+          thisNu_nVerticesInPfp = {(int) nuVertices.size(),(int) t1Vertices.size(),(int) t2Vertices.size()};
+          printf(" Neutrino has %i vertices.\n", thisNu_nVerticesInPfp[0]);
+          printf(" Track1 has %i vertices.\n", thisNu_nVerticesInPfp[1]);
+          printf(" Track2 has %i vertices.\n", thisNu_nVerticesInPfp[2]);
+          bool rightNumVertices = (thisNu_nVerticesInPfp[0]==1 &&
+                                  thisNu_nVerticesInPfp[1]==1 &&
+                                  thisNu_nVerticesInPfp[2]==1);
+          if (rightNumVertices)
           {
-            tree_pandora_neutrinoInTPC.push_back(true);
-            tree_pandora_nInsideTwoProngedNeutrinos += 1;
-            ana_pandora_decayVertices.push_back(nuV);
+            recob::Vertex const * nuVertex = nuVertices[0];
+            recob::Vertex const * t1Vertex = t1Vertices[0];
+            recob::Vertex const * t2Vertex = t2Vertices[0];
+
+            // Get vertex and daughters coordinates
+            double nuVertexPosition[3], t1VertexPosition[3], t2VertexPosition[3];
+            nuVertex->XYZ(nuVertexPosition);
+            t1Vertex->XYZ(t1VertexPosition);
+            t2Vertex->XYZ(t2VertexPosition);
+            // double x1 = ana_pandora_tracks[trackIndices[0]].
+
+            AuxVertex::DecayVertex nuV(nuVertexPosition[0],nuVertexPosition[1],nuVertexPosition[2],trackIndices[0],trackIndices[1],"t","t","front","front");
+            nuV.SetParXYZ(0, t1VertexPosition[0], t1VertexPosition[1], t1VertexPosition[2]);
+            nuV.SetParXYZ(1, t2VertexPosition[0], t2VertexPosition[1], t2VertexPosition[2]) ;
+            nuV.SetDetectorCoordinates(fMinTpcBound,fMaxTpcBound,fDistanceCut,fGeometry,fDetectorProperties);
+            if (nuV.IsInsideTPC())
+            {
+              tree_pandora_neutrinoInTPC.push_back(true);
+              tree_pandora_nInsideTwoProngedNeutrinos += 1;
+              ana_pandora_decayVertices.push_back(nuV);
+            }
+            else tree_pandora_neutrinoInTPC.push_back(false);
+            if (fVerbose) printf(" |_ Vertex Coordinates: [%.1f,%.1f,%.1f] [%i,%i,%i,%.1f]\n",nuV.GetX(),nuV.GetY(),nuV.GetZ(),nuV.GetChannelLoc(0),nuV.GetChannelLoc(1),nuV.GetChannelLoc(2),nuV.GetTickLoc(0));
           }
-          else tree_pandora_neutrinoInTPC.push_back(false);
-          if (fVerbose) printf(" |_ Vertex Coordinates: [%.1f,%.1f,%.1f] [%i,%i,%i,%.1f]\n",nuV.GetX(),nuV.GetY(),nuV.GetZ(),nuV.GetChannelLoc(0),nuV.GetChannelLoc(1),nuV.GetChannelLoc(2),nuV.GetTickLoc(0));
+          else
+          {
+            printf("|_BAD EVENT! Something has gone wrong with number of events.\n");
+          } // END if all vertices are present
         } // END if neutrino has 2 tracks
+      tree_pandoraDiagnostic_nVerticesInPfp.push_back(thisNu_nVerticesInPfp);
       } // END if pfp is a neutrino
     } // END loop for each pfp
   } // END function GetOrderedPFParticles
