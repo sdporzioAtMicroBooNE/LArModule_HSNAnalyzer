@@ -20,9 +20,6 @@ namespace AuxEvent
     run = run;
     subrun = subrun;
     event = event;
-    manual_NumUnassociatedTracks = 0;
-    manual_NumUnassociatedShowers = 0;
-    manual_pairDistances.clear();
-    manual_potPairDistances.clear();
-  }
+  } // END function Initialize
+
 } // END namespace EventDescriptor 

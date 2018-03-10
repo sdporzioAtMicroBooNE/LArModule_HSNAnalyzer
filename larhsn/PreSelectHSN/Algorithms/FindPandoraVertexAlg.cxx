@@ -17,32 +17,28 @@ namespace FindPandoraVertex
     fMinTpcBound = pset.get<std::vector<double>>("MinTpcBound");
     fMaxTpcBound = pset.get<std::vector<double>>("MaxTpcBound");
     fPfpLabel = pset.get<std::string>("PfpLabel");
-    fDistanceCut = pset.get<double>("DistanceCut");
-    fPrimaryOnly = pset.get<bool>("PrimaryOnly");
-    fEndVerticesAlso = pset.get<bool>("EndVerticesAlso");
-    fAnaType = pset.get<std::string>("AnalysisType");
     fVerbose = pset.get<bool>("VerboseMode");
   }
 
 
-
   // Find each neutrino, and associated daughter. For each neutrino, fill every vector with the pfp_neutrino and vectors of pfp_tracks and pfp_showers that are its daughters.
-  void FindPandoraVertexAlg::GetPotentialNeutrinoVertices(art::Event const & evt)
+  void FindPandoraVertexAlg::GetPotentialNeutrinoVertices(
+            AuxEvent::EventDescriptor & evd,
+            art::Event const & evt)
   {
     // Clear vectors that will be returned by function
     ana_pandora_neutrinos.clear();
     ana_pandora_tracks.clear();
     ana_pandora_showers.clear();
     ana_pandora_decayVertices.clear();
-    tree_pandora_nNeutrinos = 0;
-    tree_pandora_nTwoProngedNeutrinos = 0;
-    tree_pandora_nInsideTwoProngedNeutrinos = 0;
-    tree_pandora_neutrinoPdgCode.clear();
-    tree_pandora_neutrinoNumDaughters.clear();
-    tree_pandora_neutrinoNumTracks.clear();
-    tree_pandora_neutrinoNumShowers.clear();
-    tree_pandora_neutrinoInTPC.clear();
-    tree_pandoraDiagnostic_nVerticesInPfp.clear();
+    evd.pandora_nNeutrinos = 0;
+    evd.pandora_nTwoProngedNeutrinos = 0;
+    evd.pandora_nContainedTwoProngedNeutrinos = 0;
+    evd.pandora_neutrinoPdgCode.clear();
+    evd.pandora_neutrinoNumDaughters.clear();
+    evd.pandora_neutrinoNumTracks.clear();
+    evd.pandora_neutrinoNumShowers.clear();
+    evd.pandora_diag_potentialPfpsWithMissingVertex = 0;
 
     // Prepare the pfp handle and the vertex associations
     art::InputTag pfpTag {fPfpLabel};
@@ -53,27 +49,23 @@ namespace FindPandoraVertex
     for(std::vector<int>::size_type i=0; i!=(*pfpHandle).size(); i++)
     {
       recob::PFParticle pfp = (*pfpHandle)[i];
-      // Find neutrino
+      // Find out if this pfp is a neutrino
       if (pfp.IsPrimary())
       {
         // Save pointer to pfp neutrino
         ana_pandora_neutrinos.push_back(&pfp);
-        // Useful variables for the tree
-        tree_pandora_nNeutrinos += 1;
-        tree_pandora_neutrinoPdgCode.push_back(pfp.PdgCode());
-        tree_pandora_neutrinoNumDaughters.push_back(pfp.NumDaughters());
+        // Fill useful variables for the tree
+        evd.pandora_nNeutrinos += 1;
+        evd.pandora_neutrinoPdgCode.push_back(pfp.PdgCode());
+        evd.pandora_neutrinoNumDaughters.push_back(pfp.NumDaughters());
         int thisNeutrino_numTracks = 0;
         int thisNeutrino_numShowers = 0;
         // The indices of the tracks belonging to this neutrino in the newly forming tracks vector
         std::vector<int> trackIndices;
         // The indices of the tracks belonging to this neutrino in the pfp original vector
         std::vector<int> trackIndicesInPfpHandle;
-        // Assume neutrino vertex is not pathological and assign unknown number of vertices
-        std::vector<int> thisNu_nVerticesInPfp = {-1,-1,-1};
 
-        // Diagnostic message
-        if (fVerbose) printf("\n Found neutrino %i in this event.\n", tree_pandora_nNeutrinos); 
-
+        // Prepare vector of ID of neutrino daughters
         auto nuDaughtersID = pfp.Daughters();
         // Loop through each daughter ID
         for (std::vector<int>::size_type j=0; j!=nuDaughtersID.size(); j++)
@@ -101,29 +93,34 @@ namespace FindPandoraVertex
             }
           }
         }
-        tree_pandora_neutrinoNumTracks.push_back(thisNeutrino_numTracks);
-        tree_pandora_neutrinoNumShowers.push_back(thisNeutrino_numShowers);
+        evd.pandora_neutrinoNumTracks.push_back(thisNeutrino_numTracks);
+        evd.pandora_neutrinoNumShowers.push_back(thisNeutrino_numShowers);
+
         // Diagnostic message
-        if (fVerbose) printf(" with %i daughters: %i tracks and %i showers.\n", pfp.NumDaughters(),thisNeutrino_numTracks, thisNeutrino_numShowers); 
+        if (fVerbose)
+        {
+          printf("\n--- GetPotentialNeutrinoVertices message ---\n");
+          printf("Found neutrino %i in this event with %i daughters: %i tracks and %i showers.\n", evd.pandora_nNeutrinos, pfp.NumDaughters(),thisNeutrino_numTracks, thisNeutrino_numShowers);
+        }
+
 
         // If this neutrino contains two and only two tracks we can create a specific decay vertex for it (to use later for calorimetry), but first we have to find the vertex data product associated with it.
         if (thisNeutrino_numTracks==2)
         {
-          tree_pandora_nTwoProngedNeutrinos += 1;
+          evd.pandora_nTwoProngedNeutrinos += 1;
+          if (fVerbose) printf("Neutrino is potential candidate n. %i in event.\n", evd.pandora_nTwoProngedNeutrinos);
           // Get all the necessary associated vertices via the stupid way
           std::vector<recob::Vertex const*> nuVertices, t1Vertices, t2Vertices;
           pva.get(i,nuVertices);
           pva.get(trackIndicesInPfpHandle[0],t1Vertices);
           pva.get(trackIndicesInPfpHandle[1],t2Vertices);
-          thisNu_nVerticesInPfp = {(int) nuVertices.size(),(int) t1Vertices.size(),(int) t2Vertices.size()};
-          printf(" Neutrino has %i vertices.\n", thisNu_nVerticesInPfp[0]);
-          printf(" Track1 has %i vertices.\n", thisNu_nVerticesInPfp[1]);
-          printf(" Track2 has %i vertices.\n", thisNu_nVerticesInPfp[2]);
+          std::vector<int> thisNu_nVerticesInPfp = {(int) nuVertices.size(),(int) t1Vertices.size(),(int) t2Vertices.size()};
           bool rightNumVertices = (thisNu_nVerticesInPfp[0]==1 &&
                                   thisNu_nVerticesInPfp[1]==1 &&
                                   thisNu_nVerticesInPfp[2]==1);
           if (rightNumVertices)
           {
+            if (fVerbose) printf("Neutrino has correct number of vertex associations.\n");
             recob::Vertex const * nuVertex = nuVertices[0];
             recob::Vertex const * t1Vertex = t1Vertices[0];
             recob::Vertex const * t2Vertex = t2Vertices[0];
@@ -133,27 +130,23 @@ namespace FindPandoraVertex
             nuVertex->XYZ(nuVertexPosition);
             t1Vertex->XYZ(t1VertexPosition);
             t2Vertex->XYZ(t2VertexPosition);
-            // double x1 = ana_pandora_tracks[trackIndices[0]].
 
             AuxVertex::DecayVertex nuV(nuVertexPosition[0],nuVertexPosition[1],nuVertexPosition[2],trackIndices[0],trackIndices[1],"t","t","front","front");
             nuV.SetParXYZ(0, t1VertexPosition[0], t1VertexPosition[1], t1VertexPosition[2]);
             nuV.SetParXYZ(1, t2VertexPosition[0], t2VertexPosition[1], t2VertexPosition[2]) ;
-            nuV.SetDetectorCoordinates(fMinTpcBound,fMaxTpcBound,fDistanceCut,fGeometry,fDetectorProperties);
+            nuV.SetDetectorCoordinates(fMinTpcBound,fMaxTpcBound,fGeometry,fDetectorProperties);
             if (nuV.IsInsideTPC())
             {
-              tree_pandora_neutrinoInTPC.push_back(true);
-              tree_pandora_nInsideTwoProngedNeutrinos += 1;
+              evd.pandora_nContainedTwoProngedNeutrinos += 1;
               ana_pandora_decayVertices.push_back(nuV);
             }
-            else tree_pandora_neutrinoInTPC.push_back(false);
-            if (fVerbose) printf(" |_ Vertex Coordinates: [%.1f,%.1f,%.1f] [%i,%i,%i,%.1f]\n",nuV.GetX(),nuV.GetY(),nuV.GetZ(),nuV.GetChannelLoc(0),nuV.GetChannelLoc(1),nuV.GetChannelLoc(2),nuV.GetTickLoc(0));
           }
           else
           {
-            printf("|_BAD EVENT! Something has gone wrong with number of events.\n");
+            if (fVerbose) printf("ERROR! Neutrino has not correct number of vertex associations.\n");
+            evd.pandora_diag_potentialPfpsWithMissingAssociatedVertex += 1;
           } // END if all vertices are present
         } // END if neutrino has 2 tracks
-      tree_pandoraDiagnostic_nVerticesInPfp.push_back(thisNu_nVerticesInPfp);
       } // END if pfp is a neutrino
     } // END loop for each pfp
   } // END function GetOrderedPFParticles

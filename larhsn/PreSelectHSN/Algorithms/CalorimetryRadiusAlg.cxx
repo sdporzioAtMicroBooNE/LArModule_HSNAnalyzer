@@ -32,18 +32,29 @@ namespace CalorimetryRadius
     }
   }
 
-
   // Fill three vectors, one containing all the hits in the event (totHits), one containing vectors of all the hits pertaining to tracks (trackHits), one for each track, and finally one containing vectors of all the hits from showers (showerHits), one for each shower. These hits will be used to perform calorimetry analysis.
   void CalorimetryRadiusAlg::GetHitVectors(
+          AuxEvent::EventDescriptor & evd,
+          std::vector<AuxVertex::DecayVertex>& cleanVertices,
           art::Event const & evt,
           const std::vector<recob::PFParticle const*>& tracks,
           const std::vector<recob::PFParticle const*>& showers)
   {
 
     // Clear vectors that will be returned by function
-    ana_totHits.clear();
-    ana_trackHits.clear();
-    ana_showerHits.clear();
+    ana_calo_totHits.clear();
+    ana_calo_trackHits.clear();
+    ana_calo_showerHits.clear();
+    tree_calo_NumTotHits = 0;
+
+    for (std::vector<int>::size_type i=0; i!=cleanVertices.size(); i++)
+    {
+      AuxVertex::DecayVertex currentVertex = cleanVertices[i];
+      int parIdx1 = cleanVertices[i].GetParIdx1();
+      int parIdx2 = cleanVertices[i].GetParIdx2();
+
+    }
+
 
     // Prepare pfpTag
     art::InputTag pfpTag {fPfpLabel};
@@ -51,7 +62,6 @@ namespace CalorimetryRadius
     art::FindMany<recob::Shower> psa(showers,evt,pfpTag);
     std::vector<recob::Track const*> realTracks;
     std::vector<recob::Shower const*> realShowers;
-    int totNTrackHits, totNShowerHits;
 
     // Get the actual recob::Track and recob::Shower objects from the tracks and shower arrays (which instead contain only recob::PFParticles).
     // Hits are associated with tracks/showers objects, not with PFParticles, which is why we must follow this annoying chain of associations (recob::PFParticle->recob::Track/Shower->recob::Hit)
@@ -67,6 +77,12 @@ namespace CalorimetryRadius
         recob::Track const* track = vTrack[0];
         realTracks.push_back(track);
       }
+      else
+      {
+        recob::Track const* track;
+        realTracks.push_back(track);
+      }
+      
     }
     // Find recob::Showers
     for(std::vector<int>::size_type i=0; i!=showers.size(); i++)
@@ -84,32 +100,30 @@ namespace CalorimetryRadius
     art::Handle<std::vector<recob::Hit>> hitHandle;
     evt.getByLabel(fHitLabel, hitHandle);
     std::vector<recob::Hit> const& tempTotHits(*hitHandle);
-    for (auto const& tempTotHit: tempTotHits) {ana_totHits.push_back(&tempTotHit);}
+    for (auto const& tempTotHit: tempTotHits) {ana_calo_totHits.push_back(&tempTotHit);}
     
     // Find hits associated with recob::Tracks
     art::FindMany<recob::Hit> tha(realTracks,evt,pfpTag);
-    totNTrackHits = 0;
     for (std::vector<int>::size_type i=0; i!=realTracks.size(); i++)
     {
       std::vector<recob::Hit const*> tempHitVector;
       tha.get(i,tempHitVector);
-      ana_trackHits.push_back(tempHitVector);
-      totNTrackHits += tempHitVector.size();
+      ana_calo_trackHits.push_back(tempHitVector);
+      tree_calo_NumTotHits += tempHitVector.size();
     }
 
     // Find hits associated with recob::Showers
     art::FindMany<recob::Hit> sha(realShowers,evt,pfpTag);
-    totNShowerHits = 0;
     for (std::vector<int>::size_type i=0; i!=realShowers.size(); i++)
     {
       std::vector<recob::Hit const*> tempHitVector;
       sha.get(i,tempHitVector);
-      ana_showerHits.push_back(tempHitVector);
-      totNShowerHits += tempHitVector.size();
+      ana_calo_showerHits.push_back(tempHitVector);
+      tree_calo_NumTotHits += tempHitVector.size();
     }
 
     // Diagnostic message
-    if (fVerbose) {printf("Loading %lu hits (%i from %lu secondary tracks, %i from %lu secondary showers).\n", ana_totHits.size(), totNTrackHits, tracks.size(), totNShowerHits, showers.size());}
+    if (fVerbose) {printf("Loading %i hits.\n",tree_calo_NumTotHits);}
     return;
   } // END function GetHitVectors
 
@@ -120,6 +134,7 @@ namespace CalorimetryRadius
   // The second step looks at all the charge deposited by any hit in radius (which may come from hadronic interaction, in the case of background). And we finally calculate the ratio between the two (caloRatio). We would expect this ratio to be closer to 1 for signal, since HSN decaying in the detector don't interact with any particle, and we'd expect charge deposited by the two decay products to be the only charge within a certain radius from the decay point.
   // Now, we actually repeat this step for different radia in order to build up a profile. The width of the profile is given by fRadiusProfileLimits and the number of bins by fRadiusProfileBin.
   void CalorimetryRadiusAlg::PerformCalorimetry(
+          AuxEvent::EventDescriptor & evd,
           std::vector<AuxVertex::DecayVertex>& cleanVertices,
           const std::vector<recob::Hit const*>& totHits,
           const std::vector<std::vector<recob::Hit const*>>& trackHits,
@@ -127,15 +142,14 @@ namespace CalorimetryRadius
   {
 
     // Clean vectors that will be returned by function
-    ana_totHitsInMaxRadius.clear();
-    ana_par1ChargeInRadius.clear();
-    ana_par2ChargeInRadius.clear();
-    ana_totChargeInRadius.clear();
-    ana_caloRatio.clear();
+    ana_calo_totHitsInMaxRadius.clear();
+    tree_calo_par1ChargeInRadius.clear();
+    tree_calo_par2ChargeInRadius.clear();
+    tree_calo_totChargeInRadius.clear();
+    tree_calo_caloRatio.clear();
 
     // Loop through each clean vertex
     int vertInd = 0;
-    std::cout << vertInd;
     for (std::vector<int>::size_type i=0; i!=cleanVertices.size(); i++)
     {
       // Get useful quantities about the clean vertex currently being analyzed, like coordinates and parent indices
@@ -148,8 +162,14 @@ namespace CalorimetryRadius
       // Make sure that you can work with this neutrino and it has all the hits you need, otherwise declare it as pathological
       int nTrackHits1 = (int) trackHits[parIdx1].size();      
       int nTrackHits2 = (int) trackHits[parIdx2].size();
-      bool enoughHits = (nTrackHits1!=0 && nTrackHits2!=0);
-      if (!enoughHits) cleanVertices[i].SetIsPathological(true,4);
+      bool enoughHits = (nTrackHits1>0 && nTrackHits2>0);
+      if (!enoughHits)
+        {
+          printf("ERROR!\n");
+          printf("Track indices: [%i, %i]\n", parIdx1, parIdx2);
+          printf("Number hits: [%i, %i]\n", nTrackHits1, nTrackHits2);
+          cleanVertices[i].SetIsPathological(true,4);
+        }
       else
       {
         // Initialize the vector of hits that will be pushed back to the vector of vector of hits and returned by the function
@@ -163,6 +183,7 @@ namespace CalorimetryRadius
         // Now declare parCharge1 and fill it with zeros
         std::vector<float> parCharge1;
         for (int j=0; j<fRadiusProfileBins; j++) parCharge1.push_back(0.);
+        printf("len trackHits1 %i\n", (int) trackHits[parIdx1].size());
         for (auto hit : trackHits[parIdx1])
         {
           int hitChannel = hit->Channel();
@@ -182,7 +203,9 @@ namespace CalorimetryRadius
         // Calculate calorimetry for track 2 within radius
         std::vector<float> parCharge2;
         for (int j=0; j<fRadiusProfileBins; j++) parCharge2.push_back(0.);
-        printf("len trackHits2 %i\n", (int) trackHits[parIdx2].size());
+        printf("Track indices: [%i, %i]\n", parIdx1, parIdx2);
+        printf("Number hits: [%i, %i]\n", nTrackHits1, nTrackHits2);
+        printf("len trackHits2 %lu\n", trackHits[parIdx2].size());
         for (auto hit : trackHits[parIdx2])
         {
           int hitChannel = hit->Channel();
@@ -203,7 +226,7 @@ namespace CalorimetryRadius
         // Calculate total calorimetry within radius
         std::vector<float> totCharge;
         for (int j=0; j<fRadiusProfileBins; j++) totCharge.push_back(0.);
-
+        printf("len totHits %i\n", (int) totHits.size());
         for (auto hit : totHits)
         {
           int hitChannel = hit->Channel();
@@ -223,16 +246,16 @@ namespace CalorimetryRadius
             }
           } 
         }
-        ana_totHitsInMaxRadius.push_back(totHitsInMaxRadius_thisDv);
+        ana_calo_totHitsInMaxRadius.push_back(totHitsInMaxRadius_thisDv);
         totHitsInMaxRadius_thisDv.clear();
         std::vector<float> thisCaloRatio;
         for (int j=0; j<fRadiusProfileBins; j++) thisCaloRatio.push_back((parCharge1[j]+parCharge2[j])/float(totCharge[j]));
 
         // Calculate tree quantities
-        ana_par1ChargeInRadius.push_back(parCharge1);
-        ana_par2ChargeInRadius.push_back(parCharge2);
-        ana_totChargeInRadius.push_back(totCharge);
-        ana_caloRatio.push_back(thisCaloRatio);
+        tree_calo_par1ChargeInRadius.push_back(parCharge1);
+        tree_calo_par2ChargeInRadius.push_back(parCharge2);
+        tree_calo_totChargeInRadius.push_back(totCharge);
+        tree_calo_caloRatio.push_back(thisCaloRatio);
 
         vertInd++;
       } // END if enough hits

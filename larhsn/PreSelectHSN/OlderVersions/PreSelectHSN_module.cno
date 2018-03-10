@@ -77,7 +77,7 @@ void PreSelectHSN::beginJob()
   // Tree for manual search
   if (fManualSearch)
   {
-    manualTree = tfs->make<TTree>("Data","");
+    manualTree = tfs->make<TTree>("ManualData","");
     manualTree->Branch("run",&evd.run);
     manualTree->Branch("subrun",&evd.subrun);
     manualTree->Branch("event",&evd.event);
@@ -92,22 +92,19 @@ void PreSelectHSN::beginJob()
     manualTree->Branch("pairDistances",&evd.manual_pairDistances);
     manualTree->Branch("potPairDistances",&evd.manual_potPairDistances);
 
-    manualTree->Branch("nTotHits",&nTotHits);
-    manualTree->Branch("nTrackHits",&nTrackHits);
-    manualTree->Branch("nShowerHits",&nShowerHits);
-    
-    manualTree->Branch("totChargeInRadius",&totChargeInRadius);
-    manualTree->Branch("par1ChargeInRadius",&par1ChargeInRadius);
-    manualTree->Branch("par2ChargeInRadius",&par2ChargeInRadius);
-    manualTree->Branch("caloRatio",&caloRatio);
+    manualTree->Branch("nTotHits",&evd.manual_calo_NumTotHits);
+    manualTree->Branch("totChargeInRadius",&evd.manual_calo_totChargeInRadius);
+    manualTree->Branch("par1ChargeInRadius",&evd.manual_calo_par1ChargeInRadius);
+    manualTree->Branch("par2ChargeInRadius",&evd.manual_calo_par2ChargeInRadius);
+    manualTree->Branch("caloRatio",&evd.manual_calo_caloRatio);
 
-    manualTree->Branch("nUnassociatedTracks",&manual_NumUnassociatedTracks);
-    manualTree->Branch("nUnassociatedShowers",&manual_NumUnassociatedTracks);
+    manualTree->Branch("diag_pfpTracksWithoutTracks",&evd.manual_diag_PfpTracksWithoutTracks);
+    manualTree->Branch("diag_pfpShowersWithoutShowers",&evd.manual_diag_PfpShowersWithoutShowers);
 
 
     if (fSaveDrawTree)
     {
-      manualDrawTree = tfs->make<TTree>("DrawTree","");
+      manualDrawTree = tfs->make<TTree>("ManualDrawTree","");
       manualDrawTree->Branch("dv_xyzCoordinates",&dv_xyzCoordinates);
       manualDrawTree->Branch("dv_wireCoordinates",&dv_wireCoordinates);
       manualDrawTree->Branch("dv_tickCoordinates",&dv_tickCoordinates);
@@ -142,27 +139,22 @@ void PreSelectHSN::beginJob()
   if (fPandoraSearch)
   {
     pandoraTree = tfs->make<TTree>("PandoraData","");
-    pandoraTree->Branch("run",&run,"run/I");
-    pandoraTree->Branch("subrun",&subrun,"subrun/I");
-    pandoraTree->Branch("event",&event,"event/I");
-    pandoraTree->Branch("nNeutrinos",&tree_pandora_nNeutrinos);
-    pandoraTree->Branch("nTwoProngedNeutrinos",&tree_pandora_nTwoProngedNeutrinos);
-    pandoraTree->Branch("nInsideTwoProngedNeutrinos",&tree_pandora_nInsideTwoProngedNeutrinos);
-    pandoraTree->Branch("neutrinoPdgCode",&tree_pandora_neutrinoPdgCode);
-    pandoraTree->Branch("neutrinoInTpc",&tree_pandora_neutrinoInTPC);
-    pandoraTree->Branch("neutrinoNumDaughters",&tree_pandora_neutrinoNumDaughters);
-    pandoraTree->Branch("neutrinoNumTracks",&tree_pandora_neutrinoNumTracks);
-    pandoraTree->Branch("neutrinoNumShowers",&tree_pandora_neutrinoNumShowers);
-    pandoraTree->Branch("nTotHits",&tree_pandoraCalo_nTotHits);
-    pandoraTree->Branch("nTrackHits",&tree_pandoraCalo_nTrackHits);
-    pandoraTree->Branch("nShowerHits",&tree_pandoraCalo_nShowerHits);
-    pandoraTree->Branch("diagnostic_nVerticesInPfp",&tree_pandoraDiagnostic_nVerticesInPfp);
-    pandoraTree->Branch("diagnostic_pathologicalVertex",&tree_pandoraDiagnostic_pathologicalVertex);
-    pandoraTree->Branch("profileTicks",&profileTicks);
-    pandoraTree->Branch("totChargeInRadius",&tree_pandoraCalo_totChargeInRadius);
-    pandoraTree->Branch("par1ChargeInRadius",&tree_pandoraCalo_par1ChargeInRadius);
-    pandoraTree->Branch("par2ChargeInRadius",&tree_pandoraCalo_par2ChargeInRadius);
-    pandoraTree->Branch("caloRatio",&tree_pandoraCalo_caloRatio);
+    pandoraTree->Branch("run",&evd.run);
+    pandoraTree->Branch("subrun",&evd.subrun);
+    pandoraTree->Branch("event",&evd.event);
+    pandoraTree->Branch("nNeutrinos",&evd.pandora_nNeutrinos);
+    pandoraTree->Branch("nTwoProngedNeutrinos",&evd.pandora_nTwoProngedNeutrinos);
+    pandoraTree->Branch("nContainedTwoProngedNeutrinos",&evd.pandora_nContainedTwoProngedNeutrinos);
+    pandoraTree->Branch("neutrinoPdgCode",&evd.pandora_neutrinoPdgCode);
+    pandoraTree->Branch("neutrinoNumDaughters",&evd.pandora_neutrinoNumDaughters);
+    pandoraTree->Branch("neutrinoNumTracks",&evd.pandora_neutrinoNumTracks);
+    pandoraTree->Branch("neutrinoNumShowers",&evd.pandora_neutrinoNumShowers);
+    pandoraTree->Branch("nTotHits",&evd.pandora_calo_NumTotHits);
+    pandoraTree->Branch("totChargeInRadius",&evd.pandora_calo_totChargeInRadius);
+    pandoraTree->Branch("par1ChargeInRadius",&evd.pandora_calo_par1ChargeInRadius);
+    pandoraTree->Branch("par2ChargeInRadius",&evd.pandora_calo_par2ChargeInRadius);
+    pandoraTree->Branch("caloRatio",&evd.pandora_calo_caloRatio);
+    pandoraTree->Branch("diag_potentialPfpsWithMissingVertex",&evd.pandora_diag_potentialPfpsWithMissingVertex);
     if (fSaveDrawTree)
     {
       pandoraDrawTree = tfs->make<TTree>("PandoraDrawTree","");
@@ -203,35 +195,6 @@ void PreSelectHSN::endJob()
 
 void PreSelectHSN::ClearData()
 {
-  // Manual variables
-  nTracks = 0;
-  nShowers= 0;
-  nPairs = 0;
-  nTrackVertices = 0;
-  nShowerVertices = 0;
-  nPotVertices = 0;
-  nCleanVertices = 0;
-  nCleanVerticesOutsideTPC = 0;
-  pairDistance.clear();
-  potPairDistance.clear();
-  nTrackHits.clear();
-  nShowerHits.clear();
-  totChargeInRadius.clear();
-  par1ChargeInRadius.clear();
-  par2ChargeInRadius.clear();
-  caloRatio.clear();
-  tree_diagnostic_pathologicalVertex.clear();
-
-  // Pandora variables
-  tree_pandoraCalo_nTotHits = 0;
-  tree_pandoraCalo_nTrackHits.clear();
-  tree_pandoraCalo_nShowerHits.clear();
-  tree_pandoraCalo_par1ChargeInRadius.clear();
-  tree_pandoraCalo_par2ChargeInRadius.clear();
-  tree_pandoraCalo_totChargeInRadius.clear();
-  tree_pandoraCalo_caloRatio.clear();
-  tree_pandoraDiagnostic_pathologicalVertex.clear();
-
   // Drawing vectors
   dv_xyzCoordinates.clear();
   dv_wireCoordinates.clear();
@@ -382,11 +345,11 @@ void PreSelectHSN::analyze(art::Event const & evt)
   if (fVerbose) {printf("\n------------------------------------------------\n");}
 
   // Determine event ID and create an event descriptor
-  run = evt.id().run();
-  subrun = evt.id().subRun();
-  event = evt.id().event();
+  int run = evt.id().run();
+  int subrun = evt.id().subRun();
+  int event = evt.id().event();
   evd.Initialize(run,subrun,event);
-  if (fVerbose) {printf("||INFORMATION FOR EVENT %i [RUN %i, SUBRUN %i]||\n", event, run, subrun);}
+  if (fVerbose) {printf("||INFORMATION FOR EVENT %i [RUN %i, SUBRUN %i]||\n", evd.event, evd.run, evd.subrun);}
 
 
   // ----------------- MANUAL SEARCH ----------------- //
@@ -394,6 +357,7 @@ void PreSelectHSN::analyze(art::Event const & evt)
   {
     // Start by clearing vectors from previous searches
     ClearData();
+
     // Find all PFParticles in the event. Separate them in track pfps, shower pfps, and primary pfps
     fFindDecayVertexAlg.GetTrackShowerVectors(evd, evt);
     std::vector<recob::PFParticle const*> primaries = fFindDecayVertexAlg.ana_manual_primaries;
@@ -410,38 +374,24 @@ void PreSelectHSN::analyze(art::Event const & evt)
     std::vector<AuxVertex::DecayVertex> potVertices = fFindDecayVertexAlg.ana_manual_potVertices;
     std::vector<AuxVertex::DecayVertex> cleanVertices = fFindDecayVertexAlg.ana_manual_cleanVertices;
 
-    // Determine useful additional quantities that will go in the tree
-    nTracks = tracks.size();
-    nShowers = showers.size();
-    nTrackVertices = trackVertices.size();
-    nShowerVertices = showerVertices.size();
-    nPairs = pairDistance.size();
-    nPotVertices = potVertices.size();
-    nCleanVertices = cleanVertices.size();
-
     // Just being smart, if there's no clean vertices, there's no reason to waste time loading hits that won't be used
-    if (nCleanVertices==0) {printf("No clean vertex candidates found. Moving to next event...\n");}
+    if (evd.manual_NumCleanVertices==0) {printf("No clean vertex candidates found. Moving to next event...\n");}
     else
     {
       // Get vectors containing hits for each track/shower object in order to perform calorimetry
-      fCalorimetryRadiusAlg.GetHitVectors(evt, tracks, showers);
-      std::vector<recob::Hit const*> totHits = fCalorimetryRadiusAlg.ana_totHits;
-      std::vector<std::vector<recob::Hit const*>> trackHits = fCalorimetryRadiusAlg.ana_trackHits;
-      std::vector<std::vector<recob::Hit const*>> showerHits = fCalorimetryRadiusAlg.ana_showerHits;
-
+      fCalorimetryRadiusAlg.GetHitVectors(evd, evt, tracks, showers);
+      std::vector<recob::Hit const*> totHits = fCalorimetryRadiusAlg.ana_calo_totHits;
+      std::vector<std::vector<recob::Hit const*>> trackHits = fCalorimetryRadiusAlg.ana_calo_trackHits;
+      std::vector<std::vector<recob::Hit const*>> showerHits = fCalorimetryRadiusAlg.ana_calo_showerHits;
+      evd.manual_calo_NumTotHits = fCalorimetryRadiusAlg.tree_calo_NumTotHits;
 
       // Perform calorimetry analysis
-      fCalorimetryRadiusAlg.PerformCalorimetry(cleanVertices, totHits, trackHits, showerHits);
-      std::vector<std::vector<recob::Hit const*>> totHitsInMaxRadius = fCalorimetryRadiusAlg.ana_totHitsInMaxRadius;
-      par1ChargeInRadius = fCalorimetryRadiusAlg.ana_par1ChargeInRadius;
-      par2ChargeInRadius = fCalorimetryRadiusAlg.ana_par2ChargeInRadius;
-      totChargeInRadius = fCalorimetryRadiusAlg.ana_totChargeInRadius;
-      caloRatio = fCalorimetryRadiusAlg.ana_caloRatio;
-
-      // Determine useful additional quantities that will go in the tree
-      nTotHits = totHits.size();
-      for (auto th : trackHits) nTrackHits.push_back(th.size());
-      for (auto sh : showerHits) nShowerHits.push_back(sh.size());
+      fCalorimetryRadiusAlg.PerformCalorimetry(evd, cleanVertices, totHits, trackHits, showerHits);
+      std::vector<std::vector<recob::Hit const*>> totHitsInMaxRadius = fCalorimetryRadiusAlg.ana_calo_totHitsInMaxRadius;
+      evd.manual_calo_totChargeInRadius = fCalorimetryRadiusAlg.tree_calo_totChargeInRadius;
+      evd.manual_calo_par1ChargeInRadius = fCalorimetryRadiusAlg.tree_calo_par1ChargeInRadius;
+      evd.manual_calo_par2ChargeInRadius = fCalorimetryRadiusAlg.tree_calo_par2ChargeInRadius;
+      evd.manual_calo_caloRatio = fCalorimetryRadiusAlg.tree_calo_caloRatio;
 
       // Fill draw tree (if needed)
       if (fSaveDrawTree) FillDrawTree(cleanVertices, totHitsInMaxRadius, trackHits, showerHits);
@@ -458,51 +408,30 @@ void PreSelectHSN::analyze(art::Event const & evt)
     // Start by clearing vectors from previous searches
     ClearData();
     // Get potential neutrino vectors with two tracks
-    fFindPandoraVertexAlg.GetPotentialNeutrinoVertices(evt);
+    fFindPandoraVertexAlg.GetPotentialNeutrinoVertices(evd,evt);
     std::vector<recob::PFParticle const*> ana_pandora_neutrinos = fFindPandoraVertexAlg.ana_pandora_neutrinos;
     std::vector<recob::PFParticle const*> ana_pandora_tracks = fFindPandoraVertexAlg.ana_pandora_tracks;
     std::vector<recob::PFParticle const*> ana_pandora_showers = fFindPandoraVertexAlg.ana_pandora_showers;
     std::vector<AuxVertex::DecayVertex> ana_pandora_decayVertices = fFindPandoraVertexAlg.ana_pandora_decayVertices;
 
-    tree_pandora_nNeutrinos = fFindPandoraVertexAlg.tree_pandora_nNeutrinos;
-    tree_pandora_nTwoProngedNeutrinos = fFindPandoraVertexAlg.tree_pandora_nTwoProngedNeutrinos;
-    tree_pandora_nInsideTwoProngedNeutrinos = fFindPandoraVertexAlg.tree_pandora_nInsideTwoProngedNeutrinos;
-    tree_pandora_neutrinoPdgCode = fFindPandoraVertexAlg.tree_pandora_neutrinoPdgCode;
-    tree_pandora_neutrinoNumDaughters = fFindPandoraVertexAlg.tree_pandora_neutrinoNumDaughters;
-    tree_pandora_neutrinoNumTracks = fFindPandoraVertexAlg.tree_pandora_neutrinoNumTracks;
-    tree_pandora_neutrinoNumShowers = fFindPandoraVertexAlg.tree_pandora_neutrinoNumShowers;
-    tree_pandora_neutrinoInTPC = fFindPandoraVertexAlg.tree_pandora_neutrinoInTPC;
-
     // Just being smart, if there's no clean vertices, there's no reason to waste time loading hits that won't be used
-    if (tree_pandora_nInsideTwoProngedNeutrinos==0) {printf("No clean vertex candidates found. Moving to next event...\n");}
+    if (evd.pandora_nContainedTwoProngedNeutrinos==0) {printf("No clean vertex candidates found. Moving to next event...\n");}
     else
     {
       // Get vectors containing hits for each track/shower object in order to perform calorimetry
-      fCalorimetryRadiusAlg.GetHitVectors(evt, ana_pandora_tracks, ana_pandora_showers);
-      std::vector<recob::Hit const*> ana_pandoraCalo_totHits = fCalorimetryRadiusAlg.ana_totHits;
-      std::vector<std::vector<recob::Hit const*>> ana_pandoraCalo_trackHits = fCalorimetryRadiusAlg.ana_trackHits;
-      std::vector<std::vector<recob::Hit const*>> ana_pandoraCalo_showerHits = fCalorimetryRadiusAlg.ana_showerHits;
-      tree_pandoraCalo_nTotHits = ana_pandoraCalo_totHits.size();
-      for (auto th : ana_pandoraCalo_trackHits) tree_pandoraCalo_nTrackHits.push_back(th.size());
-      for (auto sh : ana_pandoraCalo_showerHits) tree_pandoraCalo_nShowerHits.push_back(sh.size());
+      fCalorimetryRadiusAlg.GetHitVectors(evd, evt, ana_pandora_tracks, ana_pandora_showers);
+      std::vector<recob::Hit const*> ana_pandoraCalo_totHits = fCalorimetryRadiusAlg.ana_calo_totHits;
+      std::vector<std::vector<recob::Hit const*>> ana_pandoraCalo_trackHits = fCalorimetryRadiusAlg.ana_calo_trackHits;
+      std::vector<std::vector<recob::Hit const*>> ana_pandoraCalo_showerHits = fCalorimetryRadiusAlg.ana_calo_showerHits;
+      evd.pandora_calo_NumTotHits = fCalorimetryRadiusAlg.tree_calo_NumTotHits;
 
       // Perform calorimetry analysis
-      fCalorimetryRadiusAlg.PerformCalorimetry(ana_pandora_decayVertices, ana_pandoraCalo_totHits, ana_pandoraCalo_trackHits, ana_pandoraCalo_showerHits);
-      std::vector<std::vector<recob::Hit const*>> ana_pandoraCalo_totHitsInMaxRadius = fCalorimetryRadiusAlg.ana_totHitsInMaxRadius;
-
-      for (size_t i = 0; i<ana_pandoraCalo_totHitsInMaxRadius.size(); i++)
-      {
-        for (size_t j = 0; j<ana_pandoraCalo_totHitsInMaxRadius.size(); j++)
-        {
-          printf("%i, %i: %i\n", (int) i, (int) j, (int) ana_pandoraCalo_totHitsInMaxRadius[i][j]->Channel());
-        }
-      }
-
-      tree_pandoraCalo_par1ChargeInRadius = fCalorimetryRadiusAlg.ana_par1ChargeInRadius;
-      tree_pandoraCalo_par2ChargeInRadius = fCalorimetryRadiusAlg.ana_par2ChargeInRadius;
-      tree_pandoraCalo_totChargeInRadius = fCalorimetryRadiusAlg.ana_totChargeInRadius;
-      tree_pandoraCalo_caloRatio = fCalorimetryRadiusAlg.ana_caloRatio;
-
+      fCalorimetryRadiusAlg.PerformCalorimetry(evd, ana_pandora_decayVertices, ana_pandoraCalo_totHits, ana_pandoraCalo_trackHits, ana_pandoraCalo_showerHits);
+      std::vector<std::vector<recob::Hit const*>> ana_pandoraCalo_totHitsInMaxRadius = fCalorimetryRadiusAlg.ana_calo_totHitsInMaxRadius;
+      evd.pandora_calo_totChargeInRadius = fCalorimetryRadiusAlg.tree_calo_totChargeInRadius;
+      evd.pandora_calo_par1ChargeInRadius = fCalorimetryRadiusAlg.tree_calo_par1ChargeInRadius;
+      evd.pandora_calo_par2ChargeInRadius = fCalorimetryRadiusAlg.tree_calo_par2ChargeInRadius;
+      evd.pandora_calo_caloRatio = fCalorimetryRadiusAlg.tree_calo_caloRatio;
 
       // Fill draw tree (if needed)
       if (fSaveDrawTree) FillDrawTree(ana_pandora_decayVertices, ana_pandoraCalo_totHitsInMaxRadius, ana_pandoraCalo_trackHits, ana_pandoraCalo_showerHits);

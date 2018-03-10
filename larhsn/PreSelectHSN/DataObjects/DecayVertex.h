@@ -74,7 +74,6 @@ namespace AuxVertex
     void SetDetectorCoordinates(
       const std::vector<double>& minTpcBound,
       const std::vector<double>& maxTpcBound,
-      const double& distanceCut,
       geo::GeometryCore const* geometry,
       detinfo::DetectorProperties const* detectorProperties);
     void SetChannelLoc(int channel0, int channel1, int channel2);

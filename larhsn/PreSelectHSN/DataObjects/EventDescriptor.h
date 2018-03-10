@@ -53,19 +53,23 @@ namespace AuxEvent
     int subrun;
     int event;
 
-    // Manual search
-    int manual_NumPrimaries;
-    int manual_NumTracks;
-    int manual_NumShowers;
-    int manual_NumTrackVertices;
-    int manual_NumShowerVertices;
-    int manual_NumVertexPairs;
-    int manual_NumPotVertices;
-    int manual_NumCleanVertices;
-    int manual_NumUnassociatedTracks;
-    int manual_NumUnassociatedShowers;
-    std::vector<float> manual_pairDistances;
-    std::vector<float> manual_potPairDistances;
+    // Pandora search
+    int pandora_nNeutrinos;
+    int pandora_nTwoProngedNeutrinos;
+    int pandora_nContainedTwoProngedNeutrinos;
+    std::vector<int> pandora_neutrinoPdgCode;
+    std::vector<int> pandora_neutrinoNumDaughters;
+    std::vector<int> pandora_neutrinoNumTracks;
+    std::vector<int> pandora_neutrinoNumShowers;
+    // Pandora calo
+    int pandora_calo_NumTotHits;
+    std::vector<std::vector<float>> pandora_calo_totChargeInRadius;
+    std::vector<std::vector<float>> pandora_calo_par1ChargeInRadius;
+    std::vector<std::vector<float>> pandora_calo_par2ChargeInRadius;
+    std::vector<std::vector<float>> pandora_calo_caloRatio;
+    // Pandora diagnostic
+    int pandora_diag_potentialPfpsWithMissingAssociatedVertex;
+    int pandora_diag_dvWithMissingAssociatedHits;
   };
   
 

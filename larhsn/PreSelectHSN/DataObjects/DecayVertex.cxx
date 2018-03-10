@@ -83,7 +83,6 @@ namespace AuxVertex
   void DecayVertex::SetDetectorCoordinates(
     const std::vector<double>& minTpcBound,
     const std::vector<double>& maxTpcBound,
-    const double& distanceCut,
     geo::GeometryCore const* geometry,
     detinfo::DetectorProperties const* detectorProperties)
   {
@@ -95,7 +94,6 @@ namespace AuxVertex
     fIsDetLocAssigned = true;
 
     // Check whether coordinates are inside TPC
-    // double extraEdge = distanceCut;
     double extraEdge = 0;
     bool isInsideX = (xyz[0]>minTpcBound[0]+extraEdge &&
       xyz[0]<maxTpcBound[0]-extraEdge);

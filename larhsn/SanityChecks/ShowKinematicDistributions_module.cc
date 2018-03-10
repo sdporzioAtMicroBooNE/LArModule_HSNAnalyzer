@@ -1,99 +1,7 @@
-#ifndef ShowKinematicDistributions_module
-#define ShowKinematicDistributions_module
+#ifndef SHOWKINEMATICDISTRIBUTIONS_MODULE
+#define SHOWKINEMATICDISTRIBUTIONS_MODULE
 
-// c++ includes
-#include <iostream>
-#include <fstream>
-#include <stdlib.h>
-#include <string>
-#include <vector>
-#include <algorithm>
-#include <chrono>
-#include <exception>
-
-// root includes
-#include "TInterpreter.h"
-#include "TROOT.h"
-#include "TH1.h"
-#include "TH2D.h"
-#include "TH2I.h"
-#include "TFile.h"
-#include "TNtuple.h"
-#include "TClonesArray.h"
-#include "TCanvas.h"
-#include "TGraph.h"
-
-// framework includes
-#include "art/Framework/Core/ModuleMacros.h"
-#include "art/Framework/Core/EDAnalyzer.h"
-#include "art/Framework/Principal/Event.h"
-#include "art/Framework/Principal/Handle.h"
-#include "art/Framework/Principal/Run.h"
-#include "art/Framework/Principal/SubRun.h"
-#include "art/Framework/Services/Registry/ServiceHandle.h"
-#include "art/Framework/Services/Optional/TFileService.h"
-#include "art/Framework/Services/Optional/TFileDirectory.h"
-#include "fhiclcpp/ParameterSet.h"
-
-// art includes
-#include "canvas/Utilities/InputTag.h"
-#include "canvas/Persistency/Common/FindMany.h"
-#include "canvas/Persistency/Common/FindManyP.h"
-#include "canvas/Persistency/Common/FindOne.h"
-#include "canvas/Persistency/Common/FindOneP.h"
-
-
-// larsoft object includes
-#include "nusimdata/SimulationBase/MCTruth.h"
-#include "nusimdata/SimulationBase/MCParticle.h"
-#include "nusimdata/SimulationBase/MCNeutrino.h"
-// #include "lardataobj/RecoBase/Track.h"
-// #include "lardataobj/RecoBase/Shower.h"
-// #include "lardataobj/RecoBase/Vertex.h"
-// #include "lardataobj/RecoBase/PFParticle.h"
-// #include "lardataobj/RecoBase/Wire.h"
-// #include "lardataobj/RecoBase/Hit.h"
-// #include "lardataobj/RecoBase/TrackingTypes.h"
-#include "lardataobj/Simulation/SimChannel.h"
-#include "lardataobj/RawData/RawDigit.h"
-#include "larcore/Geometry/geo.h"
-#include "larcore/Geometry/Geometry.h"
-#include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
-#include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
-#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
-
-
-// Analyzer class
-class ShowKinematicDistributions : public art::EDAnalyzer
-{
-public:
-  explicit ShowKinematicDistributions(fhicl::ParameterSet const & pset);
-  virtual ~ShowKinematicDistributions();
-  void analyze(art::Event const & evt);
-  void beginJob();
-  void endJob();
-  void GetTruthParticles(art::Event const & evt, std::vector<simb::MCParticle const*>& mcps);
-  void ExtractKinematic(const std::vector<simb::MCParticle const*>& mcps);
-private:
-  // Declare fhiclcpp variables
-  std::string fMCLabel;
-
-  // Declare services
-  geo::GeometryCore const* fGeometry; // Pointer to the Geometry service
-  detinfo::DetectorProperties const* fDetectorProperties; // Pointer to the Detector Properties
-
-  // Declare trees
-  TTree *tDataTree;
-  std::vector<int> pdgCode;
-  std::vector<double> Vx, Vy, Vz, T, EndX, EndY, EndZ, EndT, Px, Py, Pz, E, P, Pt;
-  double OpeningAngle, InvariantMass;
-
-  // Declare analysis variables
-  int run, subrun, event;
-
-  // Declare analysis functions
-  void ClearData();
-}; // End class ShowKinematicDistributions
+#include "ShowKinematicDistributions_module.h"
 
 ShowKinematicDistributions::ShowKinematicDistributions(fhicl::ParameterSet const & pset) :
     EDAnalyzer(pset),
@@ -105,13 +13,11 @@ ShowKinematicDistributions::~ShowKinematicDistributions()
 
 void ShowKinematicDistributions::beginJob()
 {
-  // Declare tree variables
   art::ServiceHandle< art::TFileService > tfs;
-
   tDataTree = tfs->make<TTree>("Data","");
-  tDataTree->Branch("run",&run,"run/I");
-  tDataTree->Branch("subrun",&subrun,"subrun/I");
-  tDataTree->Branch("event",&event,"event/I");
+  tDataTree->Branch("run",&run);
+  tDataTree->Branch("subrun",&subrun);
+  tDataTree->Branch("event",&event);
   tDataTree->Branch("Vx",&Vx);
   tDataTree->Branch("Vy",&Vy);
   tDataTree->Branch("Vz",&Vz);
@@ -126,11 +32,18 @@ void ShowKinematicDistributions::beginJob()
   tDataTree->Branch("E",&E);
   tDataTree->Branch("P",&P);
   tDataTree->Branch("Pt",&Pt);
+  tDataTree->Branch("Theta",&Theta);
+  tDataTree->Branch("Phi",&Phi);
+  tDataTree->Branch("Nu_Px",&Nu_Px);
+  tDataTree->Branch("Nu_Py",&Nu_Py);
+  tDataTree->Branch("Nu_Pz",&Nu_Pz);
+  tDataTree->Branch("Nu_P",&Nu_P);
+  tDataTree->Branch("Nu_E",&Nu_E);
+  tDataTree->Branch("Nu_Theta",&Nu_Theta);
+  tDataTree->Branch("Nu_Phi",&Nu_Phi);
   tDataTree->Branch("OpeningAngle",&OpeningAngle);
   tDataTree->Branch("InvariantMass",&InvariantMass);
 
-  fGeometry = lar::providerFrom<geo::Geometry>();
-  fDetectorProperties = lar::providerFrom<detinfo::DetectorPropertiesService>();
 } // END function beginJob
 
 void ShowKinematicDistributions::endJob()
@@ -159,6 +72,8 @@ void ShowKinematicDistributions::ClearData()
   E.clear();
   P.clear();
   Pt.clear();
+  Theta.clear();
+  Phi.clear();
 } // END function ClearData
 
 void ShowKinematicDistributions::GetTruthParticles(art::Event const & evt, std::vector<simb::MCParticle const*>& mcps)
@@ -189,15 +104,34 @@ void ShowKinematicDistributions::GetTruthParticles(art::Event const & evt, std::
       E.push_back(mcp.E());
       P.push_back(mcp.P());
       Pt.push_back(mcp.Pt());
+      // Calculate other quantities
+      Theta.push_back(acos(mcp.Pz()/mcp.P()));
+      Phi.push_back(atan2(mcp.Py(),mcp.Px()));
+      // Save pointer to mcparticle
       mcps.push_back(&mcp);
     }
+
+    // Calculate angles
+
+    // Calculate opening angle and invariant mass
     if (nParticles==2)
     {
+      // Calculate opening angle
       double dotProduct = Px[0]*Px[1] + Py[0]*Py[1] + Pz[0]*Pz[1];
       OpeningAngle = dotProduct / float(P[0]*P[1]);
+      // Calculate invariant mass
       double eTerm = pow((E[0] + E[1]),2.);
       double pTerm = pow(P[0],2.) + pow(P[1],2.) + 2.*dotProduct;
-      InvariantMass = eTerm - pTerm;
+      InvariantMass = sqrt(eTerm - pTerm);
+
+      // Calculate neutrino quantities
+      Nu_Px = Px[0] + Px[1];
+      Nu_Py = Py[0] + Py[1];
+      Nu_Pz = Pz[0] + Pz[1];
+      Nu_P = sqrt(pow(Nu_Px,2.) + pow(Nu_Py,2.) + pow(Nu_Pz,2.));
+      Nu_E = sqrt(pow(InvariantMass,2.) + pow(Nu_P,2.));
+      Nu_Theta = acos(Nu_Pz/Nu_P);
+      Nu_Phi = atan2(Nu_Py,Nu_Px);
     }
     else
     {

@@ -73,21 +73,29 @@ namespace CalorimetryRadius
 
   // algorithms
   void GetHitVectors(
+          AuxEvent::EventDescriptor & evd,
+          std::vector<AuxVertex::DecayVertex>& cleanVertices,
           art::Event const & evt,
           const std::vector<recob::PFParticle const*>& tracks,
           const std::vector<recob::PFParticle const*>& showers);
   void PerformCalorimetry(
+          AuxEvent::EventDescriptor & evd,
           std::vector<AuxVertex::DecayVertex>& cleanVertices,
           const std::vector<recob::Hit const*>& totHits,
           const std::vector<std::vector<recob::Hit const*>>& trackHits,
           const std::vector<std::vector<recob::Hit const*>>& showerHits);
 
-  // analysis variables
-  std::vector<recob::Hit const*> ana_totHits; // for each hit
-  std::vector<std::vector<recob::Hit const*>> ana_trackHits, ana_showerHits; // for each hit, for each track/shower
-  std::vector<std::vector<recob::Hit const*>> ana_totHitsInMaxRadius; // for each hit, for each dv
-  std::vector<std::vector<float>> ana_totChargeInRadius, ana_par1ChargeInRadius, ana_par2ChargeInRadius, ana_caloRatio;
-  std::vector<bool> tree_diagnostic_pathologicalVertex;
+  // GetHitVectors returns
+  std::vector<recob::Hit const*> ana_calo_totHits; // for each hit
+  std::vector<std::vector<recob::Hit const*>> ana_calo_trackHits, ana_calo_showerHits; // for each hit, for each track/shower
+  // PerformCalorimetry returns
+  std::vector<std::vector<recob::Hit const*>> ana_calo_totHitsInMaxRadius; // for each hit, for each dv
+
+  int tree_calo_NumTotHits;
+  std::vector<std::vector<float>> tree_calo_totChargeInRadius;
+  std::vector<std::vector<float>> tree_calo_par1ChargeInRadius;
+  std::vector<std::vector<float>> tree_calo_par2ChargeInRadius;
+  std::vector<std::vector<float>> tree_calo_caloRatio;
 
   private:
     // fhicl parameters

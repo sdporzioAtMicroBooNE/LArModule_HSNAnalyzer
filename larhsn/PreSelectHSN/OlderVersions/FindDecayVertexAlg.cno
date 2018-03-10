@@ -35,6 +35,9 @@ namespace FindDecayVertex
     ana_manual_primaries.clear();
     ana_manual_tracks.clear();
     ana_manual_showers.clear();
+    evd.manual_NumPrimaries = 0;
+    evd.manual_NumTracks = 0;
+    evd.manual_NumShowers = 0;
 
     // Prepare the pfp handle
     art::InputTag pfpTag {fPfpLabel};
@@ -67,7 +70,7 @@ namespace FindDecayVertex
     evd.manual_NumShowers = (int) ana_manual_showers.size();
     if (fVerbose)
     {
-      printf("GetTrackShowerVectors message:\n");
+      printf("\n--- GetTrackShowerVectors message ---\n");
       printf("Loading %i primaries, %i secondary tracks and %i secondary showers.\n", evd.manual_NumPrimaries, evd.manual_NumTracks, evd.manual_NumShowers);
     }
 
@@ -85,6 +88,8 @@ namespace FindDecayVertex
     // Clear vectors that will be returned by function
     ana_manual_trackVertices.clear();
     ana_manual_showerVertices.clear();
+    evd.manual_NumTrackVertices = 0;
+    evd.manual_NumTrackVertices = 0;
 
     // Initialize associations
     art::InputTag pfpTag {fPfpLabel};
@@ -119,7 +124,7 @@ namespace FindDecayVertex
       } 
       else
       {
-        evd.manual_NumUnassociatedTracks += 1;
+        evd.manual_diag_PfpTracksWithoutTracks += 1;
       } // END if association is present
     }
 
@@ -142,7 +147,7 @@ namespace FindDecayVertex
       }
       else
       {
-        evd.manual_NumUnassociatedShowers += 1;
+        evd.manual_diag_PfpShowersWithoutShowers += 1;
       } // END if association is present
     }
 
@@ -151,7 +156,7 @@ namespace FindDecayVertex
     evd.manual_NumShowerVertices = (int) ana_manual_showerVertices.size();
     if (fVerbose)
     {
-      printf("GetOriginVertices message:\n");
+      printf("\n--- GetOriginVertices message ---\n");
       printf("Processing %i origin vertices (%i from tracks, %i from showers).\n", evd.manual_NumTrackVertices+ evd.manual_NumShowerVertices,  evd.manual_NumTrackVertices,  evd.manual_NumShowerVertices);
     }
     return;
@@ -169,12 +174,20 @@ namespace FindDecayVertex
     // Clear vectors that will be returned by function
     ana_manual_potVertices.clear();
     ana_manual_cleanVertices.clear();
+    evd.manual_NumPotVertices = 0;
+    evd.manual_NumCleanVertices = 0;
+    evd.manual_pairDistances.clear();
+    evd.manual_potPairDistances.clear();
+
 
     // For track-track
     if (fAnaType == "tt")
     {
       for(std::vector<int>::size_type i=0; i!=trackVertices.size(); i++)
       {
+      trackVertices[i].PrintInformation();
+
+
         for(std::vector<int>::size_type j=i+1; j!=trackVertices.size(); j++)
         {
           AuxVertex::DecayVertex v1 = trackVertices[i];
@@ -210,61 +223,12 @@ namespace FindDecayVertex
       }
     }
 
-    // And for track-shower
-    else if (fAnaType == "ts")
-    {
-      for(std::vector<int>::size_type i=0; i!=trackVertices.size(); i++)
-      {
-        for(std::vector<int>::size_type j=0; j!=showerVertices.size(); j++)
-        {
-          AuxVertex::DecayVertex v1 = trackVertices[i];
-          AuxVertex::DecayVertex v2 = showerVertices[j];
-          float distance = Distance(v1,v2);
-          evd.manual_pairDistances.push_back(distance);
-          bool isInRadius = (distance<fDistanceCut);
-          if (isInRadius)
-          {
-            AuxVertex::DecayVertex v3 = MeanVertex(v1, v2);
-            v3.SetDetectorCoordinates(fMinTpcBound,fMaxTpcBound,fDistanceCut,fGeometry,fDetectorProperties);
-            ana_manual_potVertices.push_back(v3);
-            evd.manual_potPairDistances.push_back(distance);
-          }
-        }
-      }
-      // Make sure the potential mean vertices are clean (two decay vertices only in radius)
-      // (start with assumption that isGoodVertex == true, then if you find extra particles in radius, turn it in bad vertex. Only good vertices are saved)
-      for(std::vector<int>::size_type i=0; i!=ana_manual_potVertices.size(); i++)
-      {
-        AuxVertex::DecayVertex mv = ana_manual_potVertices[i];
-        bool isGoodVertex = true;
-        for(std::vector<int>::size_type j=0; j!=trackVertices.size(); j++)
-        {
-          AuxVertex::DecayVertex v1 = trackVertices[j];
-          bool notParent = (mv.GetParIdx1() != v1.GetParIdx1());
-          bool isInRadius = (Distance(mv,v1)<fDistanceCut);
-          if (isInRadius && notParent) isGoodVertex = false;
-        }
-        for(std::vector<int>::size_type j=0; j!=showerVertices.size(); j++)
-        {
-          AuxVertex::DecayVertex v2 = showerVertices[j];
-          bool notParent = (mv.GetParIdx2() != v2.GetParIdx2());
-          bool isInRadius = (Distance(mv,v2)<fDistanceCut);
-          if (isInRadius && notParent) isGoodVertex = false;
-        }
-        if (isGoodVertex) {ana_manual_cleanVertices.push_back(mv);}
-      }
-    }
-    // Throw error if fAnaType wasn't right.
-    else {
-      throw std::invalid_argument("Invalid fAnaType. Must be 'tt' or 'ts'!");
-    }
-
     // Fill the EventDescriptor and print diagnostic message
     evd.manual_NumPotVertices = (int) ana_manual_potVertices.size();
     evd.manual_NumCleanVertices = (int) ana_manual_cleanVertices.size();
     if (fVerbose)
     {
-      printf("GetDecayVertices message:\n");
+      printf("\n--- GetDecayVertices message ---\n");
       printf("Selecting %i potential vertices, %i of which are clean.\n", evd.manual_NumPotVertices, evd.manual_NumPotVertices);
     }
     return;

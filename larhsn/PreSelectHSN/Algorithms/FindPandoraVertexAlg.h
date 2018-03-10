@@ -59,6 +59,7 @@
 
 // Auxiliary objects includes
 #include "larhsn/PreSelectHSN/DataObjects/DecayVertex.h"
+#include "larhsn/PreSelectHSN/DataObjects/EventDescriptor.h"
 
 namespace FindPandoraVertex
 {
@@ -71,26 +72,19 @@ namespace FindPandoraVertex
     void reconfigure(fhicl::ParameterSet const & pset);
 
     // Algorithms
-    void GetPotentialNeutrinoVertices(art::Event const & evt);
+    void GetPotentialNeutrinoVertices(
+            AuxEvent::EventDescriptor & evd,
+            art::Event const & evt);
 
     // Analysis variables
     std::vector<recob::PFParticle const*> ana_pandora_neutrinos, ana_pandora_tracks, ana_pandora_showers;
     std::vector<AuxVertex::DecayVertex> ana_pandora_decayVertices;
-    
-    int tree_pandora_nNeutrinos, tree_pandora_nTwoProngedNeutrinos, tree_pandora_nInsideTwoProngedNeutrinos;
-    std::vector<int> tree_pandora_neutrinoPdgCode, tree_pandora_neutrinoNumDaughters, tree_pandora_neutrinoNumTracks, tree_pandora_neutrinoNumShowers;
-    std::vector<std::vector<int>> tree_pandoraDiagnostic_nVerticesInPfp;
-    std::vector<bool> tree_pandora_neutrinoInTPC;
 
   private:
     // fhicl parameters
     std::string fPfpLabel;
-    std::string fAnaType;
     std::vector<double> fMinTpcBound;
     std::vector<double> fMaxTpcBound;
-    double fDistanceCut;
-    bool fPrimaryOnly;
-    bool fEndVerticesAlso;
     bool fVerbose;
 
     // microboone services
