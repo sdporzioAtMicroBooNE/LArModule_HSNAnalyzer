@@ -33,7 +33,7 @@
 #include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
-
+#include "larhsn/PreSelectHSN/DataObjects/DecayVertex.h"
 
 namespace AuxEvent
 {
@@ -47,6 +47,7 @@ namespace AuxEvent
     virtual ~EventDescriptor();
 
     void Initialize(int run, int subrun, int event);
+    void ExtractVertexPhysics(const std::vector<AuxVertex::DecayVertex> & decayVertices);
 
     // General
     int run;
@@ -54,22 +55,28 @@ namespace AuxEvent
     int event;
 
     // Pandora search
-    int pandora_nNeutrinos;
-    int pandora_nTwoProngedNeutrinos;
-    int pandora_nContainedTwoProngedNeutrinos;
-    std::vector<int> pandora_neutrinoPdgCode;
-    std::vector<int> pandora_neutrinoNumDaughters;
-    std::vector<int> pandora_neutrinoNumTracks;
-    std::vector<int> pandora_neutrinoNumShowers;
+    int nNeutrinos;
+    int nTwoProngedNeutrinos;
+    int nContainedTwoProngedNeutrinos;
+    std::vector<int> neutrinoPdgCode;
+    std::vector<int> neutrinoNumDaughters;
+    std::vector<int> neutrinoNumTracks;
+    std::vector<int> neutrinoNumShowers;
     // Pandora calo
-    int pandora_calo_NumTotHits;
-    std::vector<std::vector<float>> pandora_calo_totChargeInRadius;
-    std::vector<std::vector<float>> pandora_calo_par1ChargeInRadius;
-    std::vector<std::vector<float>> pandora_calo_par2ChargeInRadius;
-    std::vector<std::vector<float>> pandora_calo_caloRatio;
+    int calo_NumTotHits;
+    std::vector<std::vector<float>> calo_totChargeInRadius;
+    std::vector<std::vector<float>> calo_prong1ChargeInRadius;
+    std::vector<std::vector<float>> calo_prong2ChargeInRadius;
+    std::vector<std::vector<float>> calo_caloRatio;
+    // Pandora physics
+    std::vector<std::vector<float>> phys_prongLength;
+    std::vector<std::vector<float>> phys_prongTheta;
+    std::vector<std::vector<float>> phys_prongPhi;
+    std::vector<std::vector<int>> phys_prongNumHits;
     // Pandora diagnostic
-    int pandora_diag_potentialPfpsWithMissingAssociatedVertex;
-    int pandora_diag_dvWithMissingAssociatedHits;
+    int diag_nuWithMissingAssociatedVertex;
+    int diag_nuWithMissingAssociatedTrack;
+    int diag_nuProngWithMissingAssociatedHits;
   };
   
 

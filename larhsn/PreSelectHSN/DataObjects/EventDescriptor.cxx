@@ -22,4 +22,23 @@ namespace AuxEvent
     event = event;
   } // END function Initialize
 
+  void EventDescriptor::ExtractVertexPhysics(const std::vector<AuxVertex::DecayVertex> & decayVertices)
+  {
+    // Clear vectors that will be filled
+    phys_prongLength.clear();
+    phys_prongTheta.clear();
+    phys_prongPhi.clear();
+    phys_prongNumHits.clear();
+
+    for (std::vector<int>::size_type i=0; i!=decayVertices.size(); i++)
+    {
+      AuxVertex::DecayVertex currentVertex = decayVertices[i];
+      phys_prongLength.push_back({currentVertex.GetProngLength(0),currentVertex.GetProngLength(1)});
+      phys_prongTheta.push_back({currentVertex.GetProngTheta(0),currentVertex.GetProngTheta(1)});
+      phys_prongPhi.push_back({currentVertex.GetProngPhi(0),currentVertex.GetProngPhi(1)});
+      phys_prongNumHits.push_back({currentVertex.GetProngNumHits(0),currentVertex.GetProngNumHits(1)});
+    }
+    return;
+  } // END function ExtractVertexPhysics
+
 } // END namespace EventDescriptor 

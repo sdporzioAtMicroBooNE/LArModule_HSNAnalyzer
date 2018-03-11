@@ -49,43 +49,40 @@ namespace AuxEvent
     void Initialize();
 
     void FillDrawTreeVariables(
-          const std::vector<AuxVertex::DecayVertex>& cleanVertices,
-          const std::vector<std::vector<recob::Hit const*>>& totHitsInMaxRadius,
-          const std::vector<std::vector<recob::Hit const*>>& trackHits,
-          const std::vector<std::vector<recob::Hit const*>>& showerHits);
+          const std::vector<AuxVertex::DecayVertex>& decayVertices);
 
     // Declare drawTree variables
     std::vector<std::vector<int>> dv_wireCoordinates;
-    std::vector<std::vector<int>> par1_wireCoordinates;
-    std::vector<std::vector<int>> par2_wireCoordinates;
+    std::vector<std::vector<int>> prong1_wireCoordinates;
+    std::vector<std::vector<int>> prong2_wireCoordinates;
 
-    std::vector<std::vector<int>> par1_hits_p0_wireCoordinates;
-    std::vector<std::vector<int>> par1_hits_p1_wireCoordinates;
-    std::vector<std::vector<int>> par1_hits_p2_wireCoordinates;
-    std::vector<std::vector<int>> par2_hits_p0_wireCoordinates; 
-    std::vector<std::vector<int>> par2_hits_p1_wireCoordinates; 
-    std::vector<std::vector<int>> par2_hits_p2_wireCoordinates;
+    std::vector<std::vector<int>> prong1_hits_p0_wireCoordinates;
+    std::vector<std::vector<int>> prong1_hits_p1_wireCoordinates;
+    std::vector<std::vector<int>> prong1_hits_p2_wireCoordinates;
+    std::vector<std::vector<int>> prong2_hits_p0_wireCoordinates; 
+    std::vector<std::vector<int>> prong2_hits_p1_wireCoordinates; 
+    std::vector<std::vector<int>> prong2_hits_p2_wireCoordinates;
     std::vector<std::vector<int>> tot_hits_p0_wireCoordinates; 
     std::vector<std::vector<int>> tot_hits_p1_wireCoordinates; 
     std::vector<std::vector<int>> tot_hits_p2_wireCoordinates;
 
     std::vector<std::vector<float>> dv_tickCoordinates;
-    std::vector<std::vector<float>> par1_tickCoordinates;
-    std::vector<std::vector<float>> par2_tickCoordinates;
+    std::vector<std::vector<float>> prong1_tickCoordinates;
+    std::vector<std::vector<float>> prong2_tickCoordinates;
 
-    std::vector<std::vector<float>> par1_hits_p0_tickCoordinates; 
-    std::vector<std::vector<float>> par1_hits_p1_tickCoordinates; 
-    std::vector<std::vector<float>> par1_hits_p2_tickCoordinates;
-    std::vector<std::vector<float>> par2_hits_p0_tickCoordinates; 
-    std::vector<std::vector<float>> par2_hits_p1_tickCoordinates; 
-    std::vector<std::vector<float>> par2_hits_p2_tickCoordinates;
+    std::vector<std::vector<float>> prong1_hits_p0_tickCoordinates; 
+    std::vector<std::vector<float>> prong1_hits_p1_tickCoordinates; 
+    std::vector<std::vector<float>> prong1_hits_p2_tickCoordinates;
+    std::vector<std::vector<float>> prong2_hits_p0_tickCoordinates; 
+    std::vector<std::vector<float>> prong2_hits_p1_tickCoordinates; 
+    std::vector<std::vector<float>> prong2_hits_p2_tickCoordinates;
     std::vector<std::vector<float>> tot_hits_p0_tickCoordinates; 
     std::vector<std::vector<float>> tot_hits_p1_tickCoordinates; 
     std::vector<std::vector<float>> tot_hits_p2_tickCoordinates;
 
     std::vector<std::vector<float>> dv_xyzCoordinates; 
-    std::vector<std::vector<float>> par1_xyzCoordinates; 
-    std::vector<std::vector<float>> par2_xyzCoordinates; 
+    std::vector<std::vector<float>> prong1_xyzCoordinates; 
+    std::vector<std::vector<float>> prong2_xyzCoordinates; 
   };
   
 

@@ -20,24 +20,24 @@ namespace AuxEvent
     dv_xyzCoordinates.clear();
     dv_wireCoordinates.clear();
     dv_tickCoordinates.clear();
-    par1_xyzCoordinates.clear();
-    par1_wireCoordinates.clear();
-    par1_tickCoordinates.clear();
-    par2_xyzCoordinates.clear();
-    par2_wireCoordinates.clear();
-    par2_tickCoordinates.clear();
-    par1_hits_p0_wireCoordinates.clear();
-    par1_hits_p1_wireCoordinates.clear();
-    par1_hits_p2_wireCoordinates.clear();
-    par1_hits_p0_tickCoordinates.clear();
-    par1_hits_p1_tickCoordinates.clear();
-    par1_hits_p2_tickCoordinates.clear();
-    par2_hits_p0_wireCoordinates.clear();
-    par2_hits_p1_wireCoordinates.clear();
-    par2_hits_p2_wireCoordinates.clear();
-    par2_hits_p0_tickCoordinates.clear();
-    par2_hits_p1_tickCoordinates.clear();
-    par2_hits_p2_tickCoordinates.clear();
+    prong1_xyzCoordinates.clear();
+    prong1_wireCoordinates.clear();
+    prong1_tickCoordinates.clear();
+    prong2_xyzCoordinates.clear();
+    prong2_wireCoordinates.clear();
+    prong2_tickCoordinates.clear();
+    prong1_hits_p0_wireCoordinates.clear();
+    prong1_hits_p1_wireCoordinates.clear();
+    prong1_hits_p2_wireCoordinates.clear();
+    prong1_hits_p0_tickCoordinates.clear();
+    prong1_hits_p1_tickCoordinates.clear();
+    prong1_hits_p2_tickCoordinates.clear();
+    prong2_hits_p0_wireCoordinates.clear();
+    prong2_hits_p1_wireCoordinates.clear();
+    prong2_hits_p2_wireCoordinates.clear();
+    prong2_hits_p0_tickCoordinates.clear();
+    prong2_hits_p1_tickCoordinates.clear();
+    prong2_hits_p2_tickCoordinates.clear();
     tot_hits_p0_wireCoordinates.clear();
     tot_hits_p1_wireCoordinates.clear();
     tot_hits_p2_wireCoordinates.clear();
@@ -46,65 +46,67 @@ namespace AuxEvent
     tot_hits_p2_tickCoordinates.clear();
   }
 
-  void DrawTreeDescriptor::FillDrawTreeVariables(const std::vector<AuxVertex::DecayVertex>& cleanVertices, const std::vector<std::vector<recob::Hit const*>>& totHitsInMaxRadius, const std::vector<std::vector<recob::Hit const*>>& trackHits, const std::vector<std::vector<recob::Hit const*>>& showerHits)
+  void DrawTreeDescriptor::FillDrawTreeVariables(
+          const std::vector<AuxVertex::DecayVertex>& decayVertices)
   {
-    for (std::vector<int>::size_type i=0; i!=cleanVertices.size(); i++)
+
+    for (std::vector<int>::size_type i=0; i!=decayVertices.size(); i++)
     {
-      // Get clean vertex
-      auto dv = cleanVertices[i];
-      int parIdx1 = dv.GetParIdx1();
-      int parIdx2 = dv.GetParIdx2();
-      std::vector<recob::Hit const*> par1_hits = trackHits[parIdx1];
-      std::vector<recob::Hit const*> par2_hits = trackHits[parIdx2];
-      std::vector<recob::Hit const*> thisTot_hits = totHitsInMaxRadius[i];
-      std::vector<float> thisPar1_hits_p0_tickCoordinates,
-        thisPar1_hits_p1_tickCoordinates,
-        thisPar1_hits_p2_tickCoordinates,
-        thisPar2_hits_p0_tickCoordinates,
-        thisPar2_hits_p1_tickCoordinates,
-        thisPar2_hits_p2_tickCoordinates,
+      // Get decay vertex
+      AuxVertex::DecayVertex currentVertex = decayVertices[i];
+
+      std::vector<recob::Hit const*> prong1_hits = currentVertex.GetProngHits(0);
+      std::vector<recob::Hit const*> prong2_hits = currentVertex.GetProngHits(1);
+      std::vector<recob::Hit const*> thisTot_hits = currentVertex.GetTotHits();
+
+      std::vector<float> thisProng1_hits_p0_tickCoordinates,
+        thisProng1_hits_p1_tickCoordinates,
+        thisProng1_hits_p2_tickCoordinates,
+        thisProng2_hits_p0_tickCoordinates,
+        thisProng2_hits_p1_tickCoordinates,
+        thisProng2_hits_p2_tickCoordinates,
         thisTot_hits_p0_tickCoordinates,
         thisTot_hits_p1_tickCoordinates,
         thisTot_hits_p2_tickCoordinates;
-      std::vector<int> thisPar1_hits_p0_wireCoordinates,
-        thisPar1_hits_p1_wireCoordinates,
-        thisPar1_hits_p2_wireCoordinates,
-        thisPar2_hits_p0_wireCoordinates,
-        thisPar2_hits_p1_wireCoordinates,
-        thisPar2_hits_p2_wireCoordinates,
+      std::vector<int> thisProng1_hits_p0_wireCoordinates,
+        thisProng1_hits_p1_wireCoordinates,
+        thisProng1_hits_p2_wireCoordinates,
+        thisProng2_hits_p0_wireCoordinates,
+        thisProng2_hits_p1_wireCoordinates,
+        thisProng2_hits_p2_wireCoordinates,
         thisTot_hits_p0_wireCoordinates,
         thisTot_hits_p1_wireCoordinates,
         thisTot_hits_p2_wireCoordinates;
 
-      for (auto hit : par1_hits)
+      for (auto hit : prong1_hits)
       {
         if (hit->View() == 0) {
-          thisPar1_hits_p0_wireCoordinates.push_back(hit->Channel());
-          thisPar1_hits_p0_tickCoordinates.push_back((hit->StartTick() + hit->EndTick())/2.);
+          thisProng1_hits_p0_wireCoordinates.push_back(hit->Channel());
+          thisProng1_hits_p0_tickCoordinates.push_back((hit->StartTick() + hit->EndTick())/2.);
         }
         if (hit->View() == 1) {
-          thisPar1_hits_p1_wireCoordinates.push_back(hit->Channel());
-          thisPar1_hits_p1_tickCoordinates.push_back((hit->StartTick() + hit->EndTick())/2.);
+          thisProng1_hits_p1_wireCoordinates.push_back(hit->Channel());
+          thisProng1_hits_p1_tickCoordinates.push_back((hit->StartTick() + hit->EndTick())/2.);
         }
         if (hit->View() == 2) {
-          thisPar1_hits_p2_wireCoordinates.push_back(hit->Channel());
-          thisPar1_hits_p2_tickCoordinates.push_back((hit->StartTick() + hit->EndTick())/2.);
+          thisProng1_hits_p2_wireCoordinates.push_back(hit->Channel());
+          thisProng1_hits_p2_tickCoordinates.push_back((hit->StartTick() + hit->EndTick())/2.);
         }
       }
 
-      for (auto hit : par2_hits)
+      for (auto hit : prong2_hits)
       {
         if (hit->View() == 0) {
-          thisPar2_hits_p0_wireCoordinates.push_back(hit->Channel());
-          thisPar2_hits_p0_tickCoordinates.push_back((hit->StartTick() + hit->EndTick())/2.);
+          thisProng2_hits_p0_wireCoordinates.push_back(hit->Channel());
+          thisProng2_hits_p0_tickCoordinates.push_back((hit->StartTick() + hit->EndTick())/2.);
         }
         if (hit->View() == 1) {
-          thisPar2_hits_p1_wireCoordinates.push_back(hit->Channel());
-          thisPar2_hits_p1_tickCoordinates.push_back((hit->StartTick() + hit->EndTick())/2.);
+          thisProng2_hits_p1_wireCoordinates.push_back(hit->Channel());
+          thisProng2_hits_p1_tickCoordinates.push_back((hit->StartTick() + hit->EndTick())/2.);
         }
         if (hit->View() == 2) {
-          thisPar2_hits_p2_wireCoordinates.push_back(hit->Channel());
-          thisPar2_hits_p2_tickCoordinates.push_back((hit->StartTick() + hit->EndTick())/2.);
+          thisProng2_hits_p2_wireCoordinates.push_back(hit->Channel());
+          thisProng2_hits_p2_tickCoordinates.push_back((hit->StartTick() + hit->EndTick())/2.);
         }
       }
 
@@ -125,29 +127,29 @@ namespace AuxEvent
       }
 
       // Get coordinates
-      dv_xyzCoordinates.push_back({dv.GetX(),dv.GetY(), (float)dv.GetZ()});
-      dv_wireCoordinates.push_back({dv.GetChannelLoc(0),dv.GetChannelLoc(1),dv.GetChannelLoc(2)});
-      dv_tickCoordinates.push_back({dv.GetTickLoc(0),dv.GetTickLoc(1),dv.GetTickLoc(2)});
-      par1_xyzCoordinates.push_back({dv.GetParX(0),dv.GetParY(0),dv.GetParZ(0)});
-      par1_wireCoordinates.push_back({dv.GetParChannelLoc(0,0),dv.GetParChannelLoc(0,1),dv.GetParChannelLoc(0,2)});
-      par1_tickCoordinates.push_back({dv.GetParTickLoc(0,0),dv.GetParTickLoc(0,1),dv.GetParTickLoc(0,2)});
-      par2_xyzCoordinates.push_back({dv.GetParX(1),dv.GetParY(1),dv.GetParZ(1)});
-      par2_wireCoordinates.push_back({dv.GetParChannelLoc(1,0),dv.GetParChannelLoc(1,1),dv.GetParChannelLoc(1,2)});
-      par2_tickCoordinates.push_back({dv.GetParTickLoc(1,0),dv.GetParTickLoc(1,1),dv.GetParTickLoc(1,2)});
+      dv_xyzCoordinates.push_back({currentVertex.GetX(),currentVertex.GetY(),currentVertex.GetZ()});
+      dv_wireCoordinates.push_back({currentVertex.GetChannelLoc(0),currentVertex.GetChannelLoc(1),currentVertex.GetChannelLoc(2)});
+      dv_tickCoordinates.push_back({currentVertex.GetTickLoc(0),currentVertex.GetTickLoc(1),currentVertex.GetTickLoc(2)});
+      prong1_xyzCoordinates.push_back({currentVertex.GetProngX(0),currentVertex.GetProngY(0),currentVertex.GetProngZ(0)});
+      prong1_wireCoordinates.push_back({currentVertex.GetProngChannelLoc(0,0),currentVertex.GetProngChannelLoc(0,1),currentVertex.GetProngChannelLoc(0,2)});
+      prong1_tickCoordinates.push_back({currentVertex.GetProngTickLoc(0,0),currentVertex.GetProngTickLoc(0,1),currentVertex.GetProngTickLoc(0,2)});
+      prong2_xyzCoordinates.push_back({currentVertex.GetProngX(1),currentVertex.GetProngY(1),currentVertex.GetProngZ(1)});
+      prong2_wireCoordinates.push_back({currentVertex.GetProngChannelLoc(1,0),currentVertex.GetProngChannelLoc(1,1),currentVertex.GetProngChannelLoc(1,2)});
+      prong2_tickCoordinates.push_back({currentVertex.GetProngTickLoc(1,0),currentVertex.GetProngTickLoc(1,1),currentVertex.GetProngTickLoc(1,2)});
 
-      par1_hits_p0_wireCoordinates.push_back(thisPar1_hits_p0_wireCoordinates);
-      par1_hits_p1_wireCoordinates.push_back(thisPar1_hits_p1_wireCoordinates);
-      par1_hits_p2_wireCoordinates.push_back(thisPar1_hits_p2_wireCoordinates);
-      par1_hits_p0_tickCoordinates.push_back(thisPar1_hits_p0_tickCoordinates);
-      par1_hits_p1_tickCoordinates.push_back(thisPar1_hits_p1_tickCoordinates);
-      par1_hits_p2_tickCoordinates.push_back(thisPar1_hits_p2_tickCoordinates);
+      prong1_hits_p0_wireCoordinates.push_back(thisProng1_hits_p0_wireCoordinates);
+      prong1_hits_p1_wireCoordinates.push_back(thisProng1_hits_p1_wireCoordinates);
+      prong1_hits_p2_wireCoordinates.push_back(thisProng1_hits_p2_wireCoordinates);
+      prong1_hits_p0_tickCoordinates.push_back(thisProng1_hits_p0_tickCoordinates);
+      prong1_hits_p1_tickCoordinates.push_back(thisProng1_hits_p1_tickCoordinates);
+      prong1_hits_p2_tickCoordinates.push_back(thisProng1_hits_p2_tickCoordinates);
 
-      par2_hits_p0_wireCoordinates.push_back(thisPar2_hits_p0_wireCoordinates);
-      par2_hits_p1_wireCoordinates.push_back(thisPar2_hits_p1_wireCoordinates);
-      par2_hits_p2_wireCoordinates.push_back(thisPar2_hits_p2_wireCoordinates);
-      par2_hits_p0_tickCoordinates.push_back(thisPar2_hits_p0_tickCoordinates);
-      par2_hits_p1_tickCoordinates.push_back(thisPar2_hits_p1_tickCoordinates);
-      par2_hits_p2_tickCoordinates.push_back(thisPar2_hits_p2_tickCoordinates);
+      prong2_hits_p0_wireCoordinates.push_back(thisProng2_hits_p0_wireCoordinates);
+      prong2_hits_p1_wireCoordinates.push_back(thisProng2_hits_p1_wireCoordinates);
+      prong2_hits_p2_wireCoordinates.push_back(thisProng2_hits_p2_wireCoordinates);
+      prong2_hits_p0_tickCoordinates.push_back(thisProng2_hits_p0_tickCoordinates);
+      prong2_hits_p1_tickCoordinates.push_back(thisProng2_hits_p1_tickCoordinates);
+      prong2_hits_p2_tickCoordinates.push_back(thisProng2_hits_p2_tickCoordinates);
 
       tot_hits_p0_wireCoordinates.push_back(thisTot_hits_p0_wireCoordinates);
       tot_hits_p1_wireCoordinates.push_back(thisTot_hits_p1_wireCoordinates);
@@ -155,7 +157,7 @@ namespace AuxEvent
       tot_hits_p0_tickCoordinates.push_back(thisTot_hits_p0_tickCoordinates);
       tot_hits_p1_tickCoordinates.push_back(thisTot_hits_p1_tickCoordinates);
       tot_hits_p2_tickCoordinates.push_back(thisTot_hits_p2_tickCoordinates);
-    }
+    } // END loop for each decay vertex
     return;
   } // END function FillDrawTree
 } // END namespace DrawTreeDescriptor 

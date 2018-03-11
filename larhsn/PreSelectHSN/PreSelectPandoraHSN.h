@@ -87,7 +87,6 @@ private:
   std::vector<double> fMaxTpcBound;
   std::string fPfpLabel;
   std::string fHitLabel;
-  double fDistanceCut;
   std::vector<double> fRadiusProfileLimits;
   int fRadiusProfileBins;
   double fChannelNorm;

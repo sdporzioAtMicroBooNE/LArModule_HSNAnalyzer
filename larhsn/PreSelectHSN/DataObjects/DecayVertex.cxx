@@ -15,71 +15,82 @@ namespace AuxVertex
   DecayVertex::~DecayVertex()
   {}
 
-  DecayVertex::DecayVertex(float x,
-                           float y,
-                           float z,
-                           int parIdx1,
-                           int parIdx2,
-                           std::string parType1,
-                           std::string parType2,
-                           std::string direction1,
-                           std::string direction2)
+  DecayVertex::DecayVertex(
+            recob::Vertex const * nuVertex,
+            recob::Vertex const * t1Vertex,
+            recob::Vertex const * t2Vertex,
+            recob::Track const * t1Track,
+            recob::Track const * t2Track,
+            std::vector<recob::Hit const *> t1Hits,
+            std::vector<recob::Hit const *> t2Hits)
   {
-    fIsDetLocAssigned = false;
-    fIsPathological = false;
-    fX = x;
-    fY = y;
-    fZ = z;
-    fParX = {x,x};
-    fParY = {y,y};
-    fParZ = {z,z};
-    fParIdx1 = parIdx1;
-    fParIdx2 = parIdx2;
-    fParType1 = parType1;
-    fParType2 = parType2;
-    fDirection1 = direction1;
-    fDirection2 = direction2;
+    // Set default attributes
     fChannelLoc = {-1,-1,-1};
     fTickLoc = {-1.,-1.,-1.};
-    fParChannelLoc = {{-1,-1,-1}, {-1,-1,-1}};
-    fParTickLoc = {{-1.,-1.,-1.}, {-1.,-1.,-1.}};
-    fPathologyCode = {};
+    fProngChannelLoc = {{-1,-1,-1}, {-1,-1,-1}};
+    fProngTickLoc = {{-1.,-1.,-1.}, {-1.,-1.,-1.}};
+    fIsDetLocAssigned = false;
+    fIsInsideTPC = false;
+
+    // Assign arguments to attributes
+    fNuVertex = nuVertex;
+    fProngVertex = {t1Vertex, t2Vertex};
+    fProngTrack = {t1Track, t2Track};
+    fProngHits = {t1Hits, t2Hits};
+
+    // Get vertex and daughters coordinates and assign them to attributes
+    double nuVertexPosition[3], t1VertexPosition[3], t2VertexPosition[3];
+    fNuVertex->XYZ(nuVertexPosition);
+    fProngVertex[0]->XYZ(t1VertexPosition);
+    fProngVertex[1]->XYZ(t2VertexPosition);
+    fX = nuVertexPosition[0];
+    fY = nuVertexPosition[1];
+    fZ = nuVertexPosition[2];
+    fProngX = {(float) t1VertexPosition[0], (float) t2VertexPosition[0]};
+    fProngY = {(float) t1VertexPosition[1], (float) t2VertexPosition[1]};
+    fProngZ = {(float) t1VertexPosition[2], (float) t2VertexPosition[2]};
+
+    // Get physics variables
+    fProngLength = {(float) t1Track->Length(), (float) t2Track->Length()};
+    fProngTheta = {(float) t1Track->Theta(), (float) t2Track->Theta()};
+    fProngPhi = {(float) t1Track->Phi(), (float) t2Track->Phi()};
+    fProngNumHits = {(int) t1Hits.size(), (int) t2Hits.size()};
   }
 
   // Getters
+  recob::Vertex const * DecayVertex::GetNuVertex() const {return fNuVertex;}
+  recob::Vertex const * DecayVertex::GetProngVertex(int prong) const {return fProngVertex[prong];}
+  recob::Track const * DecayVertex::GetProngTrack(int prong) const {return fProngTrack[prong];}
+  std::vector<recob::Hit const *> DecayVertex::GetProngHits(int prong) const {return fProngHits[prong];}
+  std::vector<recob::Hit const *> DecayVertex::GetTotHits() const {return fTotHitsInMaxRadius;}
   float DecayVertex::GetX() const {return fX;}
   float DecayVertex::GetY() const {return fY;}
   float DecayVertex::GetZ() const {return fZ;}
-  float DecayVertex::GetParX(int par) const {return fParX[par];}
-  float DecayVertex::GetParY(int par) const {return fParY[par];}
-  float DecayVertex::GetParZ(int par) const {return fParZ[par];}
-  int DecayVertex::GetParIdx1() const {return fParIdx1;}
-  int DecayVertex::GetParIdx2() const {return fParIdx2;}
-  std::string DecayVertex::GetParType1() const {return fParType1;}
-  std::string DecayVertex::GetParType2() const {return fParType2;}
-  std::string DecayVertex::GetDirection1() const {return fDirection1;}
-  std::string DecayVertex::GetDirection2() const {return fDirection2;}
-  bool DecayVertex::IsInsideTPC() const {return fIsInsideTPC;}
-  bool DecayVertex::IsDetLocAssigned() const {return fIsDetLocAssigned;}
-  bool DecayVertex::IsPathological() const {return fIsPathological;}
+  float DecayVertex::GetProngX(int prong) const {return fProngX[prong];}
+  float DecayVertex::GetProngY(int prong) const {return fProngY[prong];}
+  float DecayVertex::GetProngZ(int prong) const {return fProngZ[prong];}
   int DecayVertex::GetChannelLoc(int plane) const {return fChannelLoc[plane];}
   float DecayVertex::GetTickLoc(int plane) const {return fTickLoc[plane];}
-  int DecayVertex::GetParChannelLoc(int par,int plane) const {return fParChannelLoc[par][plane];}
-  float DecayVertex::GetParTickLoc(int par,int plane) const {return fParTickLoc[par][plane];}
-  std::vector<int> DecayVertex::GetPathologyCode() const {return fPathologyCode;}
+  int DecayVertex::GetProngChannelLoc(int prong,int plane) const {return fProngChannelLoc[prong][plane];}
+  float DecayVertex::GetProngTickLoc(int prong,int plane) const {return fProngTickLoc[prong][plane];}
+  float DecayVertex::GetProngLength(int prong) const {return fProngLength[prong];}
+  float DecayVertex::GetProngTheta(int prong) const {return fProngTheta[prong];}
+  float DecayVertex::GetProngPhi(int prong) const {return fProngPhi[prong];}
+  int DecayVertex::GetProngNumHits(int prong) const {return fProngNumHits[prong];}
+  bool DecayVertex::IsInsideTPC() const {return fIsInsideTPC;}
+  bool DecayVertex::IsDetLocAssigned() const {return fIsDetLocAssigned;}
 
 
   // Setters
   void DecayVertex::SetChannelLoc(int channel0, int channel1, int channel2) {fChannelLoc = {channel0,channel1,channel2}; return;}
   void DecayVertex::SetTickLoc(float tick0, float tick1, float tick2) {fTickLoc = {tick0, tick1, tick2}; return;}
-  void DecayVertex::SetParChannelLoc(int par, int channel0, int channel1, int channel2) {fParChannelLoc[par] =  {channel0,channel1,channel2}; return;}
-  void DecayVertex::SetParTickLoc(int par, float tick0, float tick1, float tick2) {fParTickLoc[par] = {tick0, tick1, tick2}; return;}
-  void DecayVertex::SetParXYZ(int par, float x, float y, float z) {fParX[par] = x; fParY[par] = y; fParZ[par] = z; return;}
+  void DecayVertex::SetProngChannelLoc(int prong, int channel0, int channel1, int channel2) {fProngChannelLoc[prong] =  {channel0,channel1,channel2}; return;}
+  void DecayVertex::SetProngTickLoc(int prong, float tick0, float tick1, float tick2) {fProngTickLoc[prong] = {tick0, tick1, tick2}; return;}
+  void DecayVertex::SetProngXYZ(int prong, float x, float y, float z) {fProngX[prong] = x; fProngY[prong] = y; fProngZ[prong] = z; return;}
   void DecayVertex::SetIsInsideTPC(bool val) {fIsInsideTPC = val; return;}
   void DecayVertex::SetIsDetLocAssigned(bool val) {fIsDetLocAssigned = val; return;}
-  void DecayVertex::SetIsPathological(bool val, int pathologyCode) {fIsPathological = val; fPathologyCode.push_back(pathologyCode); return;}
-  void DecayVertex::SetPathologyCode(std::vector<int> val) {fPathologyCode = val; return;}
-  void DecayVertex::AddPathologyCode(int val) {fPathologyCode.push_back(val); return;}
+  void DecayVertex::SetTotHits(std::vector<recob::Hit const*> totHitsInMaxRadius) {fTotHitsInMaxRadius = totHitsInMaxRadius; return;}
+
   void DecayVertex::SetDetectorCoordinates(
     const std::vector<double>& minTpcBound,
     const std::vector<double>& maxTpcBound,
@@ -88,8 +99,8 @@ namespace AuxVertex
   {
     // Get spatial coordinates and mark vertex as assigned
     float xyz[3] = {fX,fY,fZ};
-    float par1_xyz[3] = {fParX[0],fParY[0],fParZ[0]};
-    float par2_xyz[3] = {fParX[1],fParY[1],fParZ[1]};
+    float prong1_xyz[3] = {fProngX[0],fProngY[0],fProngZ[0]};
+    float prong2_xyz[3] = {fProngX[1],fProngY[1],fProngZ[1]};
 
     fIsDetLocAssigned = true;
 
@@ -115,21 +126,21 @@ namespace AuxVertex
       fChannelLoc = {(int) channel0,(int) channel1,(int) channel2};
       fTickLoc = { (float) tick0, (float) tick1, (float) tick2};
 
-      raw::ChannelID_t par1_channel0 = geometry->NearestChannel(par1_xyz,0);
-      raw::ChannelID_t par1_channel1 = geometry->NearestChannel(par1_xyz,1);
-      raw::ChannelID_t par1_channel2 = geometry->NearestChannel(par1_xyz,2);
-      double par1_tick0 = detectorProperties->ConvertXToTicks(par1_xyz[0], 0, 0, 0);
-      double par1_tick1 = detectorProperties->ConvertXToTicks(par1_xyz[0], 1, 0, 0);
-      double par1_tick2 = detectorProperties->ConvertXToTicks(par1_xyz[0], 2, 0, 0);
-      raw::ChannelID_t par2_channel0 = geometry->NearestChannel(par2_xyz,0);
-      raw::ChannelID_t par2_channel1 = geometry->NearestChannel(par2_xyz,1);
-      raw::ChannelID_t par2_channel2 = geometry->NearestChannel(par2_xyz,2);
-      double par2_tick0 = detectorProperties->ConvertXToTicks(par2_xyz[0], 0, 0, 0);
-      double par2_tick1 = detectorProperties->ConvertXToTicks(par2_xyz[0], 1, 0, 0);
-      double par2_tick2 = detectorProperties->ConvertXToTicks(par2_xyz[0], 2, 0, 0);
+      raw::ChannelID_t prong1_channel0 = geometry->NearestChannel(prong1_xyz,0);
+      raw::ChannelID_t prong1_channel1 = geometry->NearestChannel(prong1_xyz,1);
+      raw::ChannelID_t prong1_channel2 = geometry->NearestChannel(prong1_xyz,2);
+      double prong1_tick0 = detectorProperties->ConvertXToTicks(prong1_xyz[0], 0, 0, 0);
+      double prong1_tick1 = detectorProperties->ConvertXToTicks(prong1_xyz[0], 1, 0, 0);
+      double prong1_tick2 = detectorProperties->ConvertXToTicks(prong1_xyz[0], 2, 0, 0);
+      raw::ChannelID_t prong2_channel0 = geometry->NearestChannel(prong2_xyz,0);
+      raw::ChannelID_t prong2_channel1 = geometry->NearestChannel(prong2_xyz,1);
+      raw::ChannelID_t prong2_channel2 = geometry->NearestChannel(prong2_xyz,2);
+      double prong2_tick0 = detectorProperties->ConvertXToTicks(prong2_xyz[0], 0, 0, 0);
+      double prong2_tick1 = detectorProperties->ConvertXToTicks(prong2_xyz[0], 1, 0, 0);
+      double prong2_tick2 = detectorProperties->ConvertXToTicks(prong2_xyz[0], 2, 0, 0);
 
-      fParChannelLoc = {{ (int) par1_channel0, (int) par1_channel1, (int) par1_channel2}, { (int) par2_channel0, (int) par2_channel1, (int) par2_channel2}};
-      fParTickLoc = {{ (float) par1_tick0, (float) par1_tick1, (float) par1_tick2}, { (float) par2_tick0, (float) par2_tick1, (float) par2_tick2}};
+      fProngChannelLoc = {{ (int) prong1_channel0, (int) prong1_channel1, (int) prong1_channel2}, { (int) prong2_channel0, (int) prong2_channel1, (int) prong2_channel2}};
+      fProngTickLoc = {{ (float) prong1_tick0, (float) prong1_tick1, (float) prong1_tick2}, { (float) prong2_tick0, (float) prong2_tick1, (float) prong2_tick2}};
       return;
     }
 
@@ -137,8 +148,6 @@ namespace AuxVertex
     else
       {
         fIsInsideTPC = false;
-        fIsPathological = true;
-        fPathologyCode.push_back(1);
         return;
       }
   } // END function SetDetectorCoordinates
@@ -148,11 +157,12 @@ namespace AuxVertex
   void DecayVertex::PrintInformation() const{
     int fStartWire[3] = {0,2399,4798};
     printf("\n-|Vertex information|\n");
-    printf("|_Parents type: [%s,%s]\n", fParType1.c_str(), fParType2.c_str());
-    printf("|_Parents direction: [%s,%s]\n", fDirection1.c_str(), fDirection2.c_str());
-    printf("|_Parents index: [%i,%i]\n", fParIdx1, fParIdx2);
     printf("|_Vertex inside TPC: %d\n", fIsInsideTPC);
     printf("|_Spatial Coordinates: [%.1f, %.1f, %.1f]\n",fX,fY,fZ);
+    printf("|_Prongs lengths: [%.1f,%.1f]\n", fProngLength[0], fProngLength[1]);
+    printf("|_Prongs theta: [%.1f,%.1f]\n", fProngTheta[0], fProngTheta[1]);
+    printf("|_Prongs phi: [%.1f,%.1f]\n", fProngPhi[0], fProngPhi[1]);
+    printf("|_Prongs hit number: [%i,%i]\n", fProngNumHits[0], fProngNumHits[1]);
     printf("|_Detector location assigned: %d\n", fIsDetLocAssigned);
     if (fIsDetLocAssigned)
     {
@@ -161,39 +171,4 @@ namespace AuxVertex
     }
     return;
   }
-
-  // Aux Functions
-  float Distance(DecayVertex v1, DecayVertex v2)
-  {
-    // Calculate distance between vertices
-    float dist = sqrt(
-      pow((v1.GetX() - v2.GetX()),2.) +
-      pow((v1.GetY() - v2.GetY()),2.) +
-      pow((v1.GetZ() - v2.GetZ()),2.)
-    );
-    return dist;
-  } // END function Distance
-
-  DecayVertex MeanVertex(DecayVertex v1, DecayVertex v2)
-  {
-    // Find vertex half-way between two ORIGIN vertices
-    // if (v1.GetParIdx1()!=v1.GetParIdx2() || v2.GetParIdx1()!=v2.GetParIdx2())
-    // {
-    //   throw std::runtime_error("Mean vertex is supposed to be calculated only from two origin vertices (vertices which correspond to the actual start or end of a track or shower). Calculating the mean vertex between two mean vertices is not implemented yet.");
-    // }
-    float x = (v1.GetX() + v2.GetX())/2.;
-    float y = (v1.GetY() + v2.GetY())/2.;
-    float z = (v1.GetZ() + v2.GetZ())/2.;
-    int pidx1 = v1.GetParIdx1();
-    int pidx2 = v2.GetParIdx1();
-    std::string ptype1 = v1.GetParType1();
-    std::string ptype2 = v2.GetParType1();
-    std::string direction1 = v1.GetDirection1();
-    std::string direction2 = v2.GetDirection1();
-    DecayVertex meanVertex(x,y,z,pidx1,pidx2,ptype1,ptype2,direction1,direction2);
-    meanVertex.SetParXYZ(0,v1.GetX(),v1.GetY(),v1.GetZ());
-    meanVertex.SetParXYZ(1,v2.GetX(),v2.GetY(),v2.GetZ());
-    return meanVertex;
-  } // END function MeanVertex
-
 } // END namespace AuxVertex

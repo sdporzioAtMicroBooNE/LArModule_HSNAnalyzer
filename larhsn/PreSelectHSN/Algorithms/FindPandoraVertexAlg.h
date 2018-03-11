@@ -73,12 +73,9 @@ namespace FindPandoraVertex
 
     // Algorithms
     void GetPotentialNeutrinoVertices(
+            art::Event const & evt,
             AuxEvent::EventDescriptor & evd,
-            art::Event const & evt);
-
-    // Analysis variables
-    std::vector<recob::PFParticle const*> ana_pandora_neutrinos, ana_pandora_tracks, ana_pandora_showers;
-    std::vector<AuxVertex::DecayVertex> ana_pandora_decayVertices;
+            std::vector<AuxVertex::DecayVertex> & ana_decayVertices);
 
   private:
     // fhicl parameters

@@ -71,30 +71,19 @@ namespace CalorimetryRadius
     ~CalorimetryRadiusAlg();
     void reconfigure(fhicl::ParameterSet const & pset);
 
-  // algorithms
-  void GetHitVectors(
-          AuxEvent::EventDescriptor & evd,
-          std::vector<AuxVertex::DecayVertex>& cleanVertices,
-          art::Event const & evt,
-          const std::vector<recob::PFParticle const*>& tracks,
-          const std::vector<recob::PFParticle const*>& showers);
+  // Algorithms
   void PerformCalorimetry(
+          art::Event const & evt,
           AuxEvent::EventDescriptor & evd,
-          std::vector<AuxVertex::DecayVertex>& cleanVertices,
-          const std::vector<recob::Hit const*>& totHits,
-          const std::vector<std::vector<recob::Hit const*>>& trackHits,
-          const std::vector<std::vector<recob::Hit const*>>& showerHits);
+          std::vector<AuxVertex::DecayVertex>& decayVertices);
 
-  // GetHitVectors returns
-  std::vector<recob::Hit const*> ana_calo_totHits; // for each hit
-  std::vector<std::vector<recob::Hit const*>> ana_calo_trackHits, ana_calo_showerHits; // for each hit, for each track/shower
   // PerformCalorimetry returns
   std::vector<std::vector<recob::Hit const*>> ana_calo_totHitsInMaxRadius; // for each hit, for each dv
 
   int tree_calo_NumTotHits;
   std::vector<std::vector<float>> tree_calo_totChargeInRadius;
-  std::vector<std::vector<float>> tree_calo_par1ChargeInRadius;
-  std::vector<std::vector<float>> tree_calo_par2ChargeInRadius;
+  std::vector<std::vector<float>> tree_calo_prong1ChargeInRadius;
+  std::vector<std::vector<float>> tree_calo_prong2ChargeInRadius;
   std::vector<std::vector<float>> tree_calo_caloRatio;
 
   private:
