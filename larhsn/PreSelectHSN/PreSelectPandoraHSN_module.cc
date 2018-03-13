@@ -69,7 +69,6 @@ void PreSelectHSN::beginJob()
   pandoraTree->Branch("neutrinoNumDaughters",&evd.neutrinoNumDaughters);
   pandoraTree->Branch("neutrinoNumTracks",&evd.neutrinoNumTracks);
   pandoraTree->Branch("neutrinoNumShowers",&evd.neutrinoNumShowers);
-  pandoraTree->Branch("nTotHits",&evd.calo_NumTotHits);
   pandoraTree->Branch("totChargeInRadius",&evd.calo_totChargeInRadius);
   pandoraTree->Branch("prong1ChargeInRadius",&evd.calo_prong1ChargeInRadius);
   pandoraTree->Branch("prong2ChargeInRadius",&evd.calo_prong2ChargeInRadius);

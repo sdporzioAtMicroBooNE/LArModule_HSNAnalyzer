@@ -15,11 +15,11 @@ namespace AuxEvent
   EventDescriptor::~EventDescriptor()
   {}
 
-  void EventDescriptor::Initialize(int run, int subrun, int event)
+  void EventDescriptor::Initialize(int i_run, int i_subrun, int i_event)
   {
-    run = run;
-    subrun = subrun;
-    event = event;
+    run = i_run;
+    subrun = i_subrun;
+    event = i_event;
   } // END function Initialize
 
   void EventDescriptor::ExtractVertexPhysics(const std::vector<AuxVertex::DecayVertex> & decayVertices)

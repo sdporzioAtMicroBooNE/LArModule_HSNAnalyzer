@@ -46,7 +46,7 @@ namespace AuxEvent
     EventDescriptor();
     virtual ~EventDescriptor();
 
-    void Initialize(int run, int subrun, int event);
+    void Initialize(int i_run, int i_subrun, int i_event);
     void ExtractVertexPhysics(const std::vector<AuxVertex::DecayVertex> & decayVertices);
 
     // General
@@ -63,7 +63,6 @@ namespace AuxEvent
     std::vector<int> neutrinoNumTracks;
     std::vector<int> neutrinoNumShowers;
     // Pandora calo
-    int calo_NumTotHits;
     std::vector<std::vector<float>> calo_totChargeInRadius;
     std::vector<std::vector<float>> calo_prong1ChargeInRadius;
     std::vector<std::vector<float>> calo_prong2ChargeInRadius;
