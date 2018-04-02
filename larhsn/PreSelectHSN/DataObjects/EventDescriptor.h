@@ -76,8 +76,10 @@ namespace AuxEvent
     int diag_nuWithMissingAssociatedVertex;
     int diag_nuWithMissingAssociatedTrack;
     int diag_nuProngWithMissingAssociatedHits;
+    //Truth information
+    std::vector<std::vector<int>> prong_matchedPDG;
   };
-  
+
 
 } //END namespace AuxEvent
 

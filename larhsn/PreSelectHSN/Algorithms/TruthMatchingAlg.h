@@ -1,5 +1,5 @@
-#ifndef FINDPANDORAVERTEXALG_H
-#define FINDPANDORAVERTEXALG_H
+#ifndef TRUTHMATCHINGALG_H
+#define TRUTHMATCHINGALG_H
 
 // c++ includes
 #include <iostream>
@@ -41,7 +41,7 @@
 #include "canvas/Persistency/Common/FindManyP.h"
 #include "canvas/Persistency/Common/FindOne.h"
 #include "canvas/Persistency/Common/FindOneP.h"
-#include "canvas/Persistency/Common/Assns.h"
+
 // larsoft object includes
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Shower.h"
@@ -51,50 +51,53 @@
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/TrackingTypes.h"
 #include "lardataobj/RawData/RawDigit.h"
-
 #include "larcore/Geometry/geo.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcore/CoreUtils/ServiceUtil.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
-#include "lardataobj/AnalysisBase/BackTrackerMatchingData.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+#include "lardataobj/AnalysisBase/BackTrackerMatchingData.h"
+
+#include "uboone/AnalysisTree/MCTruth/IMCTruthMatching.h"
+//s#include "uboone/AnalysisTree/MCTruth/AssociationsTruth_tool.h"
+
 
 // Auxiliary objects includes
 #include "larhsn/PreSelectHSN/DataObjects/DecayVertex.h"
 #include "larhsn/PreSelectHSN/DataObjects/EventDescriptor.h"
-#include "uboone/AnalysisTree/MCTruth/IMCTruthMatching.h"
-#include "uboone/AnalysisTree/MCTruth/AssociationsTruth_tool.h"
 
-
-
-namespace FindPandoraVertex
+namespace TruthMatching
 {
 
-  class FindPandoraVertexAlg
+  class TruthMatchingAlg
   {
   public:
-    FindPandoraVertexAlg(fhicl::ParameterSet const & pset);
-    ~FindPandoraVertexAlg();
+    TruthMatchingAlg(fhicl::ParameterSet const & pset);
+    ~TruthMatchingAlg();
     void reconfigure(fhicl::ParameterSet const & pset);
 
-    // Algorithms
-    void GetPotentialNeutrinoVertices(
-            art::Event const & evt,
-            AuxEvent::EventDescriptor & evd,
-            std::vector<AuxVertex::DecayVertex> & ana_decayVertices);
+  // Algorithms
+  void PerformTruthMatching(
+          art::Event const & evt,
+          AuxEvent::EventDescriptor & evd,
+          std::vector<AuxVertex::DecayVertex>& decayVertices);
+
+  // PerformCalorimetry returns
+  std::vector<std::vector<int>> prong_matchedPDG;
 
   private:
     // fhicl parameters
     std::string fPfpLabel;
-    std::vector<double> fMinTpcBound;
-    std::vector<double> fMaxTpcBound;
+    std::string fHitLabel;
+
     bool fVerbose;
+
 
     // microboone services
     const geo::GeometryCore* fGeometry;
     const detinfo::DetectorProperties* fDetectorProperties;
   };
 
-} // END namespace FindPandoraVertex
+} // END namespace CalorimetryRadius
 
 #endif

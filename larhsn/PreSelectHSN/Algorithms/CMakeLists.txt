@@ -1,6 +1,8 @@
 art_make( BASENAME_ONLY
 	LIBRARY_NAME PreSelectAlgorithms
 	LIB_LIBRARIES
+		uboone_AnalysisTree_MCTruth
+		larsim_MCCheater_BackTracker_service
 		PreSelectDataObjects
 		larreco_RecoAlg
 		larreco_RecoAlg_Cluster3DAlgs
