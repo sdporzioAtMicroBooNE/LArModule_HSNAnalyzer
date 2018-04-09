@@ -1,7 +1,7 @@
 #ifndef SHOWKINEMATICDISTRIBUTIONS_MODULE
 #define SHOWKINEMATICDISTRIBUTIONS_MODULE
 
-#include "ShowKinematicDistributions_module.h"
+#include "ShowKinematicDistributions.h"
 
 ShowKinematicDistributions::ShowKinematicDistributions(fhicl::ParameterSet const & pset) :
     EDAnalyzer(pset),

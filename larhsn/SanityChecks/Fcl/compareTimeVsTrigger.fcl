@@ -1,0 +1,42 @@
+#include "services_microboone.fcl"
+
+process_name: compareTimeVsTrigger
+
+services:
+{
+  TFileService: {fileName: "compareTimeVsTrigger.root"}
+  TimeTracker:            {}
+  MemoryTracker:          {}
+  RandomNumberGenerator:  {}
+  @table::microboone_services_reco
+  @table::microboone_simulation_services
+}
+
+source:
+{
+  module_type: RootInput
+  maxEvents:  -1
+}
+
+physics:
+{
+	analyzers:
+  {
+    TestMinEx:
+    {
+      module_type:          "CompareTimeVsTrigger"
+      mcLabel:              "generator"
+      swtrigLabel:          "swtrigger"
+      triggerNames:         [ "BNB_FEMBeamTriggerAlgo",
+                              "BNB_2017Dec_SWTrigger5PE_FEMBeamTriggerAlgo",
+                              "BNB_HSN_c0_FEMBeamTriggerAlgo" ]  
+    }
+  }
+  analysis: [TestMinEx]
+  end_paths: [analysis]
+}
+
+services.DetectorClocksService.InheritClockConfig: false
+services.DetectorClocksService.TriggerOffsetTPC: -400
+services.DetectorPropertiesService.NumberTimeSamples: 6400
+services.DetectorPropertiesService.ReadOutWindowSize: 6400

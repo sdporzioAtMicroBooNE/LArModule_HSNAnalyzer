@@ -1,21 +1,8 @@
 # basic source code CMakeLists.txt
 
 art_make(BASENAME_ONLY
-	LIB_LIBRARIES 
-		lardataobj_RecoBase
-		lardataobj_AnalysisBase
-		larcore_Geometry
-    larcore_Geometry_Geometry_service
-		lardata_Utilities
-		${SIMULATIONBASE}
-		${MF_MESSAGELOGGER}
-		${MF_UTILITIES}
-		${FHICLCPP}
-		${CETLIB}
-		${CLHEP}
-		${ROOT_BASIC_LIB_LIST}
-		${G4_LIB_LIST}
-	MODULE_LIBRARIES  
+	MODULE_LIBRARIES
+		uboone_RawData
 		larreco_RecoAlg
 		larreco_RecoAlg_Cluster3DAlgs
 		larsim_Simulation
@@ -49,4 +36,4 @@ art_make(BASENAME_ONLY
 
 install_headers()
 install_source()
-install_fhicl()
+add_subdirectory(Fcl)
