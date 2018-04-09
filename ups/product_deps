@@ -29,7 +29,7 @@ table_fragment_end
 # Add the dependent product and version
 
 product          version
-cetbuildtools	v5_06_01	-	only_for_build
+cetbuildtools	v7_02_01	-	only_for_build
 end_product_list
 
 
