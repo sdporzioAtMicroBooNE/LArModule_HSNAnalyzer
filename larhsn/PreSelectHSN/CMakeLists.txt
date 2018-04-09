@@ -1,5 +1,5 @@
 art_make( BASENAME_ONLY
-	LIB_LIBRARIES 
+	LIB_LIBRARIES
 		lardataobj_RawData
 		lardataobj_RecoBase
 		lardata_RecoObjects
@@ -29,6 +29,8 @@ art_make( BASENAME_ONLY
 		${G4_LIB_LIST}
 		${Boost_SYSTEM_LIBRARY}
 	MODULE_LIBRARIES
+		uboone_AnalysisTree_MCTruth
+		larsim_MCCheater_BackTracker_service
 		PreSelectAlgorithms
 		PreSelectDataObjects
 		larreco_RecoAlg

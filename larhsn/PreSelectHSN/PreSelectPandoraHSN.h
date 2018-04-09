@@ -60,6 +60,7 @@
 // Auxiliary objects includes
 #include "Algorithms/FindPandoraVertexAlg.h"
 #include "Algorithms/CalorimetryRadiusAlg.h"
+#include "Algorithms/TruthMatchingAlg.h"
 #include "DataObjects/DecayVertex.h"
 #include "DataObjects/EventDescriptor.h"
 #include "DataObjects/DrawTreeDescriptor.h"
@@ -79,7 +80,7 @@ private:
   // Algorithms
   FindPandoraVertex::FindPandoraVertexAlg fFindPandoraVertexAlg;
   CalorimetryRadius::CalorimetryRadiusAlg fCalorimetryRadiusAlg;
-
+  TruthMatching::TruthMatchingAlg fTruthMatchingAlg;
   // Fhiclcpp variables
   std::string fInstanceName;
   int fIteration;

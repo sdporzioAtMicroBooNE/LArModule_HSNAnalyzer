@@ -7,6 +7,7 @@ PreSelectHSN::PreSelectHSN(fhicl::ParameterSet const & pset) :
     EDAnalyzer(pset),
     fFindPandoraVertexAlg(pset),
     fCalorimetryRadiusAlg(pset),
+    fTruthMatchingAlg(pset),
     fInstanceName(pset.get<std::string>("InstanceName")),
     fIteration(pset.get<int>("Iteration")),
     fMinTpcBound(pset.get<std::vector<double>>("MinTpcBound")),
@@ -45,9 +46,9 @@ void PreSelectHSN::beginJob()
   // Meta tree containing fcl file parameters
   metaTree = tfs->make<TTree>("MetaData","");
   metaTree->Branch("instanceName",&fInstanceName);
-  metaTree->Branch("iteration",&fIteration,"iteration/I"); 
+  metaTree->Branch("iteration",&fIteration,"iteration/I");
   metaTree->Branch("minTpcBound",&fMinTpcBound);
-  metaTree->Branch("maxTpcBound",&fMaxTpcBound);  
+  metaTree->Branch("maxTpcBound",&fMaxTpcBound);
   metaTree->Branch("pfpLabel",&fPfpLabel);
   metaTree->Branch("hitLabel",&fHitLabel);
   metaTree->Branch("radiusProfileLimits",&fRadiusProfileLimits);
@@ -81,6 +82,10 @@ void PreSelectHSN::beginJob()
   pandoraTree->Branch("diag_nuWithMissingAssociatedVertex",&evd.diag_nuWithMissingAssociatedVertex);
   pandoraTree->Branch("diag_nuWithMissingAssociatedTrack",&evd.diag_nuWithMissingAssociatedTrack);
   pandoraTree->Branch("diag_nuProngWithMissingAssociatedHits",&evd.diag_nuProngWithMissingAssociatedHits);
+  pandoraTree->Branch("prong_matchedPDG",&evd.prong_matchedPDG);
+
+
+
   if (fSaveDrawTree)
   {
     pandoraDrawTree = tfs->make<TTree>("PandoraDrawTree","");
@@ -143,7 +148,11 @@ void PreSelectHSN::analyze(art::Event const & evt)
   else
   {
     // Perform calorimetry analysis
+
     fCalorimetryRadiusAlg.PerformCalorimetry(evt, evd, ana_decayVertices);
+
+    fTruthMatchingAlg.PerformTruthMatching(evt, evd ,ana_decayVertices);
+
   }
 
   // Fill more physics from the decay vertices in the event descriptor

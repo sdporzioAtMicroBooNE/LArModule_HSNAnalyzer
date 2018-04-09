@@ -39,7 +39,14 @@ namespace FindPandoraVertex
     evd.diag_nuWithMissingAssociatedTrack = 0;
     evd.diag_nuProngWithMissingAssociatedHits = 0;
 
-    // Prepare the pfp handle and the vertex/tracks associations
+
+
+
+
+    
+    auto const& trk_handle = evt.getValidHandle<std::vector<recob::Track>>("pandoraNu");
+    art::FindManyP<recob::Hit> hits_per_track(trk_handle, evt, "pandoraNu"); // Track
+    //Prepare the pfp handle and the vertex/tracks associations
     art::InputTag pfpTag {fPfpLabel};
     const auto& pfpHandle = evt.getValidHandle< std::vector<recob::PFParticle> >(pfpTag);
     art::FindMany<recob::Vertex> pva(pfpHandle,evt,pfpTag);
@@ -132,9 +139,16 @@ namespace FindPandoraVertex
             // Make sure also we have the necessary hits associated to tracks
             art::FindMany<recob::Hit> tha(thisNu_tracks,evt,pfpTag);
             std::vector<recob::Hit const *> t1Hits, t2Hits;
+
+
             tha.get(0,t1Hits);
             tha.get(1,t2Hits);
             bool rightNumHits = (t1Hits.size()>1 && t2Hits.size()>1);
+            std::cout << "\tThere are " << t1Hits.size() << " associated hits." << std::endl;
+            std::cout << "\tThere are " << t2Hits.size() << " associated hits." << std::endl;
+
+
+
             if (!rightNumHits) evd.diag_nuProngWithMissingAssociatedHits += 1;
             else
             {
