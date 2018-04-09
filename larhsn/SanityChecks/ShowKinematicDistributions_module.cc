@@ -5,7 +5,7 @@
 
 ShowKinematicDistributions::ShowKinematicDistributions(fhicl::ParameterSet const & pset) :
     EDAnalyzer(pset),
-    fMCLabel(pset.get<std::string>("mcLabel"))  
+    fMCLabel(pset.get<std::string>("mcLabel"))
 {} // END constructor ShowKinematicDistributions
 
 ShowKinematicDistributions::~ShowKinematicDistributions()
@@ -15,6 +15,7 @@ void ShowKinematicDistributions::beginJob()
 {
   art::ServiceHandle< art::TFileService > tfs;
   tDataTree = tfs->make<TTree>("Data","");
+  tDataTree->Branch("pdgCode",&pdgCode);
   tDataTree->Branch("run",&run);
   tDataTree->Branch("subrun",&subrun);
   tDataTree->Branch("event",&event);
@@ -149,7 +150,7 @@ void ShowKinematicDistributions::analyze(art::Event const & evt)
 {
   // Core analysis. Use all the previously defined functions to determine success rate. This will be repeated event by event.
   printf("\n-------------------------------------------------------\n");
-  
+
   // Start by clearing all the vectors.
   ClearData();
 

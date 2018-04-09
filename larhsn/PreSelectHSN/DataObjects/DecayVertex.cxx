@@ -38,6 +38,8 @@ namespace AuxVertex
     fProngTrack = {t1Track, t2Track};
     fProngHits = {t1Hits, t2Hits};
 
+    //std::cout << "\tThere are " << t1Hits.size() << " associated hits." << std::endl;
+    //std::cout << "\tThere are " << t2Hits.size() << " associated hits." << std::endl;
     // Get vertex and daughters coordinates and assign them to attributes
     double nuVertexPosition[3], t1VertexPosition[3], t2VertexPosition[3];
     fNuVertex->XYZ(nuVertexPosition);
@@ -55,6 +57,8 @@ namespace AuxVertex
     fProngTheta = {(float) t1Track->Theta(), (float) t2Track->Theta()};
     fProngPhi = {(float) t1Track->Phi(), (float) t2Track->Phi()};
     fProngNumHits = {(int) t1Hits.size(), (int) t2Hits.size()};
+
+
   }
 
   // Getters
