@@ -71,12 +71,14 @@ namespace AuxEvent
     std::vector<std::vector<float>> phys_prongLength;
     std::vector<std::vector<float>> phys_prongTheta;
     std::vector<std::vector<float>> phys_prongPhi;
+    std::vector<std::vector<float>> phys_prongStartToNeutrinoDistance;
     std::vector<std::vector<int>> phys_prongNumHits;
+    std::vector<float> phys_openingAngle;
     // Pandora diagnostic
     int diag_nuWithMissingAssociatedVertex;
     int diag_nuWithMissingAssociatedTrack;
     int diag_nuProngWithMissingAssociatedHits;
-    //Truth information
+    // Truth information
     std::vector<std::vector<int>> prong_matchedPDG;
   };
 

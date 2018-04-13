@@ -22,24 +22,30 @@ physics:
 {
 	analyzers:
   {
-    PreSelectionTree:
+    PreSelection:
     {
-		 	module_type:          "PreSelectPandoraHSN"
+      module_type:          "PreSelectPandoraHSN"
       InstanceName:         "PreSelectPandoraHSN0"
       Iteration:            "0"
       MinTpcBound:          [10., -105.53, 10.1]
       MaxTpcBound:          [246.35, 107.47, 1026.9]
-			PfpLabel:	       			"pandoraNu"
-      HitLabel:             "gaushit" 
+      PfpLabel:             "pandoraNu"
+      HitLabel:             "gaushit"
       RadiusProfileLimits:  [0,20] # cm
       RadiusProfileBins:    20
       ChannelNorm:          "3.3" # number of channels in cm
       TickNorm:             "17.9" # number of ticks in cm
       VerboseMode:          "true"
       SaveDrawTree:         "true" # Optional. Takes more space.
+      TruthMatching:        "false" # Performs true matching
+    }
+
+    EventFileDatabase:
+    {
+      module_type:          "EventFileDatabase"
     }
   }
-  analysis: [PreSelectionTree]
+  analysis: [ PreSelection, EventFileDatabase ]
   end_paths: [analysis]
 }
 

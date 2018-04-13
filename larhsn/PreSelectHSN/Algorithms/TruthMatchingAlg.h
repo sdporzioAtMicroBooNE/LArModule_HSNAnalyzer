@@ -89,9 +89,7 @@ namespace TruthMatching
     // fhicl parameters
     std::string fPfpLabel;
     std::string fHitLabel;
-
     bool fVerbose;
-
 
     // microboone services
     const geo::GeometryCore* fGeometry;

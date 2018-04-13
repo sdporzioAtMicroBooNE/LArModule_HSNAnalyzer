@@ -8,7 +8,8 @@
 #ifndef DECAYVERTEX_H
 #define DECAYVERTEX_H
 
-// C++ standard libraries
+#include "TMatrixD.h"
+#include "TVector3.h"
 #include <iostream>
 #include <fstream>
 #include <stdio.h>
@@ -20,6 +21,7 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Framework/Services/Optional/TFileService.h"
 #include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "lardataobj/RecoBase/TrackTrajectory.h"
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Shower.h"
 #include "lardataobj/RecoBase/Vertex.h"
@@ -71,6 +73,8 @@ namespace AuxVertex
     float GetProngTheta(int prong) const;
     float GetProngPhi(int prong) const;
     int GetProngNumHits(int prong) const;
+    float GetProngStartToNeutrinoDistance(int prong) const;
+    float GetOpeningAngle() const;
     int GetChannelLoc(int plane) const;
     float GetTickLoc(int plane) const;
     int GetProngChannelLoc(int par,int plane) const;
@@ -113,10 +117,12 @@ namespace AuxVertex
       std::vector<std::vector<float>> fProngTickLoc; // Nearest time tick in each plane for the vertex parent.
 
       // Physical variables
-      std::vector<float> fProngLength;
-      std::vector<float> fProngTheta;
-      std::vector<float> fProngPhi;
-      std::vector<int> fProngNumHits;
+      std::vector<float> fProngLength; // Length of each prong
+      std::vector<float> fProngTheta; // Theta angle of each prong
+      std::vector<float> fProngPhi; // Phi angle of each prong
+      std::vector<float> fProngStartToNeutrinoDistance; // Distance from start point to neutrino vertex for each prong
+      std::vector<int> fProngNumHits; // Number of hits associated with each prong
+      float fOpeningAngle; // Opening angle between the two prongs
 
       // Status
       bool fIsInsideTPC; // Whetehr the vertex is inside the TPC.

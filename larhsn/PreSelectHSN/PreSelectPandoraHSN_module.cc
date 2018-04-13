@@ -19,7 +19,8 @@ PreSelectHSN::PreSelectHSN(fhicl::ParameterSet const & pset) :
     fChannelNorm(pset.get<double>("ChannelNorm")),
     fTickNorm(pset.get<double>("TickNorm")),
     fVerbose(pset.get<bool>("VerboseMode")),
-    fSaveDrawTree(pset.get<bool>("SaveDrawTree"))
+    fSaveDrawTree(pset.get<bool>("SaveDrawTree")),
+    fTruthMatching(pset.get<bool>("TruthMatching"))
 {
   // Get geometry and detector services
   fGeometry = lar::providerFrom<geo::Geometry>();
@@ -70,14 +71,16 @@ void PreSelectHSN::beginJob()
   pandoraTree->Branch("neutrinoNumDaughters",&evd.neutrinoNumDaughters);
   pandoraTree->Branch("neutrinoNumTracks",&evd.neutrinoNumTracks);
   pandoraTree->Branch("neutrinoNumShowers",&evd.neutrinoNumShowers);
-  pandoraTree->Branch("totChargeInRadius",&evd.calo_totChargeInRadius);
-  pandoraTree->Branch("prong1ChargeInRadius",&evd.calo_prong1ChargeInRadius);
-  pandoraTree->Branch("prong2ChargeInRadius",&evd.calo_prong2ChargeInRadius);
-  pandoraTree->Branch("caloRatio",&evd.calo_caloRatio);
+  pandoraTree->Branch("calo_totChargeInRadius",&evd.calo_totChargeInRadius);
+  pandoraTree->Branch("calo_prong1ChargeInRadius",&evd.calo_prong1ChargeInRadius);
+  pandoraTree->Branch("calo_prong2ChargeInRadius",&evd.calo_prong2ChargeInRadius);
+  pandoraTree->Branch("calo_caloRatio",&evd.calo_caloRatio);
   pandoraTree->Branch("phys_prongLength",&evd.phys_prongLength);
   pandoraTree->Branch("phys_prongTheta",&evd.phys_prongTheta);
   pandoraTree->Branch("phys_prongPhi",&evd.phys_prongPhi);
+  pandoraTree->Branch("phys_prongStartToNeutrinoDistance",&evd.phys_prongStartToNeutrinoDistance);
   pandoraTree->Branch("phys_prongNumHits",&evd.phys_prongNumHits);
+  pandoraTree->Branch("phys_openingAngle",&evd.phys_openingAngle);
 
   pandoraTree->Branch("diag_nuWithMissingAssociatedVertex",&evd.diag_nuWithMissingAssociatedVertex);
   pandoraTree->Branch("diag_nuWithMissingAssociatedTrack",&evd.diag_nuWithMissingAssociatedTrack);
@@ -136,10 +139,12 @@ void PreSelectHSN::analyze(art::Event const & evt)
   int run = evt.id().run();
   int subrun = evt.id().subRun();
   int event = evt.id().event();
+  // The event descriptor is a special class in which we fill all the information we want to know about the current event. At the end of the event loop the information is taken from the event descriptor and filled into the anatree.
+  // The draw tree descriptor is the same class specialized for storing information that will allow to make event displays.
   evd.Initialize(run,subrun,event);
   dtd.Initialize();
-  if (fVerbose) {printf("||INFORMATION FOR EVENT %i [RUN %i, SUBRUN %i]||\n", evd.event, evd.run, evd.subrun);}
 
+  if (fVerbose) {printf("||INFORMATION FOR EVENT %i [RUN %i, SUBRUN %i]||\n", evd.event, evd.run, evd.subrun);}
   // Search among pfparticles and get vector of potential neutrino pfps with only two tracks. Return vectors of pfps for neutrinos, tracks and showers in event and decay vertices, which contain information about neutrino vertices with exctly two tracks.
   std::vector<AuxVertex::DecayVertex> ana_decayVertices;
   fFindPandoraVertexAlg.GetPotentialNeutrinoVertices(evt, evd, ana_decayVertices);
@@ -148,16 +153,14 @@ void PreSelectHSN::analyze(art::Event const & evt)
   else
   {
     // Perform calorimetry analysis
-
     fCalorimetryRadiusAlg.PerformCalorimetry(evt, evd, ana_decayVertices);
-
-    fTruthMatchingAlg.PerformTruthMatching(evt, evd ,ana_decayVertices);
-
+    // Perform truth matching (if requested)
+    if (fTruthMatching) fTruthMatchingAlg.PerformTruthMatching(evt, evd ,ana_decayVertices);
   }
 
-  // Fill more physics from the decay vertices in the event descriptor
+  // Fill more physics from the decay vertices (ana_decayVertices) into the event descriptor
   evd.ExtractVertexPhysics(ana_decayVertices);
-  // Fill draw tree (if needed)
+  // Fill draw tree (if requested)
   if (fSaveDrawTree) dtd.FillDrawTreeVariables(ana_decayVertices);
 
   // Fill tree

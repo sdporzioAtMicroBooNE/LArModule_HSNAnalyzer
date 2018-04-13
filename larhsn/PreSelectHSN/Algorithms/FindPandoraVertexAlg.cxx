@@ -27,6 +27,8 @@ namespace FindPandoraVertex
             AuxEvent::EventDescriptor & evd,
             std::vector<AuxVertex::DecayVertex> & ana_decayVertices)
   {
+    if (fVerbose) printf("\n--- GetPotentialNeutrinoVertices message ---\n");
+
     // Clear stuff that will be modified by function
     evd.nNeutrinos = 0;
     evd.nTwoProngedNeutrinos = 0;
@@ -40,17 +42,13 @@ namespace FindPandoraVertex
     evd.diag_nuProngWithMissingAssociatedHits = 0;
 
 
-
-
-
-    
     auto const& trk_handle = evt.getValidHandle<std::vector<recob::Track>>("pandoraNu");
     art::FindManyP<recob::Hit> hits_per_track(trk_handle, evt, "pandoraNu"); // Track
     //Prepare the pfp handle and the vertex/tracks associations
     art::InputTag pfpTag {fPfpLabel};
     const auto& pfpHandle = evt.getValidHandle< std::vector<recob::PFParticle> >(pfpTag);
-    art::FindMany<recob::Vertex> pva(pfpHandle,evt,pfpTag);
-    art::FindMany<recob::Track> pta(pfpHandle,evt,pfpTag);
+    // art::FindMany<recob::Vertex> pva(pfpHandle,evt,pfpTag);
+    // art::FindMany<recob::Track> pta(pfpHandle,evt,pfpTag);
 
     // Loop through each pfp
     for(std::vector<int>::size_type i=0; i!=(*pfpHandle).size(); i++)
@@ -65,69 +63,99 @@ namespace FindPandoraVertex
         evd.neutrinoNumDaughters.push_back(pfp.NumDaughters());
         int thisNeutrino_numTracks = 0;
         int thisNeutrino_numShowers = 0;
-        // The indices of the tracks belonging to this neutrino in the pfp original vector
-        std::vector<int> trackIndicesInPfpHandle;
+        // ID of current neutrino and vectors where we will fill pointers to daughters (only tracks for now)
+        size_t nuID = pfp.Self();
+        std::vector<recob::PFParticle const *> thisNeutrino_pfpTrackPointers;
 
-        // Prepare vector of ID of neutrino daughters
-        auto nuDaughtersID = pfp.Daughters();
-        // Loop through each daughter ID
-        for (std::vector<int>::size_type j=0; j!=nuDaughtersID.size(); j++)
+        // Diagnostic message
+        if (fVerbose)
         {
-          size_t id = nuDaughtersID[j];
-          // Loop through each pfp
-          for (auto const& daughter_pfp : (*pfpHandle))
+          printf("Neutrino %i (ID: %i, PDG: %i)\n", evd.nNeutrinos, (int) nuID, pfp.PdgCode());
+          printf("|_Number of daughters: %i (ID:", pfp.NumDaughters());
+
+          // Prepare vector of ID of neutrino daughters
+          auto nuDaughtersID = pfp.Daughters();
+          // Loop through each daughter and print their ID
+          for (std::vector<int>::size_type j=0; j!=nuDaughtersID.size(); j++)
           {
-            // Find correct pfp corresponding to daughter we are analyzing
-            if (daughter_pfp.Self()==id)
+            printf(" %i", (int) nuDaughtersID[j]);
+          }
+          printf(" )\n");
+        }
+
+        // Loop through each pfp and check if their parent was the neutrino we are currently looping through
+        for (auto const& daughter_pfp : (*pfpHandle))
+        {
+          // Find correct pfp corresponding to daughter we are analyzing
+          if (daughter_pfp.Parent()==nuID)
+          {
+            // Separate in track and shower pfps and save their pointers to corresponding vectors
+            if (daughter_pfp.PdgCode()==13)
             {
-              // Separate in track and shower pfps and save their pointers to corresponding vectors
-              if (daughter_pfp.PdgCode()==13)
-              {
-                thisNeutrino_numTracks += 1;
-                trackIndicesInPfpHandle.push_back(j);
-              }
-              if (daughter_pfp.PdgCode()==11)
-              {
-                thisNeutrino_numShowers += 1;
-              }
+              if (fVerbose) printf("| |_Found track with ID: %i\n", (int) daughter_pfp.Self());
+              thisNeutrino_numTracks += 1;
+              thisNeutrino_pfpTrackPointers.push_back(&daughter_pfp);
+            }
+            if (daughter_pfp.PdgCode()==11)
+            {
+              if (fVerbose) printf("| |_Found shower with ID: %i\n", (int) daughter_pfp.Self());
+              thisNeutrino_numShowers += 1;
             }
           }
         }
+        // Save to vector number of tracks and showers found
         evd.neutrinoNumTracks.push_back(thisNeutrino_numTracks);
         evd.neutrinoNumShowers.push_back(thisNeutrino_numShowers);
 
         // Diagnostic message
         if (fVerbose)
         {
-          printf("\n--- GetPotentialNeutrinoVertices message ---\n");
-          printf("Found neutrino %i in this event with %i daughters: %i tracks and %i showers.\n", evd.nNeutrinos, pfp.NumDaughters(),thisNeutrino_numTracks, thisNeutrino_numShowers);
+          // Cross check, loop through each pointer, make sure their ID is correct and their parent is as well
+          for (auto const& pfpTrack : (thisNeutrino_pfpTrackPointers))
+          {
+            printf("| |_Checking saved daughter with ID %i and parent ID %i\n", (int) pfpTrack->Self(), (int) pfpTrack->Parent());
+          }
         }
-
+        // Diagnostic message
+        if (fVerbose)
+        {
+          printf("|_Summary: %i daughters, %i tracks and %i showers.\n", pfp.NumDaughters(),thisNeutrino_numTracks, thisNeutrino_numShowers);
+        }
 
         // If this neutrino contains two and only two tracks we can create a specific decay vertex for it (to use later for calorimetry), but first we have to make sure we have all the associations we need.
         if (thisNeutrino_numTracks==2)
         {
           evd.nTwoProngedNeutrinos += 1;
-          if (fVerbose) printf("Neutrino is potential candidate n. %i in event.\n", evd.nTwoProngedNeutrinos);
+          if (fVerbose) printf("|_Neutrino is potential candidate n. %i in event.\n", evd.nTwoProngedNeutrinos);
+
+          // Creating a stupid vector with a pointer to the current neutrino, all other methods won't work so I have to go through this stupid way of retrieving associations
+          std::vector<recob::PFParticle const *> thisNeutrino_pfpNeutrinoPointer;
+          thisNeutrino_pfpNeutrinoPointer.push_back(&pfp);
+
+          // Association to vertex and tracks objects of our pfpTracks
+          art::FindMany<recob::Vertex> nu_pva(thisNeutrino_pfpNeutrinoPointer,evt,pfpTag);
+          art::FindMany<recob::Vertex> pva(thisNeutrino_pfpTrackPointers,evt,pfpTag);
+          art::FindMany<recob::Track> pta(thisNeutrino_pfpTrackPointers,evt,pfpTag);
+
 
           // Make sure we have the necessary vertices associated with the pfp
           std::vector<recob::Vertex const*> nuVertices, t1Vertices, t2Vertices;
-          pva.get(i,nuVertices);
-          pva.get(trackIndicesInPfpHandle[0],t1Vertices);
-          pva.get(trackIndicesInPfpHandle[1],t2Vertices);
+          pva.get(0,nuVertices);
+          pva.get(0,t1Vertices);
+          pva.get(1,t2Vertices);
           bool rightNumVertices = (nuVertices.size()==1 && t1Vertices.size()==1 && t2Vertices.size()==1);
 
           // Make sure we have the necessary tracks associated with the pfps
           std::vector<recob::Track const*> t1Tracks, t2Tracks;
-          pta.get(trackIndicesInPfpHandle[0],t1Tracks);
-          pta.get(trackIndicesInPfpHandle[1],t2Tracks);
+          pta.get(0,t1Tracks);
+          pta.get(1,t2Tracks);
           bool rightNumTracks = (t1Tracks.size()==1 && t2Tracks.size()==1);
 
           if (!rightNumVertices) evd.diag_nuWithMissingAssociatedVertex += 1;
           if (!rightNumTracks) evd.diag_nuWithMissingAssociatedTrack += 1;
           if (rightNumVertices && rightNumTracks)
           {
-            if (fVerbose) printf("Neutrino has correct number of vertex and tracks associated to PFP.\n");
+            if (fVerbose) printf("| | |_Neutrino has correct number of vertex and tracks associated to PFP.\n");
             // Grab all the pointers to vertices/tracks
             recob::Vertex const * nuVertex = nuVertices[0];
             recob::Vertex const * t1Vertex = t1Vertices[0];
@@ -139,20 +167,16 @@ namespace FindPandoraVertex
             // Make sure also we have the necessary hits associated to tracks
             art::FindMany<recob::Hit> tha(thisNu_tracks,evt,pfpTag);
             std::vector<recob::Hit const *> t1Hits, t2Hits;
-
-
             tha.get(0,t1Hits);
             tha.get(1,t2Hits);
             bool rightNumHits = (t1Hits.size()>1 && t2Hits.size()>1);
-            std::cout << "\tThere are " << t1Hits.size() << " associated hits." << std::endl;
-            std::cout << "\tThere are " << t2Hits.size() << " associated hits." << std::endl;
-
-
+            std::cout << "| |_Track 1: There are " << t1Hits.size() << " associated hits." << std::endl;
+            std::cout << "| |_Track 2: There are " << t2Hits.size() << " associated hits." << std::endl;
 
             if (!rightNumHits) evd.diag_nuProngWithMissingAssociatedHits += 1;
             else
             {
-              if (fVerbose) printf("Neutrino has correct number of hits vectors associated to tracks.\n");
+              if (fVerbose) printf("| | |_Neutrino has correct number of hits vectors associated to tracks.\n");
               // Time to dump all associations in the neutrino vertex
               AuxVertex::DecayVertex nuV(nuVertex,t1Vertex,t2Vertex,t1Track,t2Track,t1Hits,t2Hits);
               nuV.SetDetectorCoordinates(fMinTpcBound,fMaxTpcBound,fGeometry,fDetectorProperties);

@@ -38,8 +38,6 @@ namespace AuxVertex
     fProngTrack = {t1Track, t2Track};
     fProngHits = {t1Hits, t2Hits};
 
-    //std::cout << "\tThere are " << t1Hits.size() << " associated hits." << std::endl;
-    //std::cout << "\tThere are " << t2Hits.size() << " associated hits." << std::endl;
     // Get vertex and daughters coordinates and assign them to attributes
     double nuVertexPosition[3], t1VertexPosition[3], t2VertexPosition[3];
     fNuVertex->XYZ(nuVertexPosition);
@@ -58,6 +56,18 @@ namespace AuxVertex
     fProngPhi = {(float) t1Track->Phi(), (float) t2Track->Phi()};
     fProngNumHits = {(int) t1Hits.size(), (int) t2Hits.size()};
 
+    // Calculate start point to neutrino vertex distance
+    float prong1_distance = sqrt(pow(fX - fProngX[0],2.) + pow(fY - fProngY[0],2.) + pow(fZ - fProngZ[0],2.));
+    float prong2_distance = sqrt(pow(fX - fProngX[1],2.) + pow(fY - fProngY[1],2.) + pow(fZ - fProngZ[1],2.));
+    fProngStartToNeutrinoDistance = {prong1_distance,prong2_distance};
+
+    // Calculate opening angle
+    std::vector<double> startDirection1 = {t1Track->StartDirection().X(),t1Track->StartDirection().Y(),t1Track->StartDirection().Z()};
+    std::vector<double> startDirection2 = {t2Track->StartDirection().X(),t2Track->StartDirection().Y(),t2Track->StartDirection().Z()};
+    float magnitude1 = sqrt(startDirection1[0]*startDirection1[0] + startDirection1[1]*startDirection1[1] + startDirection1[2]*startDirection1[2]);
+    float magnitude2 = sqrt(startDirection2[0]*startDirection2[0] + startDirection2[1]*startDirection2[1] + startDirection2[2]*startDirection2[2]);
+    float dotProduct = startDirection1[0]*startDirection2[0] + startDirection1[1]*startDirection2[1] + startDirection1[2]*startDirection2[2];
+    fOpeningAngle = acos(dotProduct / (magnitude1*magnitude2));
 
   }
 
@@ -81,6 +91,8 @@ namespace AuxVertex
   float DecayVertex::GetProngTheta(int prong) const {return fProngTheta[prong];}
   float DecayVertex::GetProngPhi(int prong) const {return fProngPhi[prong];}
   int DecayVertex::GetProngNumHits(int prong) const {return fProngNumHits[prong];}
+  float DecayVertex::GetProngStartToNeutrinoDistance(int prong) const {return fProngStartToNeutrinoDistance[prong];}
+  float DecayVertex::GetOpeningAngle() const {return fOpeningAngle;}
   bool DecayVertex::IsInsideTPC() const {return fIsInsideTPC;}
   bool DecayVertex::IsDetLocAssigned() const {return fIsDetLocAssigned;}
 

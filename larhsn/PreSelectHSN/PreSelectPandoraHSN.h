@@ -94,6 +94,7 @@ private:
   double fTickNorm;
   bool fVerbose;
   bool fSaveDrawTree;
+  bool fTruthMatching;
 
   // Declare services
   geo::GeometryCore const* fGeometry; // Pointer to the Geometry service
