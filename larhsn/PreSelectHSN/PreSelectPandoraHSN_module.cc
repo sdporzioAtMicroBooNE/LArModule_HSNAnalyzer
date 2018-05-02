@@ -75,6 +75,13 @@ void PreSelectHSN::beginJob()
   pandoraTree->Branch("calo_prong1ChargeInRadius",&evd.calo_prong1ChargeInRadius);
   pandoraTree->Branch("calo_prong2ChargeInRadius",&evd.calo_prong2ChargeInRadius);
   pandoraTree->Branch("calo_caloRatio",&evd.calo_caloRatio);
+  pandoraTree->Branch("phys_nuStartPosition",&evd.phys_nuStartPosition);
+  pandoraTree->Branch("phys_prong1StartPosition",&evd.phys_prong1StartPosition);
+  pandoraTree->Branch("phys_prong2StartPosition",&evd.phys_prong2StartPosition);
+  pandoraTree->Branch("phys_prong1MomentumDir",&evd.phys_prong1MomentumDir);
+  pandoraTree->Branch("phys_prong2MomentumDir",&evd.phys_prong2MomentumDir);
+  pandoraTree->Branch("phys_prong1MomentumMag",&evd.phys_prong1MomentumMag);
+  pandoraTree->Branch("phys_prong2MomentumMag",&evd.phys_prong2MomentumMag);
   pandoraTree->Branch("phys_prongLength",&evd.phys_prongLength);
   pandoraTree->Branch("phys_prongTheta",&evd.phys_prongTheta);
   pandoraTree->Branch("phys_prongPhi",&evd.phys_prongPhi);
@@ -85,8 +92,14 @@ void PreSelectHSN::beginJob()
   pandoraTree->Branch("diag_nuWithMissingAssociatedVertex",&evd.diag_nuWithMissingAssociatedVertex);
   pandoraTree->Branch("diag_nuWithMissingAssociatedTrack",&evd.diag_nuWithMissingAssociatedTrack);
   pandoraTree->Branch("diag_nuProngWithMissingAssociatedHits",&evd.diag_nuProngWithMissingAssociatedHits);
-  pandoraTree->Branch("prong_matchedPDG",&evd.prong_matchedPDG);
 
+  pandoraTree->Branch("match_pdgCode",&evd.match_pdgCode);
+  pandoraTree->Branch("match_mass",&evd.match_mass);
+  pandoraTree->Branch("match_energy",&evd.match_energy);
+  pandoraTree->Branch("match_prong1StartPosition",&evd.match_prong1StartPosition);
+  pandoraTree->Branch("match_prong2StartPosition",&evd.match_prong2StartPosition);
+  pandoraTree->Branch("match_prong1Momentum",&evd.match_prong1Momentum);
+  pandoraTree->Branch("match_prong2Momentum",&evd.match_prong2Momentum);
 
 
   if (fSaveDrawTree)

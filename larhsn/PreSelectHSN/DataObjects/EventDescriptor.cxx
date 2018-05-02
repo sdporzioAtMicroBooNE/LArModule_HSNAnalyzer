@@ -35,6 +35,13 @@ namespace AuxEvent
     calo_prong2ChargeInRadius.clear();
     calo_caloRatio.clear();
     // Pandora physics
+    phys_nuStartPosition.clear();
+    phys_prong1StartPosition.clear();
+    phys_prong2StartPosition.clear();
+    phys_prong1MomentumDir.clear();
+    phys_prong2MomentumDir.clear();
+    phys_prong1MomentumMag.clear();
+    phys_prong2MomentumMag.clear();
     phys_prongLength.clear();
     phys_prongTheta.clear();
     phys_prongPhi.clear();
@@ -46,7 +53,14 @@ namespace AuxEvent
     diag_nuWithMissingAssociatedTrack = -999;
     diag_nuProngWithMissingAssociatedHits = -999;
     // Truth information
-    prong_matchedPDG.clear();
+    match_pdgCode.clear();
+    match_mass.clear();
+    match_energy.clear();
+    match_prong1StartPosition.clear();
+    match_prong2StartPosition.clear();
+    match_prong1Momentum.clear();
+    match_prong2Momentum.clear();
+
   } // END function Initialize
 
   void EventDescriptor::ExtractVertexPhysics(const std::vector<AuxVertex::DecayVertex> & decayVertices)
@@ -60,6 +74,38 @@ namespace AuxEvent
     for (std::vector<int>::size_type i=0; i!=decayVertices.size(); i++)
     {
       AuxVertex::DecayVertex currentVertex = decayVertices[i];
+      phys_nuStartPosition.push_back(
+      {
+        currentVertex.GetX(),
+        currentVertex.GetY(),
+        currentVertex.GetZ()
+      });
+      phys_prong1StartPosition.push_back(
+      {
+        currentVertex.GetProngX(0),
+        currentVertex.GetProngY(0), 
+        currentVertex.GetProngZ(0)
+      });
+      phys_prong2StartPosition.push_back(
+      {
+        currentVertex.GetProngX(1),
+        currentVertex.GetProngY(1), 
+        currentVertex.GetProngZ(1)
+      });
+      phys_prong1MomentumDir.push_back(
+      {
+        currentVertex.GetProngDirPx(0),
+        currentVertex.GetProngDirPy(0), 
+        currentVertex.GetProngDirPz(0)
+      });
+      phys_prong2MomentumDir.push_back(
+      {
+        currentVertex.GetProngDirPx(1),
+        currentVertex.GetProngDirPy(1), 
+        currentVertex.GetProngDirPz(1)
+      });
+      phys_prong1MomentumMag.push_back(currentVertex.GetProngMagP(0));
+      phys_prong2MomentumMag.push_back(currentVertex.GetProngMagP(1));
       phys_prongLength.push_back({currentVertex.GetProngLength(0),currentVertex.GetProngLength(1)});
       phys_prongTheta.push_back({currentVertex.GetProngTheta(0),currentVertex.GetProngTheta(1)});
       phys_prongPhi.push_back({currentVertex.GetProngPhi(0),currentVertex.GetProngPhi(1)});

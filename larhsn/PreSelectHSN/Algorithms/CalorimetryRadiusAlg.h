@@ -78,7 +78,7 @@ namespace CalorimetryRadius
           std::vector<AuxVertex::DecayVertex>& decayVertices);
 
   // PerformCalorimetry returns
-  std::vector<std::vector<recob::Hit const*>> ana_calo_totHitsInMaxRadius; // for each hit, for each dv
+  std::vector<std::vector<art::Ptr<recob::Hit>>> ana_calo_totHitsInMaxRadius; // for each hit, for each dv
 
   int tree_calo_NumTotHits;
   std::vector<std::vector<float>> tree_calo_totChargeInRadius;

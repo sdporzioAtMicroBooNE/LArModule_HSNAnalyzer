@@ -49,26 +49,30 @@ namespace AuxVertex
     virtual ~DecayVertex();
 
     DecayVertex(
-            recob::Vertex const * nuVertex,
-            recob::Vertex const * t1Vertex,
-            recob::Vertex const * t2Vertex,
-            recob::Track const * t1Track,
-            recob::Track const * t2Track,
-            std::vector<recob::Hit const *> t1Hits,
-            std::vector<recob::Hit const *> t2Hits);
+            const art::Ptr<recob::Vertex> &nuVertex,
+            const art::Ptr<recob::Vertex> &t1Vertex,
+            const art::Ptr<recob::Vertex> &t2Vertex,
+            const art::Ptr<recob::Track> &t1Track,
+            const art::Ptr<recob::Track> &t2Track,
+            const std::vector<art::Ptr<recob::Hit>> &t1Hits,
+            const std::vector<art::Ptr<recob::Hit>> &t2Hits);
 
     // New Getters
-    recob::Vertex const * GetNuVertex() const;
-    recob::Vertex const * GetProngVertex(int prong) const;
-    recob::Track const * GetProngTrack(int prong) const;
-    std::vector<recob::Hit const *> GetProngHits(int prong) const;
-    std::vector<recob::Hit const *> GetTotHits() const;
+    art::Ptr<recob::Vertex> GetNuVertex() const;
+    art::Ptr<recob::Vertex> GetProngVertex(int prong) const;
+    art::Ptr<recob::Track> GetProngTrack(int prong) const;
+    std::vector<art::Ptr<recob::Hit>> GetProngHits(int prong) const;
+    std::vector<art::Ptr<recob::Hit>> GetTotHits() const;
     float GetX() const;
     float GetY() const;
     float GetZ() const;
     float GetProngX(int par) const;
     float GetProngY(int par) const;
     float GetProngZ(int par) const;
+    float GetProngDirPx(int prong) const;
+    float GetProngDirPy(int prong) const;
+    float GetProngDirPz(int prong) const;
+    float GetProngMagP(int prong) const;
     float GetProngLength(int prong) const;
     float GetProngTheta(int prong) const;
     float GetProngPhi(int prong) const;
@@ -95,18 +99,19 @@ namespace AuxVertex
     void SetProngXYZ(int par, float x, float y, float z);
     void SetIsInsideTPC(bool val);
     void SetIsDetLocAssigned(bool val);
-    void SetTotHits(std::vector<recob::Hit const*> totHitsInMaxRadius);
+    void SetTotHits(std::vector<art::Ptr<recob::Hit>> totHitsInMaxRadius);
+    void DetermineMomenta();
 
     // Printers
     void PrintInformation() const;
 
     private:
       // Data products pointers
-      recob::Vertex const * fNuVertex;
-      std::vector<recob::Vertex const *> fProngVertex;
-      std::vector<recob::Track const *> fProngTrack;
-      std::vector<std::vector<recob::Hit const *>> fProngHits;
-      std::vector<recob::Hit const *> fTotHitsInMaxRadius;
+      art::Ptr<recob::Vertex> fNuVertex;
+      std::vector<art::Ptr<recob::Vertex>> fProngVertex;
+      std::vector<art::Ptr<recob::Track>> fProngTrack;
+      std::vector<std::vector<art::Ptr<recob::Hit>>> fProngHits;
+      std::vector<art::Ptr<recob::Hit>> fTotHitsInMaxRadius;
 
       // Coordinates
       float fX, fY, fZ; // Spatial coordinates of the vertex inside the detector.
@@ -117,12 +122,15 @@ namespace AuxVertex
       std::vector<std::vector<float>> fProngTickLoc; // Nearest time tick in each plane for the vertex parent.
 
       // Physical variables
+      float fOpeningAngle; // Opening angle between the two prongs
+
+      std::vector<std::vector<float>> fProngMomentumDir; // Momentum direction of each prong
+      std::vector<float> fProngMomentumMag; // Momentum magnitude of each prong
       std::vector<float> fProngLength; // Length of each prong
       std::vector<float> fProngTheta; // Theta angle of each prong
       std::vector<float> fProngPhi; // Phi angle of each prong
       std::vector<float> fProngStartToNeutrinoDistance; // Distance from start point to neutrino vertex for each prong
       std::vector<int> fProngNumHits; // Number of hits associated with each prong
-      float fOpeningAngle; // Opening angle between the two prongs
 
       // Status
       bool fIsInsideTPC; // Whetehr the vertex is inside the TPC.

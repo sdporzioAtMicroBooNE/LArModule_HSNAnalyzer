@@ -68,6 +68,13 @@ namespace AuxEvent
     std::vector<std::vector<float>> calo_prong2ChargeInRadius;
     std::vector<std::vector<float>> calo_caloRatio;
     // Pandora physics
+    std::vector<std::vector<float>> phys_nuStartPosition;
+    std::vector<std::vector<float>> phys_prong1StartPosition;
+    std::vector<std::vector<float>> phys_prong2StartPosition;
+    std::vector<float> phys_prong1MomentumMag;
+    std::vector<float> phys_prong2MomentumMag;
+    std::vector<std::vector<float>> phys_prong1MomentumDir;
+    std::vector<std::vector<float>> phys_prong2MomentumDir;
     std::vector<std::vector<float>> phys_prongLength;
     std::vector<std::vector<float>> phys_prongTheta;
     std::vector<std::vector<float>> phys_prongPhi;
@@ -79,7 +86,14 @@ namespace AuxEvent
     int diag_nuWithMissingAssociatedTrack;
     int diag_nuProngWithMissingAssociatedHits;
     // Truth information
-    std::vector<std::vector<int>> prong_matchedPDG;
+    std::vector<std::vector<int>> match_pdgCode;
+    std::vector<std::vector<float>> match_mass;
+    std::vector<std::vector<float>> match_energy;
+    std::vector<std::vector<float>> match_prong1StartPosition;
+    std::vector<std::vector<float>> match_prong2StartPosition;
+    std::vector<std::vector<float>> match_prong1Momentum;
+    std::vector<std::vector<float>> match_prong2Momentum;
+
   };
 
 

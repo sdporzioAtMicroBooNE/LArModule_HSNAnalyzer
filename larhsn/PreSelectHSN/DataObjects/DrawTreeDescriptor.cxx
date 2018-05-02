@@ -49,15 +49,14 @@ namespace AuxEvent
   void DrawTreeDescriptor::FillDrawTreeVariables(
           const std::vector<AuxVertex::DecayVertex>& decayVertices)
   {
-
     for (std::vector<int>::size_type i=0; i!=decayVertices.size(); i++)
     {
       // Get decay vertex
       AuxVertex::DecayVertex currentVertex = decayVertices[i];
 
-      std::vector<recob::Hit const*> prong1_hits = currentVertex.GetProngHits(0);
-      std::vector<recob::Hit const*> prong2_hits = currentVertex.GetProngHits(1);
-      std::vector<recob::Hit const*> thisTot_hits = currentVertex.GetTotHits();
+      std::vector<art::Ptr<recob::Hit>> prong1_hits = currentVertex.GetProngHits(0);
+      std::vector<art::Ptr<recob::Hit>> prong2_hits = currentVertex.GetProngHits(1);
+      std::vector<art::Ptr<recob::Hit>> thisTot_hits = currentVertex.GetTotHits();
 
       std::vector<float> thisProng1_hits_p0_tickCoordinates,
         thisProng1_hits_p1_tickCoordinates,

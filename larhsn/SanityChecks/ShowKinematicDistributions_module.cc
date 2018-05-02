@@ -119,7 +119,7 @@ void ShowKinematicDistributions::GetTruthParticles(art::Event const & evt, std::
     {
       // Calculate opening angle
       double dotProduct = Px[0]*Px[1] + Py[0]*Py[1] + Pz[0]*Pz[1];
-      OpeningAngle = dotProduct / float(P[0]*P[1]);
+      OpeningAngle = acos(dotProduct / float(P[0]*P[1]));
       // Calculate invariant mass
       double eTerm = pow((E[0] + E[1]),2.);
       double pTerm = pow(P[0],2.) + pow(P[1],2.) + 2.*dotProduct;

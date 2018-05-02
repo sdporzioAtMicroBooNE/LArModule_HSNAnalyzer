@@ -1,14 +1,17 @@
 art_make( BASENAME_ONLY
 	LIB_LIBRARIES
+		larreco_RecoAlg
+		larreco_RecoAlg_Cluster3DAlgs
+		larsim_Simulation
 		lardataobj_RawData
-		lardataobj_RecoBase
 		lardata_RecoObjects
-		lardata_ArtDataHelper
+		lardataobj_RecoBase
+		lardataobj_MCBase
+		lardataobj_AnalysisBase
+		larcore_Geometry
+    larcore_Geometry_Geometry_service
 		lardata_Utilities
-		lardata_DetectorInfoServices_DetectorPropertiesServiceStandard_service
-		larevt_Filters
-		larevt_CalibrationDBI_IOVData
-		larevt_CalibrationDBI_Providers
+		nusimdata_SimulationBase
 		${ART_FRAMEWORK_CORE}
 		${ART_FRAMEWORK_PRINCIPAL}
 		${ART_FRAMEWORK_SERVICES_REGISTRY}
@@ -16,16 +19,16 @@ art_make( BASENAME_ONLY
 		${ART_FRAMEWORK_SERVICES_OPTIONAL}
 		${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
 		${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
-		art_Persistency_Common
-		art_Persistency_Provenance
-		art_Utilities
+		art_Persistency_Common canvas_Persistency_Common
+		art_Persistency_Provenance canvas_Persistency_Provenance
+		art_Utilities canvas_Utilities
 		${ART_UTILITIES}
-		${FHICLCPP}
-		${ROOT_BASIC_LIB_LIST}
 		${MF_MESSAGELOGGER}
 		${MF_UTILITIES}
 		${FHICLCPP}
 		${CETLIB}
+		${CLHEP}
+		${ROOT_BASIC_LIB_LIST}
 		${G4_LIB_LIST}
 		${Boost_SYSTEM_LIBRARY}
 	MODULE_LIBRARIES
@@ -52,9 +55,10 @@ art_make( BASENAME_ONLY
 		${ART_FRAMEWORK_SERVICES_OPTIONAL}
 		${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
 		${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
-		art_Persistency_Common
-		art_Persistency_Provenance
-		art_Utilities
+		art_Persistency_Common canvas_Persistency_Common
+		art_Persistency_Provenance canvas_Persistency_Provenance
+		art_Utilities canvas_Utilities
+		${ART_UTILITIES}
 		${MF_MESSAGELOGGER}
 		${MF_UTILITIES}
 		${FHICLCPP}

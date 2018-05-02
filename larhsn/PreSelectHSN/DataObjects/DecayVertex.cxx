@@ -16,15 +16,22 @@ namespace AuxVertex
   {}
 
   DecayVertex::DecayVertex(
-            recob::Vertex const * nuVertex,
-            recob::Vertex const * t1Vertex,
-            recob::Vertex const * t2Vertex,
-            recob::Track const * t1Track,
-            recob::Track const * t2Track,
-            std::vector<recob::Hit const *> t1Hits,
-            std::vector<recob::Hit const *> t2Hits)
+            const art::Ptr<recob::Vertex> &nuVertex,
+            const art::Ptr<recob::Vertex> &t1Vertex,
+            const art::Ptr<recob::Vertex> &t2Vertex,
+            const art::Ptr<recob::Track> &t1Track,
+            const art::Ptr<recob::Track> &t2Track,
+            const std::vector<art::Ptr<recob::Hit>> &t1Hits,
+            const std::vector<art::Ptr<recob::Hit>> &t2Hits)
   {
-    // Set default attributes
+    /*
+    This function creates a HSN decay vertex candidate object.
+    It is assigned when a neutrino with two (and only two) track daughters has been found.
+    This object is build using the vertex pointers to the neutrino and the two start points of the tracks, the actual track objects and all the hits associated with the two track objects.
+    */
+
+    // Set default mock attributes for the Decay Vertex candidate
+    // The real values for these attrivuts will be assigned later
     fChannelLoc = {-1,-1,-1};
     fTickLoc = {-1.,-1.,-1.};
     fProngChannelLoc = {{-1,-1,-1}, {-1,-1,-1}};
@@ -32,15 +39,15 @@ namespace AuxVertex
     fIsDetLocAssigned = false;
     fIsInsideTPC = false;
 
-    // Assign arguments to attributes
+    // Store pointers to reconstructed objects provided as input in internal attributes
     fNuVertex = nuVertex;
     fProngVertex = {t1Vertex, t2Vertex};
     fProngTrack = {t1Track, t2Track};
     fProngHits = {t1Hits, t2Hits};
 
-    // Get vertex and daughters coordinates and assign them to attributes
+    // Use pointers to reconstructed objects to obtain start coordinates for vertex and tracks.
     double nuVertexPosition[3], t1VertexPosition[3], t2VertexPosition[3];
-    fNuVertex->XYZ(nuVertexPosition);
+    nuVertex->XYZ(nuVertexPosition);
     fProngVertex[0]->XYZ(t1VertexPosition);
     fProngVertex[1]->XYZ(t2VertexPosition);
     fX = nuVertexPosition[0];
@@ -50,39 +57,65 @@ namespace AuxVertex
     fProngY = {(float) t1VertexPosition[1], (float) t2VertexPosition[1]};
     fProngZ = {(float) t1VertexPosition[2], (float) t2VertexPosition[2]};
 
-    // Get physics variables
+    // Calculate additional physical quantities about this vertex which will then be stored in internal attributs
+    // Calculate tracks initial momentum
+    float t1MomentumMag = (float) t1Track->StartMomentum();
+    float t2MomentumMag = (float) t2Track->StartMomentum();
+    std::vector<float> t1MomentumDir = {
+      (float) t1Track->VertexMomentumVector().X(),
+      (float) t1Track->VertexMomentumVector().Y(),
+      (float) t1Track->VertexMomentumVector().Z()
+    };
+    std::vector<float> t2MomentumDir = {
+      (float) t2Track->VertexMomentumVector().X(),
+      (float) t2Track->VertexMomentumVector().Y(),
+      (float) t2Track->VertexMomentumVector().Z()
+    };
+    fProngMomentumMag  = {t1MomentumMag, t2MomentumMag};
+    fProngMomentumDir = {t1MomentumDir, t2MomentumDir};
+    // Calculate length, theta, phi and number of hits
     fProngLength = {(float) t1Track->Length(), (float) t2Track->Length()};
     fProngTheta = {(float) t1Track->Theta(), (float) t2Track->Theta()};
     fProngPhi = {(float) t1Track->Phi(), (float) t2Track->Phi()};
     fProngNumHits = {(int) t1Hits.size(), (int) t2Hits.size()};
-
-    // Calculate start point to neutrino vertex distance
-    float prong1_distance = sqrt(pow(fX - fProngX[0],2.) + pow(fY - fProngY[0],2.) + pow(fZ - fProngZ[0],2.));
-    float prong2_distance = sqrt(pow(fX - fProngX[1],2.) + pow(fY - fProngY[1],2.) + pow(fZ - fProngZ[1],2.));
-    fProngStartToNeutrinoDistance = {prong1_distance,prong2_distance};
-
     // Calculate opening angle
-    std::vector<double> startDirection1 = {t1Track->StartDirection().X(),t1Track->StartDirection().Y(),t1Track->StartDirection().Z()};
-    std::vector<double> startDirection2 = {t2Track->StartDirection().X(),t2Track->StartDirection().Y(),t2Track->StartDirection().Z()};
+    std::vector<double> startDirection1 = {
+      t1Track->StartDirection().X(),
+      t1Track->StartDirection().Y(),
+      t1Track->StartDirection().Z()
+    };
+    std::vector<double> startDirection2 = {
+      t2Track->StartDirection().X(),
+      t2Track->StartDirection().Y(),
+      t2Track->StartDirection().Z()
+    };
     float magnitude1 = sqrt(startDirection1[0]*startDirection1[0] + startDirection1[1]*startDirection1[1] + startDirection1[2]*startDirection1[2]);
     float magnitude2 = sqrt(startDirection2[0]*startDirection2[0] + startDirection2[1]*startDirection2[1] + startDirection2[2]*startDirection2[2]);
     float dotProduct = startDirection1[0]*startDirection2[0] + startDirection1[1]*startDirection2[1] + startDirection1[2]*startDirection2[2];
     fOpeningAngle = acos(dotProduct / (magnitude1*magnitude2));
-
+    // Calculate start point to neutrino vertex distance
+    float prong1_distance = sqrt(pow(fX - fProngX[0],2.) + pow(fY - fProngY[0],2.) + pow(fZ - fProngZ[0],2.));
+    float prong2_distance = sqrt(pow(fX - fProngX[1],2.) + pow(fY - fProngY[1],2.) + pow(fZ - fProngZ[1],2.));
+    fProngStartToNeutrinoDistance = {prong1_distance,prong2_distance};
   }
 
   // Getters
-  recob::Vertex const * DecayVertex::GetNuVertex() const {return fNuVertex;}
-  recob::Vertex const * DecayVertex::GetProngVertex(int prong) const {return fProngVertex[prong];}
-  recob::Track const * DecayVertex::GetProngTrack(int prong) const {return fProngTrack[prong];}
-  std::vector<recob::Hit const *> DecayVertex::GetProngHits(int prong) const {return fProngHits[prong];}
-  std::vector<recob::Hit const *> DecayVertex::GetTotHits() const {return fTotHitsInMaxRadius;}
+  art::Ptr<recob::Vertex> DecayVertex::GetNuVertex() const {return fNuVertex;}
+  art::Ptr<recob::Vertex> DecayVertex::GetProngVertex(int prong) const {return fProngVertex[prong];}
+  art::Ptr<recob::Track> DecayVertex::GetProngTrack(int prong) const {return fProngTrack[prong];}
+  std::vector<art::Ptr<recob::Hit>> DecayVertex::GetProngHits(int prong) const {return fProngHits[prong];}
+  std::vector<art::Ptr<recob::Hit>> DecayVertex::GetTotHits() const {return fTotHitsInMaxRadius;}
   float DecayVertex::GetX() const {return fX;}
   float DecayVertex::GetY() const {return fY;}
   float DecayVertex::GetZ() const {return fZ;}
   float DecayVertex::GetProngX(int prong) const {return fProngX[prong];}
   float DecayVertex::GetProngY(int prong) const {return fProngY[prong];}
   float DecayVertex::GetProngZ(int prong) const {return fProngZ[prong];}
+  float DecayVertex::GetProngDirPx(int prong) const {return fProngMomentumDir[prong][0];}
+  float DecayVertex::GetProngDirPy(int prong) const {return fProngMomentumDir[prong][1];}
+  float DecayVertex::GetProngDirPz(int prong) const {return fProngMomentumDir[prong][2];}
+
+  float DecayVertex::GetProngMagP(int prong) const {return fProngMomentumMag[prong];}
   int DecayVertex::GetChannelLoc(int plane) const {return fChannelLoc[plane];}
   float DecayVertex::GetTickLoc(int plane) const {return fTickLoc[plane];}
   int DecayVertex::GetProngChannelLoc(int prong,int plane) const {return fProngChannelLoc[prong][plane];}
@@ -105,7 +138,7 @@ namespace AuxVertex
   void DecayVertex::SetProngXYZ(int prong, float x, float y, float z) {fProngX[prong] = x; fProngY[prong] = y; fProngZ[prong] = z; return;}
   void DecayVertex::SetIsInsideTPC(bool val) {fIsInsideTPC = val; return;}
   void DecayVertex::SetIsDetLocAssigned(bool val) {fIsDetLocAssigned = val; return;}
-  void DecayVertex::SetTotHits(std::vector<recob::Hit const*> totHitsInMaxRadius) {fTotHitsInMaxRadius = totHitsInMaxRadius; return;}
+  void DecayVertex::SetTotHits(std::vector<art::Ptr<recob::Hit>> totHitsInMaxRadius) {fTotHitsInMaxRadius = totHitsInMaxRadius; return;}
 
   void DecayVertex::SetDetectorCoordinates(
     const std::vector<double>& minTpcBound,
@@ -113,6 +146,10 @@ namespace AuxVertex
     geo::GeometryCore const* geometry,
     detinfo::DetectorProperties const* detectorProperties)
   {
+    /* This functions call special geometry and detectorProperties objects
+    in order to translate x,y,z coordinates in wire,tick coordinates.
+    This allows the determination of the vertices location in the event display
+    */
     // Get spatial coordinates and mark vertex as assigned
     float xyz[3] = {fX,fY,fZ};
     float prong1_xyz[3] = {fProngX[0],fProngY[0],fProngZ[0]};

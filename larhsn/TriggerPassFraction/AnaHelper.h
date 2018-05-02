@@ -1,6 +1,3 @@
-#ifndef TRUTHMATCHINGALG_H
-#define TRUTHMATCHINGALG_H
-
 // c++ includes
 #include <iostream>
 #include <fstream>
@@ -33,6 +30,7 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Framework/Services/Optional/TFileService.h"
 #include "art/Framework/Services/Optional/TFileDirectory.h"
+#include "art/Framework/Core/FileBlock.h"
 #include "fhiclcpp/ParameterSet.h"
 
 // art includes
@@ -50,49 +48,23 @@
 #include "lardataobj/RecoBase/Wire.h"
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/TrackingTypes.h"
+#include "lardataobj/Simulation/SimChannel.h"
 #include "lardataobj/RawData/RawDigit.h"
 #include "larcore/Geometry/geo.h"
 #include "larcore/Geometry/Geometry.h"
-#include "larcore/CoreUtils/ServiceUtil.h"
+#include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
-#include "lardataobj/AnalysisBase/BackTrackerMatchingData.h"
 
-#include "uboone/AnalysisTree/MCTruth/IMCTruthMatching.h"
-//s#include "uboone/AnalysisTree/MCTruth/AssociationsTruth_tool.h"
+// Others
+#include "uboone/RawData/utils/ubdaqSoftwareTriggerData.h"
 
 
-// Auxiliary objects includes
-#include "larhsn/PreSelectHSN/DataObjects/DecayVertex.h"
-#include "larhsn/PreSelectHSN/DataObjects/EventDescriptor.h"
+#ifndef ANAHELPER_H
+#define ANAHELPER_H
 
-namespace TruthMatching
+class AnaHelper
 {
-
-  class TruthMatchingAlg
-  {
-  public:
-    TruthMatchingAlg(fhicl::ParameterSet const & pset);
-    ~TruthMatchingAlg();
-    void reconfigure(fhicl::ParameterSet const & pset);
-
-  // Algorithms
-  void PerformTruthMatching(
-          art::Event const & evt,
-          AuxEvent::EventDescriptor & evd,
-          std::vector<AuxVertex::DecayVertex>& decayVertices);
-
-  private:
-    // fhicl parameters
-    std::string fPfpLabel;
-    std::string fHitLabel;
-    bool fVerbose;
-
-    // microboone services
-    const geo::GeometryCore* fGeometry;
-    const detinfo::DetectorProperties* fDetectorProperties;
-  };
-
-} // END namespace CalorimetryRadius
+};
 
 #endif
