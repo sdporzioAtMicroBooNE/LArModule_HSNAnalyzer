@@ -5,7 +5,8 @@
 
 ShowKinematicDistributions::ShowKinematicDistributions(fhicl::ParameterSet const & pset) :
     EDAnalyzer(pset),
-    fMCLabel(pset.get<std::string>("mcLabel"))
+    fMcTruthLabel(pset.get<std::string>("mcTruthLabel")),
+    fMcTrackLabel(pset.get<std::string>("mcTrackLabel"))
 {} // END constructor ShowKinematicDistributions
 
 ShowKinematicDistributions::~ShowKinematicDistributions()
@@ -33,6 +34,7 @@ void ShowKinematicDistributions::beginJob()
   tDataTree->Branch("E",&E);
   tDataTree->Branch("P",&P);
   tDataTree->Branch("Pt",&Pt);
+  tDataTree->Branch("Length",&Length);
   tDataTree->Branch("Theta",&Theta);
   tDataTree->Branch("Phi",&Phi);
   tDataTree->Branch("Nu_Px",&Nu_Px);
@@ -67,6 +69,7 @@ void ShowKinematicDistributions::ClearData()
   EndY.clear();
   EndZ.clear();
   EndT.clear();
+  Length.clear();
   Px.clear();
   Py.clear();
   Pz.clear();
@@ -77,52 +80,80 @@ void ShowKinematicDistributions::ClearData()
   Phi.clear();
 } // END function ClearData
 
-void ShowKinematicDistributions::GetTruthParticles(art::Event const & evt, std::vector<simb::MCParticle const*>& mcps)
+float ShowKinematicDistributions::TrackLength(std::vector<float> start, std::vector<float> end)
+{
+  return sqrt(pow(start[0] - end[0],2.) + pow(start[1] - end[1],2.) + pow(start[2] - end[2],2.));
+
+}
+
+void ShowKinematicDistributions::GetTruthParticles(art::Event const & evt)
 {
   // Prepare handle labels
-  art::InputTag mcTag {fMCLabel};
+  art::InputTag mcTruthTag {fMcTruthLabel};
+  const auto& mcTruthHandle = evt.getValidHandle< std::vector<simb::MCTruth> >(mcTruthTag);
+
+  art::InputTag mcTrackTag {fMcTrackLabel};
+  const auto& mcTrackHandle = evt.getValidHandle< std::vector<sim::MCTrack> >(mcTrackTag);
 
   // Find mcTruth
-  const auto& mctHandle = evt.getValidHandle< std::vector<simb::MCTruth> >(mcTag);
-  for (auto const& mct : (*mctHandle)){
-    int nParticles = mct.NParticles();
+  for(std::vector<int>::size_type i=0; i!=(*mcTruthHandle).size(); i++)
+  {
+    art::Ptr<simb::MCTruth> mcTruth(mcTruthHandle,i);
+    int nParticles = mcTruth->NParticles();
     printf("|_Number of particles: %i\n", nParticles);
-    for (int i=0; i<nParticles; i++)
+
+    for (int j=0; j<nParticles; j++)
     {
-      const simb::MCParticle & mcp = mct.GetParticle(i);
-      pdgCode.push_back(mcp.PdgCode());
-      Vx.push_back(mcp.Vx());
-      Vy.push_back(mcp.Vy());
-      Vz.push_back(mcp.Vz());
-      T.push_back(mcp.T());
-      EndX.push_back(mcp.EndX());
-      EndY.push_back(mcp.EndY());
-      EndZ.push_back(mcp.EndZ());
-      EndT.push_back(mcp.EndT());
-      Px.push_back(mcp.Px());
-      Py.push_back(mcp.Py());
-      Pz.push_back(mcp.Pz());
-      E.push_back(mcp.E());
-      P.push_back(mcp.P());
-      Pt.push_back(mcp.Pt());
+      const simb::MCParticle & mcPart = mcTruth->GetParticle(j);
+      art::Ptr<sim::MCTrack> mcTrack; 
+
+      // Find mcTrack object associated with this mcPart. mcPart doesn't have simulation of interaction in argon,
+      // so we can't recover the end points of tracks (and thus the lengths)
+      // There is no mcPart/mcTrack association so at the moment we look for primary particles
+      // that have the same PDG code. This immediately fails if an interaction contains two particles with
+      // same pdg coming out of nucleus (albeit unlikely), but it should be kept to mind.
+      for(std::vector<int>::size_type k=0; k!=(*mcTrackHandle).size(); k++)
+      {
+        art::Ptr<sim::MCTrack> potMcTrack(mcTrackHandle,k);
+        bool mctIsPrimary = (potMcTrack->Process()=="primary");
+        bool mctHasSamePdgCode = (potMcTrack->PdgCode()==mcPart.PdgCode());
+        if (mctIsPrimary && mctHasSamePdgCode) mcTrack = potMcTrack;
+      }
+
+      pdgCode.push_back(mcPart.PdgCode());
+      Vx.push_back((float) mcPart.Vx());
+      Vy.push_back((float) mcPart.Vy());
+      Vz.push_back((float) mcPart.Vz());
+      T.push_back((float) mcPart.T());
+      EndX.push_back((float) mcTrack->End().X());
+      EndY.push_back((float) mcTrack->End().Y());
+      EndZ.push_back((float) mcTrack->End().Z());
+      EndT.push_back((float) mcTrack->End().T());
+      Px.push_back((float) mcPart.Px());
+      Py.push_back((float) mcPart.Py());
+      Pz.push_back((float) mcPart.Pz());
+      E.push_back((float) mcPart.E());
+      P.push_back((float) mcPart.P());
+      Pt.push_back((float) mcPart.Pt());
+
       // Calculate other quantities
-      Theta.push_back(acos(mcp.Pz()/mcp.P()));
-      Phi.push_back(atan2(mcp.Py(),mcp.Px()));
-      // Save pointer to mcparticle
-      mcps.push_back(&mcp);
+      std::vector<float> start = {(float) mcPart.Vx(), (float) mcPart.Vy(), (float) mcPart.Vz()};
+      std::vector<float> end = {(float) mcTrack->End().X(), (float) mcTrack->End().Y(), (float) mcTrack->End().Z()};
+      Length.push_back(TrackLength(start, end));
+      Theta.push_back((float) (acos(mcPart.Pz()/mcPart.P())));
+      Phi.push_back((float) (atan2(mcPart.Py(),mcPart.Px())));
     }
 
-    // Calculate angles
 
-    // Calculate opening angle and invariant mass
+    // Calculate combined quantities: opening angle and invariant mass
     if (nParticles==2)
     {
       // Calculate opening angle
-      double dotProduct = Px[0]*Px[1] + Py[0]*Py[1] + Pz[0]*Pz[1];
+      float dotProduct = Px[0]*Px[1] + Py[0]*Py[1] + Pz[0]*Pz[1];
       OpeningAngle = acos(dotProduct / float(P[0]*P[1]));
       // Calculate invariant mass
-      double eTerm = pow((E[0] + E[1]),2.);
-      double pTerm = pow(P[0],2.) + pow(P[1],2.) + 2.*dotProduct;
+      float eTerm = pow((E[0] + E[1]),2.);
+      float pTerm = pow(P[0],2.) + pow(P[1],2.) + 2.*dotProduct;
       InvariantMass = sqrt(eTerm - pTerm);
 
       // Calculate neutrino quantities
@@ -161,8 +192,7 @@ void ShowKinematicDistributions::analyze(art::Event const & evt)
   printf("||INFORMATION FOR EVENT %i [RUN %i, SUBRUN %i]||\n", event, run, subrun);
 
   // Get vector of primaries and secondaries pfps
-  std::vector<simb::MCParticle const*> mcps;
-  GetTruthParticles(evt, mcps);
+  GetTruthParticles(evt);
 
   // Fill tree and finish event loop
   tDataTree->Fill();

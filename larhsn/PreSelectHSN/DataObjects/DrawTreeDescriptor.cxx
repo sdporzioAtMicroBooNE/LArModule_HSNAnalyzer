@@ -15,8 +15,12 @@ namespace AuxEvent
   DrawTreeDescriptor::~DrawTreeDescriptor()
   {}
 
-  void DrawTreeDescriptor::Initialize()
+  void DrawTreeDescriptor::Initialize(int i_run, int i_subrun, int i_event)
   {
+    run = i_run;
+    subrun = i_subrun;
+    event = i_event;
+    
     dv_xyzCoordinates.clear();
     dv_wireCoordinates.clear();
     dv_tickCoordinates.clear();

@@ -35,23 +35,53 @@ namespace AuxEvent
     calo_prong2ChargeInRadius.clear();
     calo_caloRatio.clear();
     // Pandora physics
-    phys_nuStartPosition.clear();
-    phys_prong1StartPosition.clear();
-    phys_prong2StartPosition.clear();
-    phys_prong1MomentumDir.clear();
-    phys_prong2MomentumDir.clear();
-    phys_prong1MomentumMag.clear();
-    phys_prong2MomentumMag.clear();
-    phys_prongLength.clear();
+    // Coordinates
+    phys_nuPosX.clear();
+    phys_nuPosY.clear();
+    phys_nuPosZ.clear();
+    phys_prongPosX.clear();
+    phys_prongPosY.clear();
+    phys_prongPosZ.clear();
+    phys_prongStartPosX.clear();
+    phys_prongStartPosY.clear();
+    phys_prongStartPosZ.clear();
+    phys_prongEndPosX.clear();
+    phys_prongEndPosY.clear();
+    phys_prongEndPosZ.clear();
+    // Direction
+    phys_prongDirX.clear();
+    phys_prongDirY.clear();
+    phys_prongDirZ.clear();
     phys_prongTheta.clear();
     phys_prongPhi.clear();
+    // Prong momentum (by range, assuming both muons)
+    phys_prongMomMag_ByRange_AssMuon.clear();
+    phys_prongEnergy_ByRange_AssMuon.clear();
+    phys_prongMom_ByRange_AssMuonX.clear();
+    phys_prongMom_ByRange_AssMuonY.clear();
+    phys_prongMom_ByRange_AssMuonZ.clear();
+    // Tot momentum (by range, assuming both muons)
+    phys_totMomMag_ByRange_AssMuon.clear();
+    phys_totEnergy_ByRange_AssMuon.clear();
+    phys_invariantMass_ByRange_AssMuon.clear();
+    phys_totMom_ByRange_AssMuonX.clear();
+    phys_totMom_ByRange_AssMuonY.clear();
+    phys_totMom_ByRange_AssMuonZ.clear();
+    // Tot momentum direction (by range, assuming both muons)
+    phys_totDir_ByRange_AssMuonX.clear();
+    phys_totDir_ByRange_AssMuonY.clear();
+    phys_totDir_ByRange_AssMuonZ.clear();
+    phys_totTheta_ByRange_AssMuon.clear();
+    phys_totPhi_ByRange_AssMuon.clear();
+    // Others
+    phys_prongLength.clear();
     phys_prongStartToNeutrinoDistance.clear();
     phys_prongNumHits.clear();
     phys_openingAngle.clear();
-    // Pandora diagnostic
-    diag_nuWithMissingAssociatedVertex = -999;
-    diag_nuWithMissingAssociatedTrack = -999;
-    diag_nuProngWithMissingAssociatedHits = -999;
+    // Pandora statusnostic
+    status_nuWithMissingAssociatedVertex = -999;
+    status_nuWithMissingAssociatedTrack = -999;
+    status_nuProngWithMissingAssociatedHits = -999;
     // Truth information
     match_pdgCode.clear();
     match_mass.clear();
@@ -73,45 +103,52 @@ namespace AuxEvent
 
     for (std::vector<int>::size_type i=0; i!=decayVertices.size(); i++)
     {
-      AuxVertex::DecayVertex currentVertex = decayVertices[i];
-      phys_nuStartPosition.push_back(
-      {
-        currentVertex.GetX(),
-        currentVertex.GetY(),
-        currentVertex.GetZ()
-      });
-      phys_prong1StartPosition.push_back(
-      {
-        currentVertex.GetProngX(0),
-        currentVertex.GetProngY(0), 
-        currentVertex.GetProngZ(0)
-      });
-      phys_prong2StartPosition.push_back(
-      {
-        currentVertex.GetProngX(1),
-        currentVertex.GetProngY(1), 
-        currentVertex.GetProngZ(1)
-      });
-      phys_prong1MomentumDir.push_back(
-      {
-        currentVertex.GetProngDirPx(0),
-        currentVertex.GetProngDirPy(0), 
-        currentVertex.GetProngDirPz(0)
-      });
-      phys_prong2MomentumDir.push_back(
-      {
-        currentVertex.GetProngDirPx(1),
-        currentVertex.GetProngDirPy(1), 
-        currentVertex.GetProngDirPz(1)
-      });
-      phys_prong1MomentumMag.push_back(currentVertex.GetProngMagP(0));
-      phys_prong2MomentumMag.push_back(currentVertex.GetProngMagP(1));
-      phys_prongLength.push_back({currentVertex.GetProngLength(0),currentVertex.GetProngLength(1)});
-      phys_prongTheta.push_back({currentVertex.GetProngTheta(0),currentVertex.GetProngTheta(1)});
-      phys_prongPhi.push_back({currentVertex.GetProngPhi(0),currentVertex.GetProngPhi(1)});
-      phys_prongNumHits.push_back({currentVertex.GetProngNumHits(0),currentVertex.GetProngNumHits(1)});
-      phys_openingAngle.push_back(currentVertex.GetOpeningAngle());
-      phys_prongStartToNeutrinoDistance.push_back({currentVertex.GetProngStartToNeutrinoDistance(0),currentVertex.GetProngStartToNeutrinoDistance(1)});
+      AuxVertex::DecayVertex cv = decayVertices[i];
+      // Coordinates
+      phys_nuPosX.push_back(cv.GetX());
+      phys_nuPosY.push_back(cv.GetY());
+      phys_nuPosZ.push_back(cv.GetZ());
+      phys_prongPosX.push_back({cv.GetProngX(0),cv.GetProngX(1)});
+      phys_prongPosY.push_back({cv.GetProngY(0),cv.GetProngY(1)});
+      phys_prongPosZ.push_back({cv.GetProngZ(0),cv.GetProngZ(1)});
+      phys_prongStartPosX.push_back({cv.GetProngStartX(0),cv.GetProngStartX(1)});
+      phys_prongStartPosY.push_back({cv.GetProngStartY(0),cv.GetProngStartY(1)});
+      phys_prongStartPosZ.push_back({cv.GetProngStartZ(0),cv.GetProngStartZ(1)});
+      phys_prongEndPosX.push_back({cv.GetProngEndX(0),cv.GetProngEndX(1)});
+      phys_prongEndPosY.push_back({cv.GetProngEndY(0),cv.GetProngEndY(1)});
+      phys_prongEndPosZ.push_back({cv.GetProngEndZ(0),cv.GetProngEndZ(1)});
+      // Direction
+      phys_prongDirX.push_back({cv.GetProngDirX(0),cv.GetProngDirX(1)});
+      phys_prongDirY.push_back({cv.GetProngDirY(0),cv.GetProngDirY(1)});
+      phys_prongDirZ.push_back({cv.GetProngDirZ(0),cv.GetProngDirZ(1)});
+      phys_prongTheta.push_back({cv.GetProngTheta(0),cv.GetProngTheta(1)});
+      phys_prongPhi.push_back({cv.GetProngPhi(0),cv.GetProngPhi(1)});
+      // Prong momentum (by range, assuming both muons)
+      phys_prongMomMag_ByRange_AssMuon.push_back({cv.GetProngMomMag_ByRange_AssMuon(0),cv.GetProngMomMag_ByRange_AssMuon(1)});
+      phys_prongEnergy_ByRange_AssMuon.push_back({cv.GetProngEnergy_ByRange_AssMuon(0),cv.GetProngEnergy_ByRange_AssMuon(1)});
+      phys_prongMom_ByRange_AssMuonX.push_back({cv.GetProngMom_ByRange_AssMuonX(0),cv.GetProngMom_ByRange_AssMuonX(1)});
+      phys_prongMom_ByRange_AssMuonY.push_back({cv.GetProngMom_ByRange_AssMuonY(0),cv.GetProngMom_ByRange_AssMuonY(1)});
+      phys_prongMom_ByRange_AssMuonZ.push_back({cv.GetProngMom_ByRange_AssMuonZ(0),cv.GetProngMom_ByRange_AssMuonZ(1)});
+      // Tot momentum (by direction, assuming both muons)
+      phys_totMomMag_ByRange_AssMuon.push_back(cv.GetTotMomMag_ByRange_AssMuon());
+      phys_totEnergy_ByRange_AssMuon.push_back(cv.GetTotEnergy_ByRange_AssMuon());
+      phys_invariantMass_ByRange_AssMuon.push_back(cv.GetInvMass_ByRange_AssMuon());
+      phys_totMom_ByRange_AssMuonX.push_back(cv.GetTotMom_ByRange_AssMuonX());
+      phys_totMom_ByRange_AssMuonY.push_back(cv.GetTotMom_ByRange_AssMuonY());
+      phys_totMom_ByRange_AssMuonZ.push_back(cv.GetTotMom_ByRange_AssMuonZ());
+      // Tot momentum direction (by direction, assuming both muons)
+      phys_totDir_ByRange_AssMuonX.push_back(cv.GetTotDir_ByRange_AssMuonX());
+      phys_totDir_ByRange_AssMuonY.push_back(cv.GetTotDir_ByRange_AssMuonY());
+      phys_totDir_ByRange_AssMuonZ.push_back(cv.GetTotDir_ByRange_AssMuonZ());
+      phys_totTheta_ByRange_AssMuon.push_back(cv.GetTotTheta_ByRange_AssMuon());
+      phys_totPhi_ByRange_AssMuon.push_back(cv.GetTotPhi_ByRange_AssMuon());
+
+
+      // Others
+      phys_prongLength.push_back({cv.GetProngLength(0),cv.GetProngLength(1)});
+      phys_prongNumHits.push_back({cv.GetProngNumHits(0),cv.GetProngNumHits(1)});
+      phys_openingAngle.push_back(cv.GetOpeningAngle());
+      phys_prongStartToNeutrinoDistance.push_back({cv.GetProngStartToNeutrinoDistance(0),cv.GetProngStartToNeutrinoDistance(1)});
     }
     return;
   } // END function ExtractVertexPhysics

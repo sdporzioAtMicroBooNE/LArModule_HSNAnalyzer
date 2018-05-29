@@ -25,7 +25,8 @@ physics:
     TestMinEx:
     {
       module_type:          "ShowKinematicDistributions"
-      mcLabel:              "generator"
+      mcTruthLabel:              "generator"
+      mcTrackLabel:              "mcreco"
     }
   }
   analysis: [TestMinEx]

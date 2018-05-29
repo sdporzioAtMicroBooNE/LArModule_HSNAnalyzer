@@ -37,9 +37,9 @@ namespace FindPandoraVertex
     evd.neutrinoNumDaughters.clear();
     evd.neutrinoNumTracks.clear();
     evd.neutrinoNumShowers.clear();
-    evd.diag_nuWithMissingAssociatedVertex = 0;
-    evd.diag_nuWithMissingAssociatedTrack = 0;
-    evd.diag_nuProngWithMissingAssociatedHits = 0;
+    evd.status_nuWithMissingAssociatedVertex = 0;
+    evd.status_nuWithMissingAssociatedTrack = 0;
+    evd.status_nuProngWithMissingAssociatedHits = 0;
 
     //Prepare the pfp handle
     art::InputTag pfpTag {fPfpLabel};
@@ -146,8 +146,8 @@ namespace FindPandoraVertex
           pta.get(1,t2Track);
           bool rightNumTracks = (t1Track.isNonnull() && t2Track.isNonnull());
 
-          if (!rightNumVertices) evd.diag_nuWithMissingAssociatedVertex += 1;
-          if (!rightNumTracks) evd.diag_nuWithMissingAssociatedTrack += 1;
+          if (!rightNumVertices) evd.status_nuWithMissingAssociatedVertex += 1;
+          if (!rightNumTracks) evd.status_nuWithMissingAssociatedTrack += 1;
           if (rightNumVertices && rightNumTracks)
           {
             if (fVerbose) printf("| | |_Neutrino has correct number of vertex and tracks associated to PFP.\n");
@@ -162,7 +162,7 @@ namespace FindPandoraVertex
             std::cout << "| |_Track 1: There are " << t1Hits.size() << " associated hits." << std::endl;
             std::cout << "| |_Track 2: There are " << t2Hits.size() << " associated hits." << std::endl;
 
-            if (!rightNumHits) evd.diag_nuProngWithMissingAssociatedHits += 1;
+            if (!rightNumHits) evd.status_nuProngWithMissingAssociatedHits += 1;
             else
             {
               if (fVerbose) printf("| | |_Neutrino has correct number of hits vectors associated to tracks.\n");

@@ -68,23 +68,32 @@ namespace AuxEvent
     std::vector<std::vector<float>> calo_prong2ChargeInRadius;
     std::vector<std::vector<float>> calo_caloRatio;
     // Pandora physics
-    std::vector<std::vector<float>> phys_nuStartPosition;
-    std::vector<std::vector<float>> phys_prong1StartPosition;
-    std::vector<std::vector<float>> phys_prong2StartPosition;
-    std::vector<float> phys_prong1MomentumMag;
-    std::vector<float> phys_prong2MomentumMag;
-    std::vector<std::vector<float>> phys_prong1MomentumDir;
-    std::vector<std::vector<float>> phys_prong2MomentumDir;
+    // Coordinates
+    std::vector<float> phys_nuPosX, phys_nuPosY, phys_nuPosZ;
+    std::vector<std::vector<float>> phys_prongPosX, phys_prongPosY, phys_prongPosZ;
+    std::vector<std::vector<float>> phys_prongStartPosX, phys_prongStartPosY, phys_prongStartPosZ;
+    std::vector<std::vector<float>> phys_prongEndPosX, phys_prongEndPosY, phys_prongEndPosZ;
+    // Direction
+    std::vector<std::vector<float>> phys_prongDirX, phys_prongDirY, phys_prongDirZ;
+    std::vector<std::vector<float>> phys_prongTheta, phys_prongPhi;
+    // Prong momentum (by range, assuming both muons)
+    std::vector<std::vector<float>> phys_prongMomMag_ByRange_AssMuon, phys_prongEnergy_ByRange_AssMuon;
+    std::vector<std::vector<float>> phys_prongMom_ByRange_AssMuonX, phys_prongMom_ByRange_AssMuonY, phys_prongMom_ByRange_AssMuonZ;
+    // Tot momentum (by range, assuming both muons)
+    std::vector<float> phys_totMomMag_ByRange_AssMuon, phys_totEnergy_ByRange_AssMuon,phys_invariantMass_ByRange_AssMuon;
+    std::vector<float> phys_totMom_ByRange_AssMuonX, phys_totMom_ByRange_AssMuonY,phys_totMom_ByRange_AssMuonZ;
+    // Tot momentum direction (by range, assuming both muons)
+    std::vector<float> phys_totDir_ByRange_AssMuonX, phys_totDir_ByRange_AssMuonY, phys_totDir_ByRange_AssMuonZ;
+    std::vector<float> phys_totTheta_ByRange_AssMuon, phys_totPhi_ByRange_AssMuon;
+    // Others
     std::vector<std::vector<float>> phys_prongLength;
-    std::vector<std::vector<float>> phys_prongTheta;
-    std::vector<std::vector<float>> phys_prongPhi;
     std::vector<std::vector<float>> phys_prongStartToNeutrinoDistance;
     std::vector<std::vector<int>> phys_prongNumHits;
     std::vector<float> phys_openingAngle;
-    // Pandora diagnostic
-    int diag_nuWithMissingAssociatedVertex;
-    int diag_nuWithMissingAssociatedTrack;
-    int diag_nuProngWithMissingAssociatedHits;
+    // Pandora statusnostic
+    int status_nuWithMissingAssociatedVertex;
+    int status_nuWithMissingAssociatedTrack;
+    int status_nuProngWithMissingAssociatedHits;
     // Truth information
     std::vector<std::vector<int>> match_pdgCode;
     std::vector<std::vector<float>> match_mass;

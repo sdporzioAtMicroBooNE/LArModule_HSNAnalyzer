@@ -26,7 +26,8 @@ physics:
     TruthInfo:
     {
       module_type:          "ShowKinematicDistributions"
-      mcLabel:              "generator"
+      mcTruthLabel:              "generator"
+      mcTrackLabel:              "mcreco"
     }
 
     PreSelection:

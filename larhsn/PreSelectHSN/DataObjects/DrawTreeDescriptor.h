@@ -46,10 +46,15 @@ namespace AuxEvent
     // Constructor and destructor
     DrawTreeDescriptor();
     virtual ~DrawTreeDescriptor();
-    void Initialize();
+    void Initialize(int i_run, int i_subrun, int i_event);
 
     void FillDrawTreeVariables(
           const std::vector<AuxVertex::DecayVertex>& decayVertices);
+
+    // General
+    int run;
+    int subrun;
+    int event;
 
     // Declare drawTree variables
     std::vector<std::vector<int>> dv_wireCoordinates;
