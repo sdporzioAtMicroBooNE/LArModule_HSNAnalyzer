@@ -51,6 +51,7 @@
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/TrackingTypes.h"
 #include "lardataobj/RawData/RawDigit.h"
+#include "lardataobj/RecoBase/MCSFitResult.h"
 #include "larcore/Geometry/geo.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcore/CoreUtils/ServiceUtil.h"
@@ -88,6 +89,7 @@ private:
   std::vector<double> fMaxTpcBound;
   std::string fPfpLabel;
   std::string fHitLabel;
+  std::string fMcsLabel;
   std::vector<double> fRadiusProfileLimits;
   int fRadiusProfileBins;
   double fChannelNorm;

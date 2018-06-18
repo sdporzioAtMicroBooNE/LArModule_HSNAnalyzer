@@ -17,6 +17,7 @@ namespace FindPandoraVertex
     fMinTpcBound = pset.get<std::vector<double>>("MinTpcBound");
     fMaxTpcBound = pset.get<std::vector<double>>("MaxTpcBound");
     fPfpLabel = pset.get<std::string>("PfpLabel");
+    fMcsLabel = pset.get<std::string>("McsLabel");
     fVerbose = pset.get<bool>("VerboseMode");
   }
 
@@ -43,7 +44,10 @@ namespace FindPandoraVertex
 
     //Prepare the pfp handle
     art::InputTag pfpTag {fPfpLabel};
+    art::InputTag mcsTag {fMcsLabel};
     const auto& pfpHandle = evt.getValidHandle< std::vector<recob::PFParticle> >(pfpTag);
+    // const auto& trackHandle = evt.getValidHandle< std::vector<recob::Track> >(pfpTag);
+    const auto& mcsHandle = evt.getValidHandle< std::vector<recob::MCSFitResult> >(mcsTag);
 
     // Loop through each pfp
     for(std::vector<int>::size_type i=0; i!=(*pfpHandle).size(); i++)
@@ -166,11 +170,16 @@ namespace FindPandoraVertex
             else
             {
               if (fVerbose) printf("| | |_Neutrino has correct number of hits vectors associated to tracks.\n");
+
+              // For each track, find in the mcsHandle the MCS fit result with the same index (they don't have associations unfortunately but they should be paired by same index, so you can retrieve them this way).
+              art::Ptr<recob::MCSFitResult> t1Mcs(mcsHandle,t1Track.key());
+              art::Ptr<recob::MCSFitResult> t2Mcs(mcsHandle,t2Track.key());
+
               // Time to dump all associations in the neutrino vertex
-              AuxVertex::DecayVertex nuV(nuVertex,t1Vertex,t2Vertex,t1Track,t2Track,t1Hits,t2Hits);
+              AuxVertex::DecayVertex nuV(nuVertex,t1Vertex,t2Vertex,t1Track,t2Track,t1Hits,t2Hits,t1Mcs,t2Mcs);
               nuV.SetDetectorCoordinates(fMinTpcBound,fMaxTpcBound,fGeometry,fDetectorProperties);
               nuV.PrintInformation();
-              if (nuV.IsInsideTPC())
+              if (nuV.fIsInsideTPC)
               {
                 evd.nContainedTwoProngedNeutrinos += 1;
                 ana_decayVertices.push_back(nuV);

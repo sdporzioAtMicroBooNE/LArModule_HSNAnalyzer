@@ -23,7 +23,9 @@ namespace AuxVertex
             const art::Ptr<recob::Track> &t1Track,
             const art::Ptr<recob::Track> &t2Track,
             const std::vector<art::Ptr<recob::Hit>> &t1Hits,
-            const std::vector<art::Ptr<recob::Hit>> &t2Hits)
+            const std::vector<art::Ptr<recob::Hit>> &t2Hits,
+            const art::Ptr<recob::MCSFitResult> &t1Mcs,
+            const art::Ptr<recob::MCSFitResult> &t2Mcs)
   {
     /*
     This function creates a HSN decay vertex candidate object.
@@ -45,6 +47,7 @@ namespace AuxVertex
     fProngVertex = {t1Vertex, t2Vertex};
     fProngTrack = {t1Track, t2Track};
     fProngHits = {t1Hits, t2Hits};
+    fProngMcs = {t1Mcs, t2Mcs};
 
     // Use pointers to reconstructed objects to obtain start coordinates for vertices.
     double nuVertexPosition[3], t1VertexPosition[3], t2VertexPosition[3];
@@ -58,76 +61,29 @@ namespace AuxVertex
     fProngY = {(float) t1VertexPosition[1], (float) t2VertexPosition[1]};
     fProngZ = {(float) t1VertexPosition[2], (float) t2VertexPosition[2]};
     // Do the same for tracks.
-    fProngStartX = {(float) t1Track->Start().X(), (float) t2Track->Start().X()};
-    fProngStartY = {(float) t1Track->Start().Y(), (float) t2Track->Start().Y()};
-    fProngStartZ = {(float) t1Track->Start().Z(), (float) t2Track->Start().Z()};
-    fProngEndX = {(float) t1Track->End()[0], (float) t2Track->End()[0]};
-    fProngEndY = {(float) t1Track->End()[1], (float) t2Track->End()[1]};
-    fProngEndZ = {(float) t1Track->End()[2], (float) t2Track->End()[2]};
+    fProngStartX = {(float) fProngTrack[0]->Start().X(), (float) fProngTrack[1]->Start().X()};
+    fProngStartY = {(float) fProngTrack[0]->Start().Y(), (float) fProngTrack[1]->Start().Y()};
+    fProngStartZ = {(float) fProngTrack[0]->Start().Z(), (float) fProngTrack[1]->Start().Z()};
+    fProngEndX = {(float) fProngTrack[0]->End()[0], (float) fProngTrack[1]->End()[0]};
+    fProngEndY = {(float) fProngTrack[0]->End()[1], (float) fProngTrack[1]->End()[1]};
+    fProngEndZ = {(float) fProngTrack[0]->End()[2], (float) fProngTrack[1]->End()[2]};
 
     // Calculate length, theta, phi and number of hits
-    fProngLength = {(float) t1Track->Length(), (float) t2Track->Length()};
-    fProngTheta = {(float) t1Track->Theta(), (float) t2Track->Theta()};
-    fProngPhi = {(float) t1Track->Phi(), (float) t2Track->Phi()};
+    fProngLength = {(float) fProngTrack[0]->Length(), (float) fProngTrack[1]->Length()};
+    fProngTheta = {(float) fProngTrack[0]->Theta(), (float) fProngTrack[1]->Theta()};
+    fProngPhi = {(float) fProngTrack[0]->Phi(), (float) fProngTrack[1]->Phi()};
     fProngNumHits = {(int) t1Hits.size(), (int) t2Hits.size()};
 
     // Calculate track directions
-    fProngDirX = {(float) t1Track->VertexMomentumVector().X(), (float) t2Track->VertexMomentumVector().X()};
-    fProngDirY = {(float) t1Track->VertexMomentumVector().Y(), (float) t2Track->VertexMomentumVector().Y()};
-    fProngDirZ = {(float) t1Track->VertexMomentumVector().Z(), (float) t2Track->VertexMomentumVector().Z()};
+    fProngDirX = {(float) fProngTrack[0]->VertexMomentumVector().X(), (float) fProngTrack[1]->VertexMomentumVector().X()};
+    fProngDirY = {(float) fProngTrack[0]->VertexMomentumVector().Y(), (float) fProngTrack[1]->VertexMomentumVector().Y()};
+    fProngDirZ = {(float) fProngTrack[0]->VertexMomentumVector().Z(), (float) fProngTrack[1]->VertexMomentumVector().Z()};
 
-    // Calculate kinematic quantities for each prong
-    trkf::TrackMomentumCalculator tmc;
-    // Prong momentum magnitude
-    fProngMomMag_ByRange_AssMuon = {(float) tmc.GetTrackMomentum(fProngLength[0],13), (float) tmc.GetTrackMomentum(fProngLength[1],13)};
-    // Prong momentum components
-    fProngMom_ByRange_AssMuonX = {(float) fProngDirX[0]*fProngMomMag_ByRange_AssMuon[0], (float) fProngDirX[1]*fProngMomMag_ByRange_AssMuon[1]};
-    fProngMom_ByRange_AssMuonY = {(float) fProngDirY[0]*fProngMomMag_ByRange_AssMuon[0], (float) fProngDirY[1]*fProngMomMag_ByRange_AssMuon[1]};
-    fProngMom_ByRange_AssMuonZ = {(float) fProngDirZ[0]*fProngMomMag_ByRange_AssMuon[0], (float) fProngDirZ[1]*fProngMomMag_ByRange_AssMuon[1]};
-    // Prong energy
-    float muonMass = 0.10566;
-    float e1 = sqrt(pow(muonMass,2.) + pow(fProngMomMag_ByRange_AssMuon[0],2.));
-    float e2 = sqrt(pow(muonMass,2.) + pow(fProngMomMag_ByRange_AssMuon[1],2.));
-    fProngEnergy_ByRange_AssMuon = {(float) e1, (float) e2};
-    /**/
-    // Calculate kinematic quantities for parent neutrino
-    // Total momentum components
-    fTotMom_ByRange_AssMuonX = fProngMom_ByRange_AssMuonX[0] + fProngMom_ByRange_AssMuonX[1];
-    fTotMom_ByRange_AssMuonY = fProngMom_ByRange_AssMuonY[0] + fProngMom_ByRange_AssMuonY[1];
-    fTotMom_ByRange_AssMuonZ = fProngMom_ByRange_AssMuonZ[0] + fProngMom_ByRange_AssMuonZ[1];
-    // Total momentum magnitude
-    fTotMomMag_ByRange_AssMuon = sqrt(pow(fTotMom_ByRange_AssMuonX,2.) + pow(fTotMom_ByRange_AssMuonY,2.) + pow(fTotMom_ByRange_AssMuonZ,2.));
-    // Total direction components
-    fTotDir_ByRange_AssMuonX = fTotMom_ByRange_AssMuonX/fTotMomMag_ByRange_AssMuon;
-    fTotDir_ByRange_AssMuonY = fTotMom_ByRange_AssMuonY/fTotMomMag_ByRange_AssMuon;
-    fTotDir_ByRange_AssMuonZ = fTotMom_ByRange_AssMuonZ/fTotMomMag_ByRange_AssMuon;
-    // Total direction angles
-    fTotTheta_ByRange_AssMuon = acos(fTotDir_ByRange_AssMuonZ);
-    fTotPhi_ByRange_AssMuon = atan2(fTotDir_ByRange_AssMuonY,fTotDir_ByRange_AssMuonX);
-    // Total energy
-    fTotEnergy_ByRange_AssMuon = fProngEnergy_ByRange_AssMuon[0] + fProngEnergy_ByRange_AssMuon[1];
-    // Invariant mass
-    fInvMass_ByRange_AssMuon = sqrt(pow(fTotEnergy_ByRange_AssMuon,2.) - pow(fTotMomMag_ByRange_AssMuon,2.));
+    // Calculate momenta and quantities related to them, using range and MCS method
+    SetHypothesisLabels();
+    SetMomentumQuantities_ByRange();
+    SetMomentumQuantities_ByMCS();
 
-    // Calculate opening angle
-    std::vector<double> startDirection1 = {
-      t1Track->StartDirection().X(),
-      t1Track->StartDirection().Y(),
-      t1Track->StartDirection().Z()
-    };
-    std::vector<double> startDirection2 = {
-      t2Track->StartDirection().X(),
-      t2Track->StartDirection().Y(),
-      t2Track->StartDirection().Z()
-    };
-    float magnitude1 = sqrt(startDirection1[0]*startDirection1[0] + startDirection1[1]*startDirection1[1] + startDirection1[2]*startDirection1[2]);
-    float magnitude2 = sqrt(startDirection2[0]*startDirection2[0] + startDirection2[1]*startDirection2[1] + startDirection2[2]*startDirection2[2]);
-    float dotProduct = startDirection1[0]*startDirection2[0] + startDirection1[1]*startDirection2[1] + startDirection1[2]*startDirection2[2];
-    fOpeningAngle = acos(dotProduct / (magnitude1*magnitude2));
-    // Calculate start point to neutrino vertex distance
-    float prong1_distance = sqrt(pow(fX - fProngX[0],2.) + pow(fY - fProngY[0],2.) + pow(fZ - fProngZ[0],2.));
-    float prong2_distance = sqrt(pow(fX - fProngX[1],2.) + pow(fY - fProngY[1],2.) + pow(fZ - fProngZ[1],2.));
-    fProngStartToNeutrinoDistance = {prong1_distance,prong2_distance};
   } //  END constructor DecayVertex
 
   // Getters
@@ -137,57 +93,6 @@ namespace AuxVertex
   art::Ptr<recob::Track> DecayVertex::GetProngTrack(int prong) const {return fProngTrack[prong];}
   std::vector<art::Ptr<recob::Hit>> DecayVertex::GetProngHits(int prong) const {return fProngHits[prong];}
   std::vector<art::Ptr<recob::Hit>> DecayVertex::GetTotHits() const {return fTotHitsInMaxRadius;}
-  // Coordinates
-  float DecayVertex::GetX() const {return fX;}
-  float DecayVertex::GetY() const {return fY;}
-  float DecayVertex::GetZ() const {return fZ;}
-  float DecayVertex::GetProngX(int prong) const {return fProngX[prong];}
-  float DecayVertex::GetProngY(int prong) const {return fProngY[prong];}
-  float DecayVertex::GetProngZ(int prong) const {return fProngZ[prong];}
-  float DecayVertex::GetProngStartX(int prong) const {return fProngStartX[prong];}
-  float DecayVertex::GetProngStartY(int prong) const {return fProngStartY[prong];}
-  float DecayVertex::GetProngStartZ(int prong) const {return fProngStartZ[prong];}
-  float DecayVertex::GetProngEndX(int prong) const {return fProngEndX[prong];}
-  float DecayVertex::GetProngEndY(int prong) const {return fProngEndY[prong];}
-  float DecayVertex::GetProngEndZ(int prong) const {return fProngEndZ[prong];}
-  // Wire-Tick coordinates
-  int DecayVertex::GetChannelLoc(int plane) const {return fChannelLoc[plane];}
-  float DecayVertex::GetTickLoc(int plane) const {return fTickLoc[plane];}
-  int DecayVertex::GetProngChannelLoc(int prong,int plane) const {return fProngChannelLoc[prong][plane];}
-  float DecayVertex::GetProngTickLoc(int prong,int plane) const {return fProngTickLoc[prong][plane];}
-  // Direction
-  float DecayVertex::GetProngDirX(int prong) const {return fProngDirX[prong];}
-  float DecayVertex::GetProngDirY(int prong) const {return fProngDirY[prong];}
-  float DecayVertex::GetProngDirZ(int prong) const {return fProngDirZ[prong];}
-  float DecayVertex::GetProngTheta(int prong) const {return fProngTheta[prong];}
-  float DecayVertex::GetProngPhi(int prong) const {return fProngPhi[prong];}
-  // Prong momentum (by range, assuming both muons)
-  float DecayVertex::GetProngMomMag_ByRange_AssMuon(int prong) const {return fProngMomMag_ByRange_AssMuon[prong];}
-  float DecayVertex::GetProngMom_ByRange_AssMuonX(int prong) const {return fProngMom_ByRange_AssMuonX[prong];}
-  float DecayVertex::GetProngMom_ByRange_AssMuonY(int prong) const {return fProngMom_ByRange_AssMuonY[prong];}
-  float DecayVertex::GetProngMom_ByRange_AssMuonZ(int prong) const {return fProngMom_ByRange_AssMuonZ[prong];}
-  float DecayVertex::GetProngEnergy_ByRange_AssMuon(int prong) const {return fProngEnergy_ByRange_AssMuon[prong];}
-  // Tot momentum (by range, assuming both muons)
-  float DecayVertex::GetTotMomMag_ByRange_AssMuon() const {return fTotMomMag_ByRange_AssMuon;}
-  float DecayVertex::GetTotMom_ByRange_AssMuonX() const {return fTotMom_ByRange_AssMuonX;}
-  float DecayVertex::GetTotMom_ByRange_AssMuonY() const {return fTotMom_ByRange_AssMuonY;}
-  float DecayVertex::GetTotMom_ByRange_AssMuonZ() const {return fTotMom_ByRange_AssMuonZ;}
-  float DecayVertex::GetTotEnergy_ByRange_AssMuon() const {return fTotEnergy_ByRange_AssMuon;}
-  float DecayVertex::GetInvMass_ByRange_AssMuon() const {return fInvMass_ByRange_AssMuon;}
-  // Tot momentum direction (by range, assuming both muons)
-  float DecayVertex::GetTotDir_ByRange_AssMuonX() const {return fTotDir_ByRange_AssMuonX;}
-  float DecayVertex::GetTotDir_ByRange_AssMuonY() const {return fTotDir_ByRange_AssMuonY;}
-  float DecayVertex::GetTotDir_ByRange_AssMuonZ() const {return fTotDir_ByRange_AssMuonZ;}
-  float DecayVertex::GetTotTheta_ByRange_AssMuon() const {return fTotTheta_ByRange_AssMuon;}
-  float DecayVertex::GetTotPhi_ByRange_AssMuon() const {return fTotPhi_ByRange_AssMuon;}
-  // Others
-  float DecayVertex::GetProngLength(int prong) const {return fProngLength[prong];}
-  int DecayVertex::GetProngNumHits(int prong) const {return fProngNumHits[prong];}
-  float DecayVertex::GetProngStartToNeutrinoDistance(int prong) const {return fProngStartToNeutrinoDistance[prong];}
-  float DecayVertex::GetOpeningAngle() const {return fOpeningAngle;}
-  bool DecayVertex::IsInsideTPC() const {return fIsInsideTPC;}
-  bool DecayVertex::IsDetLocAssigned() const {return fIsDetLocAssigned;}
-
 
   // Setters
   void DecayVertex::SetChannelLoc(int channel0, int channel1, int channel2) {fChannelLoc = {channel0,channel1,channel2}; return;}
@@ -209,6 +114,7 @@ namespace AuxVertex
     in order to translate x,y,z coordinates in wire,tick coordinates.
     This allows the determination of the vertices location in the event display
     */
+
     // Get spatial coordinates and mark vertex as assigned
     float xyz[3] = {fX,fY,fZ};
     float prong1_xyz[3] = {fProngX[0],fProngY[0],fProngZ[0]};
@@ -265,8 +171,280 @@ namespace AuxVertex
   } // END function SetDetectorCoordinates
 
 
+  void DecayVertex::SetHypothesisLabels()
+  {
+    /* Determine PDG code and mass for the two particles in two different hypotheses.
+    h1: Longest track is muon (13), shortest is pion (211)
+    h2: Longest track is pion (211), shortest is muon (13)
+    */
+    // Possible masses
+    float muonMass = 0.10566;
+    float pionMass = 0.13957;
+
+    // First determine which of the two tracks is the longest.
+    int longTrackInd = -1, shortTrackInd = -1;
+    if (fProngLength[0]>=fProngLength[1])
+      {
+        longTrackInd = 0;
+        shortTrackInd = 1;
+      }
+    else
+      {
+        longTrackInd = 1;
+        shortTrackInd = 0;
+      }
+
+    // Assign pdg code and masses based on hypothesis
+    fProngPdgCode_h1 = {-1,-1};
+    fProngPdgCode_h2 = {-1,-1};
+    fProngMass_h1 = {-1.,-1.};
+    fProngMass_h2 = {-1.,-1.};
+    fProngPdgCode_h1[longTrackInd] = 13;
+    fProngPdgCode_h1[shortTrackInd] = 211;
+    fProngPdgCode_h2[longTrackInd] = 211;
+    fProngPdgCode_h2[shortTrackInd] = 13;
+    fProngMass_h1[longTrackInd] = muonMass;
+    fProngMass_h1[shortTrackInd] = pionMass;
+    fProngMass_h2[longTrackInd] = pionMass;
+    fProngMass_h2[shortTrackInd] = muonMass;
+  } // END function SetHypothesisLabels
+
+
+  // Internal setters
+  void DecayVertex::SetMomentumQuantities_ByRange()
+  {
+    /* Use internal attributes (like prong lengths and position) for the decay vertex to determine prong momenta and quantities determined from them (total momentum, energy, invariant mass, etc.).
+    Momenta in this case are determined by range. Two hypothesis are assumed.
+    h1: Longest track is muon (13), shortest is pion (211)
+    h2: Longest track is pion (211), shortest is muon (13)
+
+    The algorithms starts by calculating muon mass for both, then it assumes one of them is pion and scales momentum by mass ratio (m_pi/m_mu). It does that for shortest track in h1 and for longest track in h2.
+    */
+
+    // Assign momentum using TrackMomentumCalculator for the two hypotheses
+    trkf::TrackMomentumCalculator tmc;
+    // First assume both are muons, for both hypotheses (13 and 2212 are the only arguments accepted by GetTrackMomentum method)
+    fProngMomMag_ByRange_h1 = {(float) tmc.GetTrackMomentum(fProngLength[0],13), (float) tmc.GetTrackMomentum(fProngLength[1],13)};
+    fProngMomMag_ByRange_h2 = {(float) tmc.GetTrackMomentum(fProngLength[0],13), (float) tmc.GetTrackMomentum(fProngLength[1],13)};
+    // Then scale the pion candidate momentum by mass ratio.
+    float e1, e2, muonMass = 0.10566;
+    for(int i=0; i<2; i++)
+    {
+      fProngMomMag_ByRange_h1[i] = fProngMomMag_ByRange_h1[i]*fProngMass_h1[i]/muonMass;
+      fProngMomMag_ByRange_h2[i] = fProngMomMag_ByRange_h2[i]*fProngMass_h2[i]/muonMass;
+    }
+
+    // Prong momentum components
+    fProngMom_ByRange_h1_X = {(float) fProngDirX[0]*fProngMomMag_ByRange_h1[0], (float) fProngDirX[1]*fProngMomMag_ByRange_h1[1]};
+    fProngMom_ByRange_h1_Y = {(float) fProngDirY[0]*fProngMomMag_ByRange_h1[0], (float) fProngDirY[1]*fProngMomMag_ByRange_h1[1]};
+    fProngMom_ByRange_h1_Z = {(float) fProngDirZ[0]*fProngMomMag_ByRange_h1[0], (float) fProngDirZ[1]*fProngMomMag_ByRange_h1[1]};
+    fProngMom_ByRange_h2_X = {(float) fProngDirX[0]*fProngMomMag_ByRange_h2[0], (float) fProngDirX[1]*fProngMomMag_ByRange_h2[1]};
+    fProngMom_ByRange_h2_Y = {(float) fProngDirY[0]*fProngMomMag_ByRange_h2[0], (float) fProngDirY[1]*fProngMomMag_ByRange_h2[1]};
+    fProngMom_ByRange_h2_Z = {(float) fProngDirZ[0]*fProngMomMag_ByRange_h2[0], (float) fProngDirZ[1]*fProngMomMag_ByRange_h2[1]};
+
+    // Prong energy
+    e1 = sqrt(pow(fProngMass_h1[0],2.) + pow(fProngMomMag_ByRange_h1[0],2.));
+    e2 = sqrt(pow(fProngMass_h1[1],2.) + pow(fProngMomMag_ByRange_h1[1],2.));
+    fProngEnergy_ByRange_h1 = {e1, e2};
+    e1 = sqrt(pow(fProngMass_h2[0],2.) + pow(fProngMomMag_ByRange_h2[0],2.));
+    e2 = sqrt(pow(fProngMass_h2[1],2.) + pow(fProngMomMag_ByRange_h2[1],2.));
+    fProngEnergy_ByRange_h2 = {e1, e2};
+    /**/
+    // Calculate kinematic quantities for parent neutrino
+    // Total momentum components
+    fTotMom_ByRange_h1_X = fProngMom_ByRange_h1_X[0] + fProngMom_ByRange_h1_X[1];
+    fTotMom_ByRange_h1_Y = fProngMom_ByRange_h1_Y[0] + fProngMom_ByRange_h1_Y[1];
+    fTotMom_ByRange_h1_Z = fProngMom_ByRange_h1_Z[0] + fProngMom_ByRange_h1_Z[1];
+    fTotMom_ByRange_h2_X = fProngMom_ByRange_h2_X[0] + fProngMom_ByRange_h2_X[1];
+    fTotMom_ByRange_h2_Y = fProngMom_ByRange_h2_Y[0] + fProngMom_ByRange_h2_Y[1];
+    fTotMom_ByRange_h2_Z = fProngMom_ByRange_h2_Z[0] + fProngMom_ByRange_h2_Z[1];
+    // Total momentum magnitude
+    fTotMomMag_ByRange_h1 = sqrt(pow(fTotMom_ByRange_h1_X,2.) + pow(fTotMom_ByRange_h1_Y,2.) + pow(fTotMom_ByRange_h1_Z,2.));
+    fTotMomMag_ByRange_h2 = sqrt(pow(fTotMom_ByRange_h2_X,2.) + pow(fTotMom_ByRange_h2_Y,2.) + pow(fTotMom_ByRange_h2_Z,2.));
+    // Total direction components
+    fTotDir_ByRange_h1_X = fTotMom_ByRange_h1_X/fTotMomMag_ByRange_h1;
+    fTotDir_ByRange_h1_Y = fTotMom_ByRange_h1_Y/fTotMomMag_ByRange_h1;
+    fTotDir_ByRange_h1_Z = fTotMom_ByRange_h1_Z/fTotMomMag_ByRange_h1;
+    fTotDir_ByRange_h2_X = fTotMom_ByRange_h2_X/fTotMomMag_ByRange_h2;
+    fTotDir_ByRange_h2_Y = fTotMom_ByRange_h2_Y/fTotMomMag_ByRange_h2;
+    fTotDir_ByRange_h2_Z = fTotMom_ByRange_h2_Z/fTotMomMag_ByRange_h2;
+    // Total direction angles
+    fTotTheta_ByRange_h1 = acos(fTotDir_ByRange_h1_Z);
+    fTotPhi_ByRange_h1 = atan2(fTotDir_ByRange_h1_Y,fTotDir_ByRange_h1_X);
+    fTotTheta_ByRange_h2 = acos(fTotDir_ByRange_h2_Z);
+    fTotPhi_ByRange_h2 = atan2(fTotDir_ByRange_h2_Y,fTotDir_ByRange_h2_X);
+    // Total energy
+    fTotEnergy_ByRange_h1 = fProngEnergy_ByRange_h1[0] + fProngEnergy_ByRange_h1[1];
+    fTotEnergy_ByRange_h2 = fProngEnergy_ByRange_h2[0] + fProngEnergy_ByRange_h2[1];
+    // Invariant mass
+    fInvMass_ByRange_h1 = sqrt(pow(fTotEnergy_ByRange_h1,2.) - pow(fTotMomMag_ByRange_h1,2.));
+    fInvMass_ByRange_h2 = sqrt(pow(fTotEnergy_ByRange_h2,2.) - pow(fTotMomMag_ByRange_h2,2.));
+
+    // Calculate opening angle
+    std::vector<double> startDirection1 = {
+      fProngTrack[0]->StartDirection().X(),
+      fProngTrack[0]->StartDirection().Y(),
+      fProngTrack[0]->StartDirection().Z()
+    };
+    std::vector<double> startDirection2 = {
+      fProngTrack[1]->StartDirection().X(),
+      fProngTrack[1]->StartDirection().Y(),
+      fProngTrack[1]->StartDirection().Z()
+    };
+    float magnitude1 = sqrt(startDirection1[0]*startDirection1[0] + startDirection1[1]*startDirection1[1] + startDirection1[2]*startDirection1[2]);
+    float magnitude2 = sqrt(startDirection2[0]*startDirection2[0] + startDirection2[1]*startDirection2[1] + startDirection2[2]*startDirection2[2]);
+    float dotProduct = startDirection1[0]*startDirection2[0] + startDirection1[1]*startDirection2[1] + startDirection1[2]*startDirection2[2];
+    fOpeningAngle = acos(dotProduct / (magnitude1*magnitude2));
+    // Calculate start point to neutrino vertex distance
+    float prong1_distance = sqrt(pow(fX - fProngX[0],2.) + pow(fY - fProngY[0],2.) + pow(fZ - fProngZ[0],2.));
+    float prong2_distance = sqrt(pow(fX - fProngX[1],2.) + pow(fY - fProngY[1],2.) + pow(fZ - fProngZ[1],2.));
+    fProngStartToNeutrinoDistance = {prong1_distance,prong2_distance};
+    return;
+  } // END function SetMomentumQuatities_ByRange
+
+
+  void DecayVertex::SetMomentumQuantities_ByMCS()
+  {
+    /* Use internal attributes (like prong lengths and position) for the decay vertex to determine prong momenta and quantities determined from them (total momentum, energy, invariant mass, etc.).
+    Momenta in this case are determined by Multiple Coulomb Scattering. Two hypothesis are assumed.
+    fwd: Forward fit is used for momentum
+    best: Best fit between forward and backward is used for particle momentum
+
+    The algorithms starts by calculating muon mass for both, then it assumes one of them is pion and scales momentum by mass ratio (m_pi/m_mu). It does that for shortest track in h1 and for longest track in h2.
+    */
+
+    float e1, e2;//, muonMass = 0.10566;
+    fProngPdgCodeHypothesis_ByMcs = {fProngMcs[0]->particleIdHyp(),fProngMcs[1]->particleIdHyp()};
+    fProngIsBestFwd_ByMcs = {fProngMcs[0]->isBestFwd(),fProngMcs[1]->isBestFwd()};
+    // Prong momentum magnitude
+    fProngMomMag_ByMcs_fwd_h1 = {(float) fProngMcs[0]->fwdMomentum(), (float) fProngMcs[1]->fwdMomentum()};
+    fProngMomMag_ByMcs_best_h1 = {(float) fProngMcs[0]->bestMomentum(), (float) fProngMcs[1]->bestMomentum()};
+    fProngMomMag_ByMcs_fwd_h2 = {(float) fProngMcs[0]->fwdMomentum(), (float) fProngMcs[1]->fwdMomentum()};
+    fProngMomMag_ByMcs_best_h2 = {(float) fProngMcs[0]->bestMomentum(), (float) fProngMcs[1]->bestMomentum()};
+    // Prong momentum components
+    fProngMom_ByMcs_fwd_h1_X = {fProngDirX[0]*fProngMomMag_ByMcs_fwd_h1[0],fProngDirX[1]*fProngMomMag_ByMcs_fwd_h1[1]};
+    fProngMom_ByMcs_fwd_h1_Y = {fProngDirY[0]*fProngMomMag_ByMcs_fwd_h1[0],fProngDirY[1]*fProngMomMag_ByMcs_fwd_h1[1]};
+    fProngMom_ByMcs_fwd_h1_Z = {fProngDirZ[0]*fProngMomMag_ByMcs_fwd_h1[0],fProngDirZ[1]*fProngMomMag_ByMcs_fwd_h1[1]};
+    /**/
+    fProngMom_ByMcs_best_h1_X = {fProngDirX[0]*fProngMomMag_ByMcs_best_h1[0],fProngDirX[1]*fProngMomMag_ByMcs_best_h1[1]};
+    fProngMom_ByMcs_best_h1_Y = {fProngDirY[0]*fProngMomMag_ByMcs_best_h1[0],fProngDirY[1]*fProngMomMag_ByMcs_best_h1[1]};
+    fProngMom_ByMcs_best_h1_Z = {fProngDirZ[0]*fProngMomMag_ByMcs_best_h1[0],fProngDirZ[1]*fProngMomMag_ByMcs_best_h1[1]};
+    /**/
+    fProngMom_ByMcs_fwd_h2_X = {fProngDirX[0]*fProngMomMag_ByMcs_fwd_h2[0],fProngDirX[1]*fProngMomMag_ByMcs_fwd_h2[1]};
+    fProngMom_ByMcs_fwd_h2_Y = {fProngDirY[0]*fProngMomMag_ByMcs_fwd_h2[0],fProngDirY[1]*fProngMomMag_ByMcs_fwd_h2[1]};
+    fProngMom_ByMcs_fwd_h2_Z = {fProngDirZ[0]*fProngMomMag_ByMcs_fwd_h2[0],fProngDirZ[1]*fProngMomMag_ByMcs_fwd_h2[1]};
+    /**/
+    fProngMom_ByMcs_best_h2_X = {fProngDirX[0]*fProngMomMag_ByMcs_best_h2[0],fProngDirX[1]*fProngMomMag_ByMcs_best_h2[1]};
+    fProngMom_ByMcs_best_h2_Y = {fProngDirY[0]*fProngMomMag_ByMcs_best_h2[0],fProngDirY[1]*fProngMomMag_ByMcs_best_h2[1]};
+    fProngMom_ByMcs_best_h2_Z = {fProngDirZ[0]*fProngMomMag_ByMcs_best_h2[0],fProngDirZ[1]*fProngMomMag_ByMcs_best_h2[1]};
+    /**/
+    // Prong energy
+    e1 = sqrt(pow(fProngMass_h1[0],2.) + pow(fProngMomMag_ByMcs_fwd_h1[0],2.));
+    e2 = sqrt(pow(fProngMass_h1[1],2.) + pow(fProngMomMag_ByMcs_fwd_h1[1],2.));
+    fProngEnergy_ByMcs_fwd_h1 = {e1, e2};
+    e1 = sqrt(pow(fProngMass_h1[0],2.) + pow(fProngMomMag_ByMcs_best_h1[0],2.));
+    e2 = sqrt(pow(fProngMass_h1[1],2.) + pow(fProngMomMag_ByMcs_best_h1[1],2.));
+    fProngEnergy_ByMcs_best_h1 = {e1, e2};
+    e1 = sqrt(pow(fProngMass_h2[0],2.) + pow(fProngMomMag_ByMcs_fwd_h2[0],2.));
+    e2 = sqrt(pow(fProngMass_h2[1],2.) + pow(fProngMomMag_ByMcs_fwd_h2[1],2.));
+    fProngEnergy_ByMcs_fwd_h2 = {e1, e2};
+    e1 = sqrt(pow(fProngMass_h2[0],2.) + pow(fProngMomMag_ByMcs_best_h2[0],2.));
+    e2 = sqrt(pow(fProngMass_h2[1],2.) + pow(fProngMomMag_ByMcs_best_h2[1],2.));
+    fProngEnergy_ByMcs_best_h2 = {e1, e2};
+    /**/
+    // Calculate kinematic quantities for parent neutrino
+    // Total momentum components
+    fTotMom_ByMcs_fwd_h1_X = fProngMom_ByMcs_fwd_h1_X[0] + fProngMom_ByMcs_fwd_h1_X[1];
+    fTotMom_ByMcs_fwd_h1_Y = fProngMom_ByMcs_fwd_h1_Y[0] + fProngMom_ByMcs_fwd_h1_Y[1];
+    fTotMom_ByMcs_fwd_h1_Z = fProngMom_ByMcs_fwd_h1_Z[0] + fProngMom_ByMcs_fwd_h1_Z[1];
+    /**/
+    fTotMom_ByMcs_best_h1_X = fProngMom_ByMcs_best_h1_X[0] + fProngMom_ByMcs_best_h1_X[1];
+    fTotMom_ByMcs_best_h1_Y = fProngMom_ByMcs_best_h1_Y[0] + fProngMom_ByMcs_best_h1_Y[1];
+    fTotMom_ByMcs_best_h1_Z = fProngMom_ByMcs_best_h1_Z[0] + fProngMom_ByMcs_best_h1_Z[1];
+    /**/
+    fTotMom_ByMcs_fwd_h2_X = fProngMom_ByMcs_fwd_h2_X[0] + fProngMom_ByMcs_fwd_h2_X[1];
+    fTotMom_ByMcs_fwd_h2_Y = fProngMom_ByMcs_fwd_h2_Y[0] + fProngMom_ByMcs_fwd_h2_Y[1];
+    fTotMom_ByMcs_fwd_h2_Z = fProngMom_ByMcs_fwd_h2_Z[0] + fProngMom_ByMcs_fwd_h2_Z[1];
+    /**/
+    fTotMom_ByMcs_best_h2_X = fProngMom_ByMcs_best_h2_X[0] + fProngMom_ByMcs_best_h2_X[1];
+    fTotMom_ByMcs_best_h2_Y = fProngMom_ByMcs_best_h2_Y[0] + fProngMom_ByMcs_best_h2_Y[1];
+    fTotMom_ByMcs_best_h2_Z = fProngMom_ByMcs_best_h2_Z[0] + fProngMom_ByMcs_best_h2_Z[1];
+    // Total momentum magnitude
+    fTotMomMag_ByMcs_fwd_h1 = sqrt(pow(fTotMom_ByMcs_fwd_h1_X,2.) + pow(fTotMom_ByMcs_fwd_h1_Y,2.) + pow(fTotMom_ByMcs_fwd_h1_Z,2.));
+    fTotMomMag_ByMcs_best_h1 = sqrt(pow(fTotMom_ByMcs_best_h1_X,2.) + pow(fTotMom_ByMcs_best_h1_Y,2.) + pow(fTotMom_ByMcs_best_h1_Z,2.));
+    fTotMomMag_ByMcs_fwd_h2 = sqrt(pow(fTotMom_ByMcs_fwd_h2_X,2.) + pow(fTotMom_ByMcs_fwd_h2_Y,2.) + pow(fTotMom_ByMcs_fwd_h2_Z,2.));
+    fTotMomMag_ByMcs_best_h2 = sqrt(pow(fTotMom_ByMcs_best_h2_X,2.) + pow(fTotMom_ByMcs_best_h2_Y,2.) + pow(fTotMom_ByMcs_best_h2_Z,2.));
+    // Total direction components
+    fTotDir_ByMcs_fwd_h1_X = fTotMom_ByMcs_fwd_h1_X/fTotMomMag_ByMcs_fwd_h1;
+    fTotDir_ByMcs_fwd_h1_Y = fTotMom_ByMcs_fwd_h1_Y/fTotMomMag_ByMcs_fwd_h1;
+    fTotDir_ByMcs_fwd_h1_Z = fTotMom_ByMcs_fwd_h1_Z/fTotMomMag_ByMcs_fwd_h1;
+    /**/
+    fTotDir_ByMcs_best_h1_X = fTotMom_ByMcs_best_h1_X/fTotMomMag_ByMcs_best_h1;
+    fTotDir_ByMcs_best_h1_Y = fTotMom_ByMcs_best_h1_Y/fTotMomMag_ByMcs_best_h1;
+    fTotDir_ByMcs_best_h1_Z = fTotMom_ByMcs_best_h1_Z/fTotMomMag_ByMcs_best_h1;
+    /**/
+    fTotDir_ByMcs_fwd_h2_X = fTotMom_ByMcs_fwd_h2_X/fTotMomMag_ByMcs_fwd_h2;
+    fTotDir_ByMcs_fwd_h2_Y = fTotMom_ByMcs_fwd_h2_Y/fTotMomMag_ByMcs_fwd_h2;
+    fTotDir_ByMcs_fwd_h2_Z = fTotMom_ByMcs_fwd_h2_Z/fTotMomMag_ByMcs_fwd_h2;
+    /**/
+    fTotDir_ByMcs_best_h2_X = fTotMom_ByMcs_best_h2_X/fTotMomMag_ByMcs_best_h2;
+    fTotDir_ByMcs_best_h2_Y = fTotMom_ByMcs_best_h2_Y/fTotMomMag_ByMcs_best_h2;
+    fTotDir_ByMcs_best_h2_Z = fTotMom_ByMcs_best_h2_Z/fTotMomMag_ByMcs_best_h2;
+    // Total direction angles
+    fTotTheta_ByMcs_fwd_h1 = acos(fTotDir_ByMcs_fwd_h1_Z);
+    fTotPhi_ByMcs_fwd_h1 = atan2(fTotDir_ByMcs_fwd_h1_Y,fTotDir_ByMcs_fwd_h1_X);
+    /**/
+    fTotTheta_ByMcs_best_h1 = acos(fTotDir_ByMcs_best_h1_Z);
+    fTotPhi_ByMcs_best_h1 = atan2(fTotDir_ByMcs_best_h1_Y,fTotDir_ByMcs_best_h1_X);
+    /**/
+    fTotTheta_ByMcs_fwd_h2 = acos(fTotDir_ByMcs_fwd_h2_Z);
+    fTotPhi_ByMcs_fwd_h2 = atan2(fTotDir_ByMcs_fwd_h2_Y,fTotDir_ByMcs_fwd_h2_X);
+    /**/
+    fTotTheta_ByMcs_best_h2 = acos(fTotDir_ByMcs_best_h2_Z);
+    fTotPhi_ByMcs_best_h2 = atan2(fTotDir_ByMcs_best_h2_Y,fTotDir_ByMcs_best_h2_X);
+    // Total energy
+    fTotEnergy_ByMcs_fwd_h1 = fProngEnergy_ByMcs_fwd_h1[0] + fProngEnergy_ByMcs_fwd_h1[1];
+    fTotEnergy_ByMcs_best_h1 = fProngEnergy_ByMcs_best_h1[0] + fProngEnergy_ByMcs_best_h1[1];
+    fTotEnergy_ByMcs_fwd_h2 = fProngEnergy_ByMcs_fwd_h2[0] + fProngEnergy_ByMcs_fwd_h2[1];
+    fTotEnergy_ByMcs_best_h2 = fProngEnergy_ByMcs_best_h2[0] + fProngEnergy_ByMcs_best_h2[1];
+    // Invariant mass
+    fInvMass_ByMcs_fwd_h1 = sqrt(pow(fTotEnergy_ByMcs_fwd_h1,2.) - pow(fTotMomMag_ByMcs_fwd_h1,2.));
+    fInvMass_ByMcs_best_h1 = sqrt(pow(fTotEnergy_ByMcs_best_h1,2.) - pow(fTotMomMag_ByMcs_best_h1,2.));
+    fInvMass_ByMcs_fwd_h2 = sqrt(pow(fTotEnergy_ByMcs_fwd_h2,2.) - pow(fTotMomMag_ByMcs_fwd_h2,2.));
+    fInvMass_ByMcs_best_h2 = sqrt(pow(fTotEnergy_ByMcs_best_h2,2.) - pow(fTotMomMag_ByMcs_best_h2,2.));
+
+    // Calculate opening angle
+    std::vector<double> startDirection1 = {
+      fProngTrack[0]->StartDirection().X(),
+      fProngTrack[0]->StartDirection().Y(),
+      fProngTrack[0]->StartDirection().Z()
+    };
+    std::vector<double> startDirection2 = {
+      fProngTrack[1]->StartDirection().X(),
+      fProngTrack[1]->StartDirection().Y(),
+      fProngTrack[1]->StartDirection().Z()
+    };
+    float magnitude1 = sqrt(startDirection1[0]*startDirection1[0] + startDirection1[1]*startDirection1[1] + startDirection1[2]*startDirection1[2]);
+    float magnitude2 = sqrt(startDirection2[0]*startDirection2[0] + startDirection2[1]*startDirection2[1] + startDirection2[2]*startDirection2[2]);
+    float dotProduct = startDirection1[0]*startDirection2[0] + startDirection1[1]*startDirection2[1] + startDirection1[2]*startDirection2[2];
+    fOpeningAngle = acos(dotProduct / (magnitude1*magnitude2));
+    // Calculate start point to neutrino vertex distance
+    float prong1_distance = sqrt(pow(fX - fProngX[0],2.) + pow(fY - fProngY[0],2.) + pow(fZ - fProngZ[0],2.));
+    float prong2_distance = sqrt(pow(fX - fProngX[1],2.) + pow(fY - fProngY[1],2.) + pow(fZ - fProngZ[1],2.));
+    fProngStartToNeutrinoDistance = {prong1_distance,prong2_distance};
+
+
+
+    /**/
+    return;
+  } // END function SetMomentumQuantities_ByMCS
+
+
+
+
   // Printers
-  void DecayVertex::PrintInformation() const{
+  void DecayVertex::PrintInformation() const
+  {
     int fStartWire[3] = {0,2399,4798};
     printf("\n-|Vertex information|\n");
     printf("|_Vertex inside TPC: %d\n", fIsInsideTPC);
@@ -283,4 +461,5 @@ namespace AuxVertex
     }
     return;
   }
+
 } // END namespace AuxVertex

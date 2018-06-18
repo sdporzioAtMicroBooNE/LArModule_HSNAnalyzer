@@ -130,15 +130,15 @@ namespace AuxEvent
       }
 
       // Get coordinates
-      dv_xyzCoordinates.push_back({currentVertex.GetX(),currentVertex.GetY(),currentVertex.GetZ()});
-      dv_wireCoordinates.push_back({currentVertex.GetChannelLoc(0),currentVertex.GetChannelLoc(1),currentVertex.GetChannelLoc(2)});
-      dv_tickCoordinates.push_back({currentVertex.GetTickLoc(0),currentVertex.GetTickLoc(1),currentVertex.GetTickLoc(2)});
-      prong1_xyzCoordinates.push_back({currentVertex.GetProngX(0),currentVertex.GetProngY(0),currentVertex.GetProngZ(0)});
-      prong1_wireCoordinates.push_back({currentVertex.GetProngChannelLoc(0,0),currentVertex.GetProngChannelLoc(0,1),currentVertex.GetProngChannelLoc(0,2)});
-      prong1_tickCoordinates.push_back({currentVertex.GetProngTickLoc(0,0),currentVertex.GetProngTickLoc(0,1),currentVertex.GetProngTickLoc(0,2)});
-      prong2_xyzCoordinates.push_back({currentVertex.GetProngX(1),currentVertex.GetProngY(1),currentVertex.GetProngZ(1)});
-      prong2_wireCoordinates.push_back({currentVertex.GetProngChannelLoc(1,0),currentVertex.GetProngChannelLoc(1,1),currentVertex.GetProngChannelLoc(1,2)});
-      prong2_tickCoordinates.push_back({currentVertex.GetProngTickLoc(1,0),currentVertex.GetProngTickLoc(1,1),currentVertex.GetProngTickLoc(1,2)});
+      dv_xyzCoordinates.push_back({currentVertex.fX,currentVertex.fY,currentVertex.fZ});
+      dv_wireCoordinates.push_back({currentVertex.fChannelLoc[0],currentVertex.fChannelLoc[1],currentVertex.fChannelLoc[2]});
+      dv_tickCoordinates.push_back({currentVertex.fTickLoc[0],currentVertex.fTickLoc[1],currentVertex.fTickLoc[2]});
+      prong1_xyzCoordinates.push_back({currentVertex.fProngX[0],currentVertex.fProngY[0],currentVertex.fProngZ[0]});
+      prong1_wireCoordinates.push_back({currentVertex.fProngChannelLoc[0][0],currentVertex.fProngChannelLoc[0][1],currentVertex.fProngChannelLoc[0][2]});
+      prong1_tickCoordinates.push_back({currentVertex.fProngTickLoc[0][0],currentVertex.fProngTickLoc[0][1],currentVertex.fProngTickLoc[0][2]});
+      prong2_xyzCoordinates.push_back({currentVertex.fProngX[1],currentVertex.fProngY[1],currentVertex.fProngZ[1]});
+      prong2_wireCoordinates.push_back({currentVertex.fProngChannelLoc[1][0],currentVertex.fProngChannelLoc[1][1],currentVertex.fProngChannelLoc[1][2]});
+      prong2_tickCoordinates.push_back({currentVertex.fProngTickLoc[1][0],currentVertex.fProngTickLoc[1][1],currentVertex.fProngTickLoc[1][2]});
 
       prong1_hits_p0_wireCoordinates.push_back(thisProng1_hits_p0_wireCoordinates);
       prong1_hits_p1_wireCoordinates.push_back(thisProng1_hits_p1_wireCoordinates);

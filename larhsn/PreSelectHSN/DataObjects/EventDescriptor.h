@@ -76,15 +76,57 @@ namespace AuxEvent
     // Direction
     std::vector<std::vector<float>> phys_prongDirX, phys_prongDirY, phys_prongDirZ;
     std::vector<std::vector<float>> phys_prongTheta, phys_prongPhi;
+    // Hypothesis information
+    std::vector<std::vector<int>> phys_prongPdgCode_h1, phys_prongPdgCode_h2;
+    std::vector<std::vector<float>> phys_prongMass_h1, phys_prongMass_h2;
     // Prong momentum (by range, assuming both muons)
-    std::vector<std::vector<float>> phys_prongMomMag_ByRange_AssMuon, phys_prongEnergy_ByRange_AssMuon;
-    std::vector<std::vector<float>> phys_prongMom_ByRange_AssMuonX, phys_prongMom_ByRange_AssMuonY, phys_prongMom_ByRange_AssMuonZ;
+    std::vector<std::vector<float>> phys_prongMomMag_ByRange_h1, phys_prongEnergy_ByRange_h1;
+    std::vector<std::vector<float>> phys_prongMom_ByRange_h1_X, phys_prongMom_ByRange_h1_Y, phys_prongMom_ByRange_h1_Z;
+    std::vector<std::vector<float>> phys_prongMomMag_ByRange_h2, phys_prongEnergy_ByRange_h2;
+    std::vector<std::vector<float>> phys_prongMom_ByRange_h2_X, phys_prongMom_ByRange_h2_Y, phys_prongMom_ByRange_h2_Z;
     // Tot momentum (by range, assuming both muons)
-    std::vector<float> phys_totMomMag_ByRange_AssMuon, phys_totEnergy_ByRange_AssMuon,phys_invariantMass_ByRange_AssMuon;
-    std::vector<float> phys_totMom_ByRange_AssMuonX, phys_totMom_ByRange_AssMuonY,phys_totMom_ByRange_AssMuonZ;
+    std::vector<float> phys_totMomMag_ByRange_h1, phys_totEnergy_ByRange_h1, phys_invariantMass_ByRange_h1;
+    std::vector<float> phys_totMom_ByRange_h1_X, phys_totMom_ByRange_h1_Y, phys_totMom_ByRange_h1_Z;
+    std::vector<float> phys_totMomMag_ByRange_h2, phys_totEnergy_ByRange_h2, phys_invariantMass_ByRange_h2;
+    std::vector<float> phys_totMom_ByRange_h2_X, phys_totMom_ByRange_h2_Y, phys_totMom_ByRange_h2_Z;
     // Tot momentum direction (by range, assuming both muons)
-    std::vector<float> phys_totDir_ByRange_AssMuonX, phys_totDir_ByRange_AssMuonY, phys_totDir_ByRange_AssMuonZ;
-    std::vector<float> phys_totTheta_ByRange_AssMuon, phys_totPhi_ByRange_AssMuon;
+    std::vector<float> phys_totTheta_ByRange_h1, phys_totPhi_ByRange_h1;
+    std::vector<float> phys_totDir_ByRange_h1_X, phys_totDir_ByRange_h1_Y, phys_totDir_ByRange_h1_Z;
+    std::vector<float> phys_totTheta_ByRange_h2, phys_totPhi_ByRange_h2;
+    std::vector<float> phys_totDir_ByRange_h2_X, phys_totDir_ByRange_h2_Y, phys_totDir_ByRange_h2_Z;
+    // MCS variables
+    std::vector<std::vector<int>> phys_prongPdgCodeHypothesis_ByMcs;
+    std::vector<std::vector<bool>> phys_prongIsBestFwd_ByMcs;
+    // Prong Momentum (By Mcs, forward)
+    std::vector<std::vector<float>> phys_prongMomMag_ByMcs_fwd_h1, phys_prongEnergy_ByMcs_fwd_h1;
+    std::vector<std::vector<float>> phys_prongMom_ByMcs_fwd_h1_X, phys_prongMom_ByMcs_fwd_h1_Y, phys_prongMom_ByMcs_fwd_h1_Z;
+    std::vector<std::vector<float>> phys_prongMomMag_ByMcs_fwd_h2, phys_prongEnergy_ByMcs_fwd_h2;
+    std::vector<std::vector<float>> phys_prongMom_ByMcs_fwd_h2_X, phys_prongMom_ByMcs_fwd_h2_Y, phys_prongMom_ByMcs_fwd_h2_Z;
+    // Tot momentum (by range, assuming both muons, forward)
+    std::vector<float> phys_totMomMag_ByMcs_fwd_h1, phys_totEnergy_ByMcs_fwd_h1, phys_invariantMass_ByMcs_fwd_h1;
+    std::vector<float> phys_totMom_ByMcs_fwd_h1_X, phys_totMom_ByMcs_fwd_h1_Y, phys_totMom_ByMcs_fwd_h1_Z;
+    std::vector<float> phys_totMomMag_ByMcs_fwd_h2, phys_totEnergy_ByMcs_fwd_h2, phys_invariantMass_ByMcs_fwd_h2;
+    std::vector<float> phys_totMom_ByMcs_fwd_h2_X, phys_totMom_ByMcs_fwd_h2_Y, phys_totMom_ByMcs_fwd_h2_Z;
+    // Tot momentum direction (by range, assuming both muons, forward)
+    std::vector<float> phys_totTheta_ByMcs_fwd_h1, phys_totPhi_ByMcs_fwd_h1;
+    std::vector<float> phys_totDir_ByMcs_fwd_h1_X, phys_totDir_ByMcs_fwd_h1_Y, phys_totDir_ByMcs_fwd_h1_Z;
+    std::vector<float> phys_totTheta_ByMcs_fwd_h2, phys_totPhi_ByMcs_fwd_h2;
+    std::vector<float> phys_totDir_ByMcs_fwd_h2_X, phys_totDir_ByMcs_fwd_h2_Y, phys_totDir_ByMcs_fwd_h2_Z;
+    // Prong Momentum (By Mcs, best)
+    std::vector<std::vector<float>> phys_prongMomMag_ByMcs_best_h1, phys_prongEnergy_ByMcs_best_h1;
+    std::vector<std::vector<float>> phys_prongMom_ByMcs_best_h1_X, phys_prongMom_ByMcs_best_h1_Y, phys_prongMom_ByMcs_best_h1_Z;
+    std::vector<std::vector<float>> phys_prongMomMag_ByMcs_best_h2, phys_prongEnergy_ByMcs_best_h2;
+    std::vector<std::vector<float>> phys_prongMom_ByMcs_best_h2_X, phys_prongMom_ByMcs_best_h2_Y, phys_prongMom_ByMcs_best_h2_Z;
+    // Tot momentum (by range, assuming both muons, best)
+    std::vector<float> phys_totMomMag_ByMcs_best_h1, phys_totEnergy_ByMcs_best_h1, phys_invariantMass_ByMcs_best_h1;
+    std::vector<float> phys_totMom_ByMcs_best_h1_X, phys_totMom_ByMcs_best_h1_Y, phys_totMom_ByMcs_best_h1_Z;
+    std::vector<float> phys_totMomMag_ByMcs_best_h2, phys_totEnergy_ByMcs_best_h2, phys_invariantMass_ByMcs_best_h2;
+    std::vector<float> phys_totMom_ByMcs_best_h2_X, phys_totMom_ByMcs_best_h2_Y, phys_totMom_ByMcs_best_h2_Z;
+    // Tot momentum direction (by range, assuming both muons, best)
+    std::vector<float> phys_totTheta_ByMcs_best_h1, phys_totPhi_ByMcs_best_h1;
+    std::vector<float> phys_totDir_ByMcs_best_h1_X, phys_totDir_ByMcs_best_h1_Y, phys_totDir_ByMcs_best_h1_Z;
+    std::vector<float> phys_totTheta_ByMcs_best_h2, phys_totPhi_ByMcs_best_h2;
+    std::vector<float> phys_totDir_ByMcs_best_h2_X, phys_totDir_ByMcs_best_h2_Y, phys_totDir_ByMcs_best_h2_Z;
     // Others
     std::vector<std::vector<float>> phys_prongLength;
     std::vector<std::vector<float>> phys_prongStartToNeutrinoDistance;

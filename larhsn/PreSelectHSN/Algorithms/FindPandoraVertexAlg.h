@@ -51,7 +51,7 @@
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/TrackingTypes.h"
 #include "lardataobj/RawData/RawDigit.h"
-
+#include "lardataobj/RecoBase/MCSFitResult.h"
 #include "larcore/Geometry/geo.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcore/CoreUtils/ServiceUtil.h"
@@ -86,6 +86,7 @@ namespace FindPandoraVertex
   private:
     // fhicl parameters
     std::string fPfpLabel;
+    std::string fMcsLabel;
     std::vector<double> fMinTpcBound;
     std::vector<double> fMaxTpcBound;
     bool fVerbose;

@@ -30,6 +30,7 @@
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/TrackingTypes.h"
 #include "lardataobj/RawData/RawDigit.h"
+#include "lardataobj/RecoBase/MCSFitResult.h"
 #include "larcore/Geometry/geo.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
@@ -55,7 +56,9 @@ namespace AuxVertex
             const art::Ptr<recob::Track> &t1Track,
             const art::Ptr<recob::Track> &t2Track,
             const std::vector<art::Ptr<recob::Hit>> &t1Hits,
-            const std::vector<art::Ptr<recob::Hit>> &t2Hits);
+            const std::vector<art::Ptr<recob::Hit>> &t2Hits,
+            const art::Ptr<recob::MCSFitResult> &t1Mcs,
+            const art::Ptr<recob::MCSFitResult> &t2Mcs);
 
     // New Getters
     art::Ptr<recob::Vertex> GetNuVertex() const;
@@ -63,57 +66,6 @@ namespace AuxVertex
     art::Ptr<recob::Track> GetProngTrack(int prong) const;
     std::vector<art::Ptr<recob::Hit>> GetProngHits(int prong) const;
     std::vector<art::Ptr<recob::Hit>> GetTotHits() const;
-    // Coordinates
-    float GetX() const;
-    float GetY() const;
-    float GetZ() const;
-    float GetProngX(int par) const;
-    float GetProngY(int par) const;
-    float GetProngZ(int par) const;
-    float GetProngStartX(int par) const;
-    float GetProngStartY(int par) const;
-    float GetProngStartZ(int par) const;
-    float GetProngEndX(int par) const;
-    float GetProngEndY(int par) const;
-    float GetProngEndZ(int par) const;
-    // Wire-Tick coordinates
-    int GetChannelLoc(int plane) const;
-    float GetTickLoc(int plane) const;
-    int GetProngChannelLoc(int par,int plane) const;
-    float GetProngTickLoc(int par,int plane) const;
-    // Direction
-    float GetProngDirX(int prong) const;
-    float GetProngDirY(int prong) const;
-    float GetProngDirZ(int prong) const;
-    float GetProngTheta(int prong) const;
-    float GetProngPhi(int prong) const;
-    // Prong momentum (by range, assuming both muons)
-    float GetProngEnergy_ByRange_AssMuon(int prong) const;
-    float GetProngMomMag_ByRange_AssMuon(int prong) const;
-    float GetProngMom_ByRange_AssMuonX(int prong) const;
-    float GetProngMom_ByRange_AssMuonY(int prong) const;
-    float GetProngMom_ByRange_AssMuonZ(int prong) const;
-    // Tot momentum (by range, assuming both muons)
-    float GetTotEnergy_ByRange_AssMuon() const;
-    float GetInvMass_ByRange_AssMuon() const;
-    float GetTotMomMag_ByRange_AssMuon() const;
-    float GetTotMom_ByRange_AssMuonX() const;
-    float GetTotMom_ByRange_AssMuonY() const;
-    float GetTotMom_ByRange_AssMuonZ() const;
-    // Tot momentum direction (by range, assuming both muons)
-    float GetTotDir_ByRange_AssMuonX() const;
-    float GetTotDir_ByRange_AssMuonY() const;
-    float GetTotDir_ByRange_AssMuonZ() const;
-    float GetTotTheta_ByRange_AssMuon() const;
-    float GetTotPhi_ByRange_AssMuon() const;
-    // Others
-    float GetProngLength(int prong) const;
-    float GetOpeningAngle() const;
-    int GetProngNumHits(int prong) const;
-    float GetProngStartToNeutrinoDistance(int prong) const;
-    // Status
-    bool IsInsideTPC() const;
-    bool IsDetLocAssigned() const;
 
     // Setters
     void SetDetectorCoordinates(
@@ -129,54 +81,99 @@ namespace AuxVertex
     void SetIsInsideTPC(bool val);
     void SetIsDetLocAssigned(bool val);
     void SetTotHits(std::vector<art::Ptr<recob::Hit>> totHitsInMaxRadius);
+    void SetHypothesisLabels();
+    void SetMomentumQuantities_ByRange();
+    void SetMomentumQuantities_ByMCS();
+
 
     // Printers
     void PrintInformation() const;
 
-    private:
-      // Data products pointers
-      art::Ptr<recob::Vertex> fNuVertex;
-      std::vector<art::Ptr<recob::Vertex>> fProngVertex;
-      std::vector<art::Ptr<recob::Track>> fProngTrack;
-      std::vector<std::vector<art::Ptr<recob::Hit>>> fProngHits;
-      std::vector<art::Ptr<recob::Hit>> fTotHitsInMaxRadius;
+    // Data products pointers
+    art::Ptr<recob::Vertex> fNuVertex;
+    std::vector<art::Ptr<recob::Vertex>> fProngVertex;
+    std::vector<art::Ptr<recob::Track>> fProngTrack;
+    std::vector<art::Ptr<recob::MCSFitResult>> fProngMcs;
+    std::vector<std::vector<art::Ptr<recob::Hit>>> fProngHits;
+    std::vector<art::Ptr<recob::Hit>> fTotHitsInMaxRadius;
 
-      // Coordinates of the pandora neutrino recob::Vertex object
-      float fX, fY, fZ; // Spatial coordinates of the vertex inside the detector.
-      std::vector<int> fChannelLoc; // Nearest channel in each plane.
-      std::vector<float> fTickLoc; // Nearest time tick in each plane.
-      /**/
-      // Coordinates of the two prongs recob::Vertex objects
-      std::vector<float> fProngX, fProngY, fProngZ; // Spatial coordinates of the vertex of the track inside the detector.
-      std::vector<std::vector<int>> fProngChannelLoc; // Nearest channel in each plane for the vertex parent.
-      std::vector<std::vector<float>> fProngTickLoc; // Nearest time tick in each plane for the vertex parent.
-      /**/
-      // Coordinates of the two prongs start and end points for the recob::Track objects
-      std::vector<float> fProngStartX, fProngStartY, fProngStartZ; // Spatial coordinates for the start of the track.
-      std::vector<float> fProngEndX, fProngEndY, fProngEndZ; // Spatial coordinates for the end of the track.
+    // Coordinates of the pandora neutrino recob::Vertex object
+    float fX, fY, fZ; // Spatial coordinates of the vertex inside the detector.
+    std::vector<int> fChannelLoc; // Nearest channel in each plane.
+    std::vector<float> fTickLoc; // Nearest time tick in each plane.
+    /**/
+    // Coordinates of the two prongs recob::Vertex objects
+    std::vector<float> fProngX, fProngY, fProngZ; // Spatial coordinates of the vertex of the track inside the detector.
+    std::vector<std::vector<int>> fProngChannelLoc; // Nearest channel in each plane for the vertex parent.
+    std::vector<std::vector<float>> fProngTickLoc; // Nearest time tick in each plane for the vertex parent.
+    /**/
+    // Coordinates of the two prongs start and end points for the recob::Track objects
+    std::vector<float> fProngStartX, fProngStartY, fProngStartZ; // Spatial coordinates for the start of the track.
+    std::vector<float> fProngEndX, fProngEndY, fProngEndZ; // Spatial coordinates for the end of the track.
 
-      // Track direction (no calorimetry data)
-      std::vector<float> fProngDirX, fProngDirY, fProngDirZ; // Direction of momentum for each track.
-      std::vector<float> fProngTheta, fProngPhi; // Direction angles of each prong.
+    // Track direction (no calorimetry data)
+    std::vector<float> fProngDirX, fProngDirY, fProngDirZ; // Direction of momentum for each track.
+    std::vector<float> fProngTheta, fProngPhi; // Direction angles of each prong.
 
-      // Momentum information (measured by range and assuming both particles are muons)
-      std::vector<float> fProngMom_ByRange_AssMuonX, fProngMom_ByRange_AssMuonY, fProngMom_ByRange_AssMuonZ; // Components of momentum.
-      std::vector<float> fProngMomMag_ByRange_AssMuon, fProngEnergy_ByRange_AssMuon; // Momentum and energy of each prong.
-      /**/
-      float fTotMom_ByRange_AssMuonX, fTotMom_ByRange_AssMuonY, fTotMom_ByRange_AssMuonZ; // Momentum component for neutrino.
-      float fTotDir_ByRange_AssMuonX, fTotDir_ByRange_AssMuonY, fTotDir_ByRange_AssMuonZ; // Direction components of neutrino
-      float fTotTheta_ByRange_AssMuon, fTotPhi_ByRange_AssMuon; // Direction angles of neutrino
-      float fTotMomMag_ByRange_AssMuon, fTotEnergy_ByRange_AssMuon, fInvMass_ByRange_AssMuon; // Total momentum, total energy and invariant mass.
+    // Hypotheses for pdg code and masses
+    std::vector<int> fProngPdgCode_h1, fProngPdgCode_h2;
+    std::vector<float> fProngMass_h1, fProngMass_h2;
 
-      // Other variables
-      std::vector<float> fProngLength; // Length of each prong
-      float fOpeningAngle; // Opening angle between the two prongs
-      std::vector<float> fProngStartToNeutrinoDistance; // Distance from start point to neutrino vertex for each prong
-      std::vector<int> fProngNumHits; // Number of hits associated with each prong
+    // Momentum information (measured by range and using two different hypotheses for pdg)
+    std::vector<float> fProngMom_ByRange_h1_X, fProngMom_ByRange_h1_Y, fProngMom_ByRange_h1_Z; // Components of momentum.
+    std::vector<float> fProngMom_ByRange_h2_X, fProngMom_ByRange_h2_Y, fProngMom_ByRange_h2_Z; // Components of momentum.
+    std::vector<float> fProngMomMag_ByRange_h1, fProngEnergy_ByRange_h1; // Momentum and energy of each prong.
+    std::vector<float> fProngMomMag_ByRange_h2, fProngEnergy_ByRange_h2; // Momentum and energy of each prong.
+    /**/
+    float fTotMom_ByRange_h1_X, fTotMom_ByRange_h1_Y, fTotMom_ByRange_h1_Z; // Momentum component for neutrino.
+    float fTotMom_ByRange_h2_X, fTotMom_ByRange_h2_Y, fTotMom_ByRange_h2_Z; // Momentum component for neutrino.
+    float fTotDir_ByRange_h1_X, fTotDir_ByRange_h1_Y, fTotDir_ByRange_h1_Z; // Direction components of neutrino
+    float fTotDir_ByRange_h2_X, fTotDir_ByRange_h2_Y, fTotDir_ByRange_h2_Z; // Direction components of neutrino
+    float fTotTheta_ByRange_h1, fTotPhi_ByRange_h1; // Direction angles of neutrino
+    float fTotTheta_ByRange_h2, fTotPhi_ByRange_h2; // Direction angles of neutrino
+    float fTotMomMag_ByRange_h1, fTotEnergy_ByRange_h1, fInvMass_ByRange_h1; // Total momentum, total energy and invariant mass.
+    float fTotMomMag_ByRange_h2, fTotEnergy_ByRange_h2, fInvMass_ByRange_h2; // Total momentum, total energy and invariant mass.
 
-      // Status
-      bool fIsInsideTPC; // Whetehr the vertex is inside the TPC.
-      bool fIsDetLocAssigned; // Whether channel/tick coordinates have been determined.
+    // Momentum information (measured by MCS and using two different hypotheses for Pdg)
+    std::vector<int> fProngPdgCodeHypothesis_ByMcs;
+    std::vector<bool> fProngIsBestFwd_ByMcs;
+    std::vector<float> fProngMomMag_ByMcs_fwd_h1, fProngMomMag_ByMcs_best_h1; // Momentum of prongs
+    std::vector<float> fProngMomMag_ByMcs_fwd_h2, fProngMomMag_ByMcs_best_h2; // Momentum of prongs
+    std::vector<float> fProngMom_ByMcs_fwd_h1_X, fProngMom_ByMcs_fwd_h1_Y, fProngMom_ByMcs_fwd_h1_Z; // Components of momentum.
+    std::vector<float> fProngMom_ByMcs_best_h1_X, fProngMom_ByMcs_best_h1_Y, fProngMom_ByMcs_best_h1_Z; // Components of momentum.
+    std::vector<float> fProngMom_ByMcs_fwd_h2_X, fProngMom_ByMcs_fwd_h2_Y, fProngMom_ByMcs_fwd_h2_Z; // Components of momentum.
+    std::vector<float> fProngMom_ByMcs_best_h2_X, fProngMom_ByMcs_best_h2_Y, fProngMom_ByMcs_best_h2_Z; // Components of momentum.
+    /**/
+    std::vector<float> fProngEnergy_ByMcs_fwd_h1, fProngEnergy_ByMcs_best_h1; // Energy of each prong.
+    std::vector<float> fProngEnergy_ByMcs_fwd_h2, fProngEnergy_ByMcs_best_h2; // Energy of each prong.
+    /**/
+    float fTotMom_ByMcs_fwd_h1_X, fTotMom_ByMcs_fwd_h1_Y, fTotMom_ByMcs_fwd_h1_Z; // Momentum component for neutrino.
+    float fTotMom_ByMcs_best_h1_X, fTotMom_ByMcs_best_h1_Y, fTotMom_ByMcs_best_h1_Z; // Momentum component for neutrino.
+    float fTotDir_ByMcs_fwd_h1_X, fTotDir_ByMcs_fwd_h1_Y, fTotDir_ByMcs_fwd_h1_Z; // Direction components of neutrino
+    float fTotDir_ByMcs_best_h1_X, fTotDir_ByMcs_best_h1_Y, fTotDir_ByMcs_best_h1_Z; // Direction components of neutrino
+    float fTotTheta_ByMcs_fwd_h1, fTotPhi_ByMcs_fwd_h1; // Direction angles of neutrino
+    float fTotTheta_ByMcs_best_h1, fTotPhi_ByMcs_best_h1; // Direction angles of neutrino
+    float fTotMomMag_ByMcs_fwd_h1, fTotEnergy_ByMcs_fwd_h1, fInvMass_ByMcs_fwd_h1; // Total momentum, total energy and invariant mass.
+    float fTotMomMag_ByMcs_best_h1, fTotEnergy_ByMcs_best_h1, fInvMass_ByMcs_best_h1; // Total momentum, total energy and invariant mass.
+
+    float fTotMom_ByMcs_fwd_h2_X, fTotMom_ByMcs_fwd_h2_Y, fTotMom_ByMcs_fwd_h2_Z; // Momentum component for neutrino.
+    float fTotMom_ByMcs_best_h2_X, fTotMom_ByMcs_best_h2_Y, fTotMom_ByMcs_best_h2_Z; // Momentum component for neutrino.
+    float fTotDir_ByMcs_fwd_h2_X, fTotDir_ByMcs_fwd_h2_Y, fTotDir_ByMcs_fwd_h2_Z; // Direction components of neutrino
+    float fTotDir_ByMcs_best_h2_X, fTotDir_ByMcs_best_h2_Y, fTotDir_ByMcs_best_h2_Z; // Direction components of neutrino
+    float fTotTheta_ByMcs_fwd_h2, fTotPhi_ByMcs_fwd_h2; // Direction angles of neutrino
+    float fTotTheta_ByMcs_best_h2, fTotPhi_ByMcs_best_h2; // Direction angles of neutrino
+    float fTotMomMag_ByMcs_fwd_h2, fTotEnergy_ByMcs_fwd_h2, fInvMass_ByMcs_fwd_h2; // Total momentum, total energy and invariant mass.
+    float fTotMomMag_ByMcs_best_h2, fTotEnergy_ByMcs_best_h2, fInvMass_ByMcs_best_h2; // Total momentum, total energy and invariant mass.
+
+    // Other variables
+    std::vector<float> fProngLength; // Length of each prong
+    float fOpeningAngle; // Opening angle between the two prongs
+    std::vector<float> fProngStartToNeutrinoDistance; // Distance from start point to neutrino vertex for each prong
+    std::vector<int> fProngNumHits; // Number of hits associated with each prong
+
+    // Status
+    bool fIsInsideTPC; // Whetehr the vertex is inside the TPC.
+    bool fIsDetLocAssigned; // Whether channel/tick coordinates have been determined.
   };
   
 } //END namespace AuxVertex

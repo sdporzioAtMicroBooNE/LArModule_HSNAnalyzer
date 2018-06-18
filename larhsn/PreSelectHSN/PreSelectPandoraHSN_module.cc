@@ -14,6 +14,7 @@ PreSelectHSN::PreSelectHSN(fhicl::ParameterSet const & pset) :
     fMaxTpcBound(pset.get<std::vector<double>>("MaxTpcBound")),
     fPfpLabel(pset.get<std::string>("PfpLabel")),
     fHitLabel(pset.get<std::string>("HitLabel")),
+    fMcsLabel(pset.get<std::string>("McsLabel")),
     fRadiusProfileLimits(pset.get<std::vector<double>>("RadiusProfileLimits")),
     fRadiusProfileBins(pset.get<int>("RadiusProfileBins")),
     fChannelNorm(pset.get<double>("ChannelNorm")),
@@ -52,6 +53,7 @@ void PreSelectHSN::beginJob()
   metaTree->Branch("maxTpcBound",&fMaxTpcBound);
   metaTree->Branch("pfpLabel",&fPfpLabel);
   metaTree->Branch("hitLabel",&fHitLabel);
+  metaTree->Branch("mcsLabel",&fMcsLabel);
   metaTree->Branch("radiusProfileLimits",&fRadiusProfileLimits);
   metaTree->Branch("radiusProfileBins",&fRadiusProfileBins);
   metaTree->Branch("profileTicks",&profileTicks);
@@ -92,25 +94,87 @@ void PreSelectHSN::beginJob()
   pandoraTree->Branch("phys_prongDirectionZ",&evd.phys_prongDirZ);
   pandoraTree->Branch("phys_prongTheta",&evd.phys_prongTheta);
   pandoraTree->Branch("phys_prongPhi",&evd.phys_prongPhi);
-  // Prong momentum (by range, assuming both muons)
-  pandoraTree->Branch("phys_prongEnergy_ByRange_AssMuon",&evd.phys_prongEnergy_ByRange_AssMuon);
-  pandoraTree->Branch("phys_prongMomMag_ByRange_AssMuon",&evd.phys_prongMomMag_ByRange_AssMuon);
-  pandoraTree->Branch("phys_prongMom_ByRange_AssMuonX",&evd.phys_prongMom_ByRange_AssMuonX);
-  pandoraTree->Branch("phys_prongMom_ByRange_AssMuonY",&evd.phys_prongMom_ByRange_AssMuonY);
-  pandoraTree->Branch("phys_prongMom_ByRange_AssMuonZ",&evd.phys_prongMom_ByRange_AssMuonZ);
-  // Tot momentum (by range, assuming both muons)
-  pandoraTree->Branch("phys_invariantMass_ByRange_AssMuon",&evd.phys_invariantMass_ByRange_AssMuon);
-  pandoraTree->Branch("phys_totEnergy_ByRange_AssMuon",&evd.phys_totEnergy_ByRange_AssMuon);
-  pandoraTree->Branch("phys_totMomMag_ByRange_AssMuon",&evd.phys_totMomMag_ByRange_AssMuon);
-  pandoraTree->Branch("phys_totMom_ByRange_AssMuonX",&evd.phys_totMom_ByRange_AssMuonX);
-  pandoraTree->Branch("phys_totMom_ByRange_AssMuonY",&evd.phys_totMom_ByRange_AssMuonY);
-  pandoraTree->Branch("phys_totMom_ByRange_AssMuonZ",&evd.phys_totMom_ByRange_AssMuonZ);
-  // Tot momentum direction (by range, assuming both muons)
-  pandoraTree->Branch("phys_totDirection_ByRange_AssMuonX",&evd.phys_totDir_ByRange_AssMuonX);
-  pandoraTree->Branch("phys_totDirection_ByRange_AssMuonY",&evd.phys_totDir_ByRange_AssMuonY);
-  pandoraTree->Branch("phys_totDirection_ByRange_AssMuonZ",&evd.phys_totDir_ByRange_AssMuonZ);
-  pandoraTree->Branch("phys_totTheta_ByRange_AssMuon",&evd.phys_totTheta_ByRange_AssMuon);
-  pandoraTree->Branch("phys_totPhi_ByRange_AssMuon",&evd.phys_totPhi_ByRange_AssMuon);
+  // Hypothesis info
+  pandoraTree->Branch("phys_prongPdgCode_h1",&evd.phys_prongPdgCode_h1);
+  pandoraTree->Branch("phys_prongPdgCode_h2",&evd.phys_prongPdgCode_h2);
+  pandoraTree->Branch("phys_prongMass_h1",&evd.phys_prongMass_h1);
+  pandoraTree->Branch("phys_prongMass_h2",&evd.phys_prongMass_h2);
+  // Prong momentum (by range, assuming h1)
+  pandoraTree->Branch("phys_prongEnergy_ByRange_h1",&evd.phys_prongEnergy_ByRange_h1);
+  pandoraTree->Branch("phys_prongMomMag_ByRange_h1",&evd.phys_prongMomMag_ByRange_h1);
+  pandoraTree->Branch("phys_prongMom_ByRange_h1_X",&evd.phys_prongMom_ByRange_h1_X);
+  pandoraTree->Branch("phys_prongMom_ByRange_h1_Y",&evd.phys_prongMom_ByRange_h1_Y);
+  pandoraTree->Branch("phys_prongMom_ByRange_h1_Z",&evd.phys_prongMom_ByRange_h1_Z);
+  // Tot momentum (by range, assuming h1)
+  pandoraTree->Branch("phys_invariantMass_ByRange_h1",&evd.phys_invariantMass_ByRange_h1);
+  pandoraTree->Branch("phys_totEnergy_ByRange_h1",&evd.phys_totEnergy_ByRange_h1);
+  pandoraTree->Branch("phys_totMomMag_ByRange_h1",&evd.phys_totMomMag_ByRange_h1);
+  pandoraTree->Branch("phys_totMom_ByRange_h1_X",&evd.phys_totMom_ByRange_h1_X);
+  pandoraTree->Branch("phys_totMom_ByRange_h1_Y",&evd.phys_totMom_ByRange_h1_Y);
+  pandoraTree->Branch("phys_totMom_ByRange_h1_Z",&evd.phys_totMom_ByRange_h1_Z);
+  // Tot momentum direction (by range, assuming h1)
+  pandoraTree->Branch("phys_totDirection_ByRange_h1_X",&evd.phys_totDir_ByRange_h1_X);
+  pandoraTree->Branch("phys_totDirection_ByRange_h1_Y",&evd.phys_totDir_ByRange_h1_Y);
+  pandoraTree->Branch("phys_totDirection_ByRange_h1_Z",&evd.phys_totDir_ByRange_h1_Z);
+  pandoraTree->Branch("phys_totTheta_ByRange_h1",&evd.phys_totTheta_ByRange_h1);
+  pandoraTree->Branch("phys_totPhi_ByRange_h1",&evd.phys_totPhi_ByRange_h1);
+  // Prong momentum (by range, assuming h2)
+  pandoraTree->Branch("phys_prongEnergy_ByRange_h2",&evd.phys_prongEnergy_ByRange_h2);
+  pandoraTree->Branch("phys_prongMomMag_ByRange_h2",&evd.phys_prongMomMag_ByRange_h2);
+  pandoraTree->Branch("phys_prongMom_ByRange_h2_X",&evd.phys_prongMom_ByRange_h2_X);
+  pandoraTree->Branch("phys_prongMom_ByRange_h2_Y",&evd.phys_prongMom_ByRange_h2_Y);
+  pandoraTree->Branch("phys_prongMom_ByRange_h2_Z",&evd.phys_prongMom_ByRange_h2_Z);
+  // Tot momentum (by range, assuming h2)
+  pandoraTree->Branch("phys_invariantMass_ByRange_h2",&evd.phys_invariantMass_ByRange_h2);
+  pandoraTree->Branch("phys_totEnergy_ByRange_h2",&evd.phys_totEnergy_ByRange_h2);
+  pandoraTree->Branch("phys_totMomMag_ByRange_h2",&evd.phys_totMomMag_ByRange_h2);
+  pandoraTree->Branch("phys_totMom_ByRange_h2_X",&evd.phys_totMom_ByRange_h2_X);
+  pandoraTree->Branch("phys_totMom_ByRange_h2_Y",&evd.phys_totMom_ByRange_h2_Y);
+  pandoraTree->Branch("phys_totMom_ByRange_h2_Z",&evd.phys_totMom_ByRange_h2_Z);
+  // Tot momentum direction (by range, assuming h2)
+  pandoraTree->Branch("phys_totDirection_ByRange_h2_X",&evd.phys_totDir_ByRange_h2_X);
+  pandoraTree->Branch("phys_totDirection_ByRange_h2_Y",&evd.phys_totDir_ByRange_h2_Y);
+  pandoraTree->Branch("phys_totDirection_ByRange_h2_Z",&evd.phys_totDir_ByRange_h2_Z);
+  pandoraTree->Branch("phys_totTheta_ByRange_h2",&evd.phys_totTheta_ByRange_h2);
+  pandoraTree->Branch("phys_totPhi_ByRange_h2",&evd.phys_totPhi_ByRange_h2);
+  // Momentum (By Mcs)
+  pandoraTree->Branch("phys_prongPdgCodeHypothesis_ByMcs",&evd.phys_prongPdgCodeHypothesis_ByMcs);
+  pandoraTree->Branch("phys_prongIsBestFwd_ByMcs",&evd.phys_prongIsBestFwd_ByMcs);
+  // Prong Momentum (By Mcs, best)
+  pandoraTree->Branch("phys_prongMomMag_ByMcs_best_h1",&evd.phys_prongMomMag_ByMcs_best_h1);
+  pandoraTree->Branch("phys_prongEnergy_ByMcs_best_h1",&evd.phys_prongEnergy_ByMcs_best_h1);
+  pandoraTree->Branch("phys_prongMom_ByMcs_best_h1_X",&evd.phys_prongMom_ByMcs_best_h1_X);
+  pandoraTree->Branch("phys_prongMom_ByMcs_best_h1_Y",&evd.phys_prongMom_ByMcs_best_h1_Y);
+  pandoraTree->Branch("phys_prongMom_ByMcs_best_h1_Z",&evd.phys_prongMom_ByMcs_best_h1_Z);
+  pandoraTree->Branch("phys_prongMomMag_ByMcs_best_h2",&evd.phys_prongMomMag_ByMcs_best_h2);
+  pandoraTree->Branch("phys_prongEnergy_ByMcs_best_h2",&evd.phys_prongEnergy_ByMcs_best_h2);
+  pandoraTree->Branch("phys_prongMom_ByMcs_best_h2_X",&evd.phys_prongMom_ByMcs_best_h2_X);
+  pandoraTree->Branch("phys_prongMom_ByMcs_best_h2_Y",&evd.phys_prongMom_ByMcs_best_h2_Y);
+  pandoraTree->Branch("phys_prongMom_ByMcs_best_h2_Z",&evd.phys_prongMom_ByMcs_best_h2_Z);
+  // Tot momentum (by range, assuming both muons, best)
+  pandoraTree->Branch("phys_totMomMag_ByMcs_best_h1",&evd.phys_totMomMag_ByMcs_best_h1);
+  pandoraTree->Branch("phys_totEnergy_ByMcs_best_h1",&evd.phys_totEnergy_ByMcs_best_h1);
+  pandoraTree->Branch("phys_invariantMass_ByMcs_best_h1",&evd.phys_invariantMass_ByMcs_best_h1);
+  pandoraTree->Branch("phys_totMom_ByMcs_best_h1_X",&evd.phys_totMom_ByMcs_best_h1_X);
+  pandoraTree->Branch("phys_totMom_ByMcs_best_h1_Y",&evd.phys_totMom_ByMcs_best_h1_Y);
+  pandoraTree->Branch("phys_totMom_ByMcs_best_h1_Z",&evd.phys_totMom_ByMcs_best_h1_Z);
+  pandoraTree->Branch("phys_totMomMag_ByMcs_best_h2",&evd.phys_totMomMag_ByMcs_best_h2);
+  pandoraTree->Branch("phys_totEnergy_ByMcs_best_h2",&evd.phys_totEnergy_ByMcs_best_h2);
+  pandoraTree->Branch("phys_invariantMass_ByMcs_best_h2",&evd.phys_invariantMass_ByMcs_best_h2);
+  pandoraTree->Branch("phys_totMom_ByMcs_best_h2_X",&evd.phys_totMom_ByMcs_best_h2_X);
+  pandoraTree->Branch("phys_totMom_ByMcs_best_h2_Y",&evd.phys_totMom_ByMcs_best_h2_Y);
+  pandoraTree->Branch("phys_totMom_ByMcs_best_h2_Z",&evd.phys_totMom_ByMcs_best_h2_Z);
+  // Tot momentum direction (by range, assuming both muons, best)
+  pandoraTree->Branch("phys_totTheta_ByMcs_best_h1",&evd.phys_totTheta_ByMcs_best_h1);
+  pandoraTree->Branch("phys_totPhi_ByMcs_best_h1",&evd.phys_totPhi_ByMcs_best_h1);
+  pandoraTree->Branch("phys_totDir_ByMcs_best_h1_X",&evd.phys_totDir_ByMcs_best_h1_X);
+  pandoraTree->Branch("phys_totDir_ByMcs_best_h1_Y",&evd.phys_totDir_ByMcs_best_h1_Y);
+  pandoraTree->Branch("phys_totDir_ByMcs_best_h1_Z",&evd.phys_totDir_ByMcs_best_h1_Z);
+  pandoraTree->Branch("phys_totTheta_ByMcs_best_h2",&evd.phys_totTheta_ByMcs_best_h2);
+  pandoraTree->Branch("phys_totPhi_ByMcs_best_h2",&evd.phys_totPhi_ByMcs_best_h2);
+  pandoraTree->Branch("phys_totDir_ByMcs_best_h2_X",&evd.phys_totDir_ByMcs_best_h2_X);
+  pandoraTree->Branch("phys_totDir_ByMcs_best_h2_Y",&evd.phys_totDir_ByMcs_best_h2_Y);
+  pandoraTree->Branch("phys_totDir_ByMcs_best_h2_Z",&evd.phys_totDir_ByMcs_best_h2_Z);
   // Others
   pandoraTree->Branch("phys_prongLength",&evd.phys_prongLength);
   pandoraTree->Branch("phys_prongStartToNeutrinoDistance",&evd.phys_prongStartToNeutrinoDistance);

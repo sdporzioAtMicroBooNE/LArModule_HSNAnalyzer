@@ -31,6 +31,7 @@ physics:
       MaxTpcBound:          [246.35, 107.47, 1026.9]
       PfpLabel:             "pandoraNu"
       HitLabel:             "gaushit"
+      McsLabel:             "pandoraNuMCSMu"
       RadiusProfileLimits:  [0,20] # cm
       RadiusProfileBins:    20
       ChannelNorm:          "3.3" # number of channels in cm
