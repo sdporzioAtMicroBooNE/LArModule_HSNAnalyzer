@@ -78,6 +78,7 @@ private:
   std::vector<float> Vx, Vy, Vz, T, EndX, EndY, EndZ, EndT, Px, Py, Pz, E, P, Pt, Length, Theta, Phi;
   float Nu_E, Nu_Px, Nu_Py, Nu_Pz, Nu_P, Nu_Theta, Nu_Phi;
   float OpeningAngle, InvariantMass;
+  bool Contained;
 
 
   // Declare analysis variables

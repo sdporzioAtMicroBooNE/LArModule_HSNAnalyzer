@@ -46,6 +46,7 @@ void ShowKinematicDistributions::beginJob()
   tDataTree->Branch("Nu_Phi",&Nu_Phi);
   tDataTree->Branch("OpeningAngle",&OpeningAngle);
   tDataTree->Branch("InvariantMass",&InvariantMass);
+  tDataTree->Branch("Contained",&Contained);
 
 } // END function beginJob
 
@@ -100,35 +101,64 @@ void ShowKinematicDistributions::GetTruthParticles(art::Event const & evt)
   {
     art::Ptr<simb::MCTruth> mcTruth(mcTruthHandle,i);
     int nParticles = mcTruth->NParticles();
-    printf("|_Number of particles: %i\n", nParticles);
+    printf("|_Number of MCTruth: %i\n", nParticles);
+    printf("|_Number of MCTracks: %i\n", (int) (*mcTrackHandle).size());
+    printf("|\n");
 
     for (int j=0; j<nParticles; j++)
     {
       const simb::MCParticle & mcPart = mcTruth->GetParticle(j);
       art::Ptr<sim::MCTrack> mcTrack; 
+      printf("|_Found MCPart (%i of %i) | PDG: %i\n", j+1, nParticles, mcPart.PdgCode());
 
       // Find mcTrack object associated with this mcPart. mcPart doesn't have simulation of interaction in argon,
       // so we can't recover the end points of tracks (and thus the lengths)
       // There is no mcPart/mcTrack association so at the moment we look for primary particles
       // that have the same PDG code. This immediately fails if an interaction contains two particles with
       // same pdg coming out of nucleus (albeit unlikely), but it should be kept to mind.
+      printf("| |_Looping through candidates.\n");
+      bool matchFound = false;
       for(std::vector<int>::size_type k=0; k!=(*mcTrackHandle).size(); k++)
       {
         art::Ptr<sim::MCTrack> potMcTrack(mcTrackHandle,k);
         bool mctIsPrimary = (potMcTrack->Process()=="primary");
         bool mctHasSamePdgCode = (potMcTrack->PdgCode()==mcPart.PdgCode());
-        if (mctIsPrimary && mctHasSamePdgCode) mcTrack = potMcTrack;
+        printf("| | |_Examining MCTrack candidate %i of %i | PDG: %i | Process: %s\n", (int) k+1, (int) (*mcTrackHandle).size(), potMcTrack->PdgCode(), potMcTrack->Process().c_str());
+        if (mctIsPrimary && mctHasSamePdgCode)
+        {
+          printf("| | | |_Particle matches!\n");
+          mcTrack = potMcTrack;
+          matchFound = true;
+        }
       }
+
 
       pdgCode.push_back(mcPart.PdgCode());
       Vx.push_back((float) mcPart.Vx());
       Vy.push_back((float) mcPart.Vy());
       Vz.push_back((float) mcPart.Vz());
       T.push_back((float) mcPart.T());
-      EndX.push_back((float) mcTrack->End().X());
-      EndY.push_back((float) mcTrack->End().Y());
-      EndZ.push_back((float) mcTrack->End().Z());
-      EndT.push_back((float) mcTrack->End().T());
+      if (matchFound)
+      {
+        EndX.push_back((float) mcTrack->End().X());
+        EndY.push_back((float) mcTrack->End().Y());
+        EndZ.push_back((float) mcTrack->End().Z());
+        EndT.push_back((float) mcTrack->End().T());
+        std::vector<float> start = {(float) mcPart.Vx(), (float) mcPart.Vy(), (float) mcPart.Vz()};
+        std::vector<float> end = {(float) mcTrack->End().X(), (float) mcTrack->End().Y(), (float) mcTrack->End().Z()};
+        Length.push_back(TrackLength(start, end));
+      }
+      else
+      {
+        EndX.push_back(-999999);
+        EndY.push_back(-999999);
+        EndZ.push_back(-999999);
+        EndT.push_back(-999999);
+        Length.push_back(-999999);
+        Contained = false;
+        printf("|_BAD EVENT! Not all matches found.\n");
+      }
+
       Px.push_back((float) mcPart.Px());
       Py.push_back((float) mcPart.Py());
       Pz.push_back((float) mcPart.Pz());
@@ -137,9 +167,7 @@ void ShowKinematicDistributions::GetTruthParticles(art::Event const & evt)
       Pt.push_back((float) mcPart.Pt());
 
       // Calculate other quantities
-      std::vector<float> start = {(float) mcPart.Vx(), (float) mcPart.Vy(), (float) mcPart.Vz()};
-      std::vector<float> end = {(float) mcTrack->End().X(), (float) mcTrack->End().Y(), (float) mcTrack->End().Z()};
-      Length.push_back(TrackLength(start, end));
+
       Theta.push_back((float) (acos(mcPart.Pz()/mcPart.P())));
       Phi.push_back((float) (atan2(mcPart.Py(),mcPart.Px())));
     }
