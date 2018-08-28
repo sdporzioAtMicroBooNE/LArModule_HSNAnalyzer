@@ -88,13 +88,13 @@ void GetPotCount::endSubRun(art::SubRun const & sr)
   // For MONTE CARLO
   if (!isRealData)
   {
-    if (sr.getByLabel(“generator”, potsum_h)) pot = potsum_h->totpot;
+    if (sr.getByLabel("generator", potsum_h)) pot = potsum_h->totpot;
     else pot = 0.;
   }
   // For DATA
   else
   {
-    if (sr.getByLabel(“beamdata”, “bnbETOR860”, potsum_h)) pot = potsum_h->totpot;
+    if (sr.getByLabel("beamdata", "bnbETOR860", potsum_h)) pot = potsum_h->totpot;
     else pot = 0.;
   }
   std::cout << "----------------------------" << std::endl;
