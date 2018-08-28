@@ -21,6 +21,7 @@ private:
 
   // Declare analysis variables
   int run, subrun, event;
+  bool isRealData;
   double pot = 0.;
 
   // Declare analysis functions
@@ -71,6 +72,7 @@ void GetPotCount::analyze(art::Event const & evt)
   run = evt.id().run();
   subrun = evt.id().subRun();
   event = evt.id().event();
+  isRealData = evt.isRealData();
   if (fVerbose) printf("||INFORMATION FOR EVENT %i [RUN %i, SUBRUN %i]||\n", event, run, subrun);
   
   // Start performing analysis
@@ -82,11 +84,19 @@ void GetPotCount::analyze(art::Event const & evt)
 
 void GetPotCount::endSubRun(art::SubRun const & sr) 
 { 
-  auto const & POTSummaryHandle = sr.getValidHandle < sumdata::POTSummary >("generator");
-  auto const & POTSummary(*POTSummaryHandle);
-  const double totalPot = POTSummary.totpot;
-  pot = totalPot;
-  // pot = 5.33292e+15;
+  art::Handle<sumdata::POTSummary> potsum_h;
+  // For MONTE CARLO
+  if (!isRealData)
+  {
+    if (sr.getByLabel(“generator”, potsum_h)) pot = potsum_h->totpot;
+    else pot = 0.;
+  }
+  // For DATA
+  else
+  {
+    if (sr.getByLabel(“beamdata”, “bnbETOR860”, potsum_h)) pot = potsum_h->totpot;
+    else pot = 0.;
+  }
   std::cout << "----------------------------" << std::endl;
   std::cout << "Total POT / subRun: " << pot << std::endl;
   std::cout << "----------------------------" << std::endl;
