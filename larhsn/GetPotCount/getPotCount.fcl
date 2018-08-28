@@ -4,7 +4,7 @@ process_name: minimalExample
 
 services:
 {
-  TFileService: {fileName: "pot.root"}
+  TFileService: {fileName: "pot_hist.root"}
   TimeTracker:            {}
   MemoryTracker:          {}
   RandomNumberGenerator:  {}
