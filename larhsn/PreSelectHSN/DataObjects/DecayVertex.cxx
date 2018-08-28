@@ -124,15 +124,35 @@ namespace AuxVertex
 
     // Check whether coordinates are inside TPC
     double extraEdge = 0;
-    bool isInsideX = (xyz[0]>minTpcBound[0]+extraEdge &&
+
+    bool nuIsInsideX = (xyz[0]>minTpcBound[0]+extraEdge &&
       xyz[0]<maxTpcBound[0]-extraEdge);
-    bool isInsideY = (xyz[1]>minTpcBound[1]+extraEdge &&
+    bool nuIsInsideY = (xyz[1]>minTpcBound[1]+extraEdge &&
       xyz[1]<maxTpcBound[1]-extraEdge);
-    bool isInsideZ = (xyz[2]>minTpcBound[2]+extraEdge &&
+    bool nuIsInsideZ = (xyz[2]>minTpcBound[2]+extraEdge &&
       xyz[2]<maxTpcBound[2]-extraEdge);
 
+    bool p1IsInsideX = (prong1_xyz[0]>minTpcBound[0]+extraEdge &&
+      prong1_xyz[0]<maxTpcBound[0]-extraEdge);
+    bool p1IsInsideY = (prong1_xyz[1]>minTpcBound[1]+extraEdge &&
+      prong1_xyz[1]<maxTpcBound[1]-extraEdge);
+    bool p1IsInsideZ = (prong1_xyz[2]>minTpcBound[2]+extraEdge &&
+      prong1_xyz[2]<maxTpcBound[2]-extraEdge);
+
+    bool p2IsInsideX = (prong2_xyz[0]>minTpcBound[0]+extraEdge &&
+      prong2_xyz[0]<maxTpcBound[0]-extraEdge);
+    bool p2IsInsideY = (prong2_xyz[1]>minTpcBound[1]+extraEdge &&
+      prong2_xyz[1]<maxTpcBound[1]-extraEdge);
+    bool p2IsInsideZ = (prong2_xyz[2]>minTpcBound[2]+extraEdge &&
+      prong2_xyz[2]<maxTpcBound[2]-extraEdge);
+
+    bool nuIsInside = (nuIsInsideX && nuIsInsideY && nuIsInsideZ);
+    bool p1IsInside = (p1IsInsideX && p1IsInsideY && p1IsInsideZ);
+    bool p2IsInside = (p2IsInsideX && p2IsInsideY && p2IsInsideZ);
+
+
     // If vertex is inside TPC, determine channel/tick coordinates and assign them
-    if (isInsideX && isInsideY && isInsideZ)
+    if (nuIsInside && p1IsInside && p2IsInside)
     {
       fIsInsideTPC = true;
       raw::ChannelID_t channel0 = geometry->NearestChannel(xyz,0);
