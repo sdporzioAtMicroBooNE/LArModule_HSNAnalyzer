@@ -52,7 +52,7 @@
 #include "lardataobj/RecoBase/TrackingTypes.h"
 #include "lardataobj/RawData/RawDigit.h"
 #include "lardataobj/RecoBase/MCSFitResult.h"
-#include "larcore/Geometry/geo.h"
+#include "larcorealg/Geometry/geo.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcore/CoreUtils/ServiceUtil.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
@@ -62,8 +62,6 @@
 // Auxiliary objects includes
 #include "larhsn/PreSelectHSN/DataObjects/DecayVertex.h"
 #include "larhsn/PreSelectHSN/DataObjects/EventDescriptor.h"
-#include "uboone/AnalysisTree/MCTruth/IMCTruthMatching.h"
-#include "uboone/AnalysisTree/MCTruth/AssociationsTruth_tool.h"
 
 
 

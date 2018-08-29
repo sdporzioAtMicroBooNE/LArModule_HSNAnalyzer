@@ -43,7 +43,7 @@
 #include "nusimdata/SimulationBase/MCNeutrino.h"
 #include "lardataobj/Simulation/SimChannel.h"
 #include "lardataobj/RawData/RawDigit.h"
-#include "larcore/Geometry/geo.h"
+#include "larcorealg/Geometry/geo.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"

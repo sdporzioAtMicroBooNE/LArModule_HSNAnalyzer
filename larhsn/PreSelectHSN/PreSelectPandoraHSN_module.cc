@@ -7,7 +7,6 @@ PreSelectHSN::PreSelectHSN(fhicl::ParameterSet const & pset) :
     EDAnalyzer(pset),
     fFindPandoraVertexAlg(pset),
     fCalorimetryRadiusAlg(pset),
-    fTruthMatchingAlg(pset),
     fInstanceName(pset.get<std::string>("InstanceName")),
     fIteration(pset.get<int>("Iteration")),
     fMinTpcBound(pset.get<std::vector<double>>("MinTpcBound")),
@@ -20,8 +19,7 @@ PreSelectHSN::PreSelectHSN(fhicl::ParameterSet const & pset) :
     fChannelNorm(pset.get<double>("ChannelNorm")),
     fTickNorm(pset.get<double>("TickNorm")),
     fVerbose(pset.get<bool>("VerboseMode")),
-    fSaveDrawTree(pset.get<bool>("SaveDrawTree")),
-    fTruthMatching(pset.get<bool>("TruthMatching"))
+    fSaveDrawTree(pset.get<bool>("SaveDrawTree"))
 {
   // Get geometry and detector services
   fGeometry = lar::providerFrom<geo::Geometry>();
@@ -189,14 +187,6 @@ void PreSelectHSN::beginJob()
   pandoraTree->Branch("status_nuWithMissingAssociatedVertex",&evd.status_nuWithMissingAssociatedVertex);
   pandoraTree->Branch("status_nuWithMissingAssociatedTrack",&evd.status_nuWithMissingAssociatedTrack);
   pandoraTree->Branch("status_nuProngWithMissingAssociatedHits",&evd.status_nuProngWithMissingAssociatedHits);
-  // Reco-Truth matching
-  pandoraTree->Branch("match_pdgCode",&evd.match_pdgCode);
-  pandoraTree->Branch("match_mass",&evd.match_mass);
-  pandoraTree->Branch("match_energy",&evd.match_energy);
-  pandoraTree->Branch("match_prong1StartPosition",&evd.match_prong1StartPosition);
-  pandoraTree->Branch("match_prong2StartPosition",&evd.match_prong2StartPosition);
-  pandoraTree->Branch("match_prong1Momentum",&evd.match_prong1Momentum);
-  pandoraTree->Branch("match_prong2Momentum",&evd.match_prong2Momentum);
 
 
   if (fSaveDrawTree)
@@ -270,8 +260,6 @@ void PreSelectHSN::analyze(art::Event const & evt)
   {
     // Perform calorimetry analysis
     fCalorimetryRadiusAlg.PerformCalorimetry(evt, evd, ana_decayVertices);
-    // Perform truth matching (if requested)
-    if (fTruthMatching) fTruthMatchingAlg.PerformTruthMatching(evt, evd ,ana_decayVertices);
   }
 
   // Fill more physics from the decay vertices (ana_decayVertices) into the event descriptor and fill tree

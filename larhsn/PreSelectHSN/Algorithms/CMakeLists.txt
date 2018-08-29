@@ -1,8 +1,6 @@
 art_make( BASENAME_ONLY
 	LIBRARY_NAME PreSelectAlgorithms
 	LIB_LIBRARIES
-		uboone_AnalysisTree_MCTruth
-		larsim_MCCheater_BackTracker_service
 		PreSelectDataObjects
 		larreco_RecoAlg
 		larreco_RecoAlg_Cluster3DAlgs
@@ -12,7 +10,7 @@ art_make( BASENAME_ONLY
 		lardataobj_RecoBase
 		lardataobj_MCBase
 		lardataobj_AnalysisBase
-		larcore_Geometry
+		larcorealg_Geometry
     larcore_Geometry_Geometry_service
 		lardata_Utilities
 		nusimdata_SimulationBase
@@ -23,14 +21,14 @@ art_make( BASENAME_ONLY
 		${ART_FRAMEWORK_SERVICES_OPTIONAL}
 		${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
 		${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
-		art_Persistency_Common canvas_Persistency_Common
-		art_Persistency_Provenance canvas_Persistency_Provenance
-		art_Utilities canvas_Utilities
+		art_Persistency_Common canvas
+		art_Persistency_Provenance canvas
+		art_Utilities canvas
 		${ART_UTILITIES}
 		${MF_MESSAGELOGGER}
 		${MF_UTILITIES}
 		${FHICLCPP}
-		${CETLIB}
+		cetlib cetlib_except
 		${CLHEP}
 		${ROOT_BASIC_LIB_LIST}
 		${G4_LIB_LIST}

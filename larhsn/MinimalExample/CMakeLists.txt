@@ -4,14 +4,14 @@ art_make(BASENAME_ONLY
 	LIB_LIBRARIES 
 		lardataobj_RecoBase
 		lardataobj_AnalysisBase
-		larcore_Geometry
+		larcorealg_Geometry
     larcore_Geometry_Geometry_service
 		lardata_Utilities
 		${SIMULATIONBASE}
 		${MF_MESSAGELOGGER}
 		${MF_UTILITIES}
 		${FHICLCPP}
-		${CETLIB}
+		cetlib cetlib_except
 		${CLHEP}
 		${ROOT_BASIC_LIB_LIST}
 		${G4_LIB_LIST}
@@ -24,7 +24,7 @@ art_make(BASENAME_ONLY
 		lardataobj_RecoBase
 		lardataobj_MCBase
 		lardataobj_AnalysisBase
-		larcore_Geometry
+		larcorealg_Geometry
     larcore_Geometry_Geometry_service
 		lardata_Utilities
 		nusimdata_SimulationBase
@@ -41,7 +41,7 @@ art_make(BASENAME_ONLY
 		${MF_MESSAGELOGGER}
 		${MF_UTILITIES}
 		${FHICLCPP}
-		${CETLIB}
+		cetlib cetlib_except
 		${CLHEP}
 		${ROOT_BASIC_LIB_LIST}
 		${G4_LIB_LIST}
