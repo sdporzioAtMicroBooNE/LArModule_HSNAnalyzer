@@ -1,5 +1,6 @@
-#ifndef COMPARETIMEVSTRIGGER_H
-#define COMPARETIMEVSTRIGGER_H
+#ifndef SHOWKINEMATICDISTRIBUTIONS_H
+#define SHOWKINEMATICDISTRIBUTIONS_H
+
 // c++ includes
 #include <iostream>
 #include <fstream>
@@ -9,6 +10,7 @@
 #include <algorithm>
 #include <chrono>
 #include <exception>
+
 // root includes
 #include "TInterpreter.h"
 #include "TROOT.h"
@@ -20,6 +22,7 @@
 #include "TClonesArray.h"
 #include "TCanvas.h"
 #include "TGraph.h"
+
 // framework includes
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Core/EDAnalyzer.h"
@@ -31,48 +34,58 @@
 #include "art/Framework/Services/Optional/TFileService.h"
 #include "art/Framework/Services/Optional/TFileDirectory.h"
 #include "fhiclcpp/ParameterSet.h"
+
 // art includes
 #include "canvas/Utilities/InputTag.h"
 #include "canvas/Persistency/Common/FindMany.h"
 #include "canvas/Persistency/Common/FindManyP.h"
 #include "canvas/Persistency/Common/FindOne.h"
 #include "canvas/Persistency/Common/FindOneP.h"
+
+
 // larsoft object includes
 #include "nusimdata/SimulationBase/MCTruth.h"
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "nusimdata/SimulationBase/MCNeutrino.h"
+#include "lardataobj/MCBase/MCTrack.h"
 #include "lardataobj/Simulation/SimChannel.h"
-#include "lardataobj/RawData/RawDigit.h"
 #include "larcorealg/Geometry/geo.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
-// trigger includes
-#include "lardataobj/RawData/TriggerData.h"
-#include "uboone/RawData/utils/ubdaqSoftwareTriggerData.h"
-#include "uboone/TriggerSim/UBTriggerTypes.h"
 
 // Analyzer class
-class CompareTimeVsTrigger : public art::EDAnalyzer
+class ShowKinematicDistributions : public art::EDAnalyzer
 {
 public:
-  explicit CompareTimeVsTrigger(fhicl::ParameterSet const & pset);
-  virtual ~CompareTimeVsTrigger();
+  explicit ShowKinematicDistributions(fhicl::ParameterSet const & pset);
+  virtual ~ShowKinematicDistributions();
   void analyze(art::Event const & evt);
   void beginJob();
   void endJob();
+  void GetTruthParticles(art::Event const & evt);
 private:
 
-  // Declare variables
-  std::string fMcLabel, fSwtrigLabel;
-  std::vector<std::string> fTrigNames;
-  std::vector<bool> triggerPass;
-  TTree *tDataTree, *tMetaTree;
+  // Declare fhiclcpp variables
+  std::string fMcTruthLabel;
+  std::string fMcTrackLabel;
+
+  // Declare trees and tree variables
+  TTree *tDataTree;
+  std::vector<int> pdgCode;
+  std::vector<float> Vx, Vy, Vz, T, EndX, EndY, EndZ, EndT, Px, Py, Pz, E, P, Pt, Length, Theta, Phi;
+  float Nu_E, Nu_Px, Nu_Py, Nu_Pz, Nu_P, Nu_Theta, Nu_Phi;
+  float OpeningAngle, InvariantMass;
+  bool Contained;
+
+
+  // Declare analysis variables
   int run, subrun, event;
-  float startTime;
 
+  // Declare analysis functions
   void ClearData();
-};
+  float TrackLength(std::vector<float> start, std::vector<float> end);
+}; // End class ShowKinematicDistributions
 
-#endif
+#endif // END def ShowKinematicDistributions header

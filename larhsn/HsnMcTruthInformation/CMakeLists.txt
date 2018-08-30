@@ -2,7 +2,6 @@
 
 art_make(BASENAME_ONLY
 	MODULE_LIBRARIES
-		uboone_RawData
 		larreco_RecoAlg
 		larreco_RecoAlg_Cluster3DAlgs
 		larsim_Simulation
