@@ -52,7 +52,7 @@
 #include "lardataobj/RecoBase/TrackingTypes.h"
 #include "lardataobj/RawData/RawDigit.h"
 #include "lardataobj/RecoBase/MCSFitResult.h"
-#include "larcore/Geometry/geo.h"
+#include "larcorealg/Geometry/geo.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcore/CoreUtils/ServiceUtil.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
@@ -61,7 +61,6 @@
 // Auxiliary objects includes
 #include "Algorithms/FindPandoraVertexAlg.h"
 #include "Algorithms/CalorimetryRadiusAlg.h"
-#include "Algorithms/TruthMatchingAlg.h"
 #include "DataObjects/DecayVertex.h"
 #include "DataObjects/EventDescriptor.h"
 #include "DataObjects/DrawTreeDescriptor.h"
@@ -81,7 +80,6 @@ private:
   // Algorithms
   FindPandoraVertex::FindPandoraVertexAlg fFindPandoraVertexAlg;
   CalorimetryRadius::CalorimetryRadiusAlg fCalorimetryRadiusAlg;
-  TruthMatching::TruthMatchingAlg fTruthMatchingAlg;
   // Fhiclcpp variables
   std::string fInstanceName;
   int fIteration;

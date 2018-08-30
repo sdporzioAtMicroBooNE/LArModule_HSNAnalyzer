@@ -51,7 +51,7 @@
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/TrackingTypes.h"
 #include "lardataobj/RawData/RawDigit.h"
-#include "larcore/Geometry/geo.h"
+#include "larcorealg/Geometry/geo.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcore/CoreUtils/ServiceUtil.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"

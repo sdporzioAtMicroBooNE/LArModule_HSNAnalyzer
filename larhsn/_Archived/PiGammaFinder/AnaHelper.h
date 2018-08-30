@@ -30,7 +30,6 @@
 #include "art/Framework/Services/Registry/ServiceHandle.h"
 #include "art/Framework/Services/Optional/TFileService.h"
 #include "art/Framework/Services/Optional/TFileDirectory.h"
-#include "art/Framework/Core/FileBlock.h"
 #include "fhiclcpp/ParameterSet.h"
 
 // art includes
@@ -42,16 +41,19 @@
 
 
 // larsoft object includes
-#include "lardataobj/RecoBase/Track.h"
-#include "lardataobj/RecoBase/Shower.h"
-#include "lardataobj/RecoBase/Vertex.h"
-#include "lardataobj/RecoBase/PFParticle.h"
-#include "lardataobj/RecoBase/Wire.h"
-#include "lardataobj/RecoBase/Hit.h"
-#include "lardataobj/RecoBase/TrackingTypes.h"
+#include "nusimdata/SimulationBase/MCTruth.h"
+#include "nusimdata/SimulationBase/MCParticle.h"
+#include "nusimdata/SimulationBase/MCNeutrino.h"
+// #include "lardataobj/RecoBase/Track.h"
+// #include "lardataobj/RecoBase/Shower.h"
+// #include "lardataobj/RecoBase/Vertex.h"
+// #include "lardataobj/RecoBase/PFParticle.h"
+// #include "lardataobj/RecoBase/Wire.h"
+// #include "lardataobj/RecoBase/Hit.h"
+// #include "lardataobj/RecoBase/TrackingTypes.h"
 #include "lardataobj/Simulation/SimChannel.h"
 #include "lardataobj/RawData/RawDigit.h"
-#include "larcore/Geometry/geo.h"
+#include "larcorealg/Geometry/geo.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcore/CoreUtils/ServiceUtil.h" // lar::providerFrom<>()
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"

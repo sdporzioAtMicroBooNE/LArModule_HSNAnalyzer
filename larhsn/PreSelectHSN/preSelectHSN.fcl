@@ -46,15 +46,6 @@ physics:
       TickNorm:             "17.9" # number of ticks in cm
       VerboseMode:          "true"
       SaveDrawTree:         "true" # Optional. Takes more space.
-      TruthMatching:        "true" # Performs true matching
-
-      MCTruthMatching:
-      {
-       tool_type:           "AssociationsTruth"
-       AssnsProducerLabels: ["gaushitTruthMatch", "crHitRemovalTruthMatch", "trajclusterTruthMatch"]
-       G4ProducerLabel:     "largeant"
-       MCTruthAssociations: { MinHitEnergyFraction: 0.1 }
-      }
     }
 
     EventFileDatabase:
