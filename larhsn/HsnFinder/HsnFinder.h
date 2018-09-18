@@ -1,5 +1,5 @@
-#ifndef PRESELECTPANDORAHSN_H
-#define PRESELECTPANDORAHSN_H
+#ifndef HSNFINDER_H
+#define HSNFINDER_H
 
 // c++ includes
 #include <iostream>
@@ -61,18 +61,20 @@
 // Auxiliary objects includes
 #include "Algorithms/FindPandoraVertexAlg.h"
 #include "Algorithms/CalorimetryRadiusAlg.h"
+#include "Algorithms/RecoTruthDistanceAlg.h"
 #include "DataObjects/DecayVertex.h"
-#include "DataObjects/EventDescriptor.h"
-#include "DataObjects/DrawTreeDescriptor.h"
+#include "DataObjects/EventTreeFiller.h"
+#include "DataObjects/CandidateTreeFiller.h"
+#include "DataObjects/DrawTreeFiller.h"
 
 
 
 // Analyzer class
-class PreSelectHSN : public art::EDAnalyzer
+class HsnFinder : public art::EDAnalyzer
 {
 public:
-  explicit PreSelectHSN(fhicl::ParameterSet const & pset);
-  virtual ~PreSelectHSN();
+  explicit HsnFinder(fhicl::ParameterSet const & pset);
+  virtual ~HsnFinder();
   void analyze(art::Event const & evt);
   void beginJob();
   void endJob();
@@ -80,11 +82,11 @@ private:
   // Algorithms
   FindPandoraVertex::FindPandoraVertexAlg fFindPandoraVertexAlg;
   CalorimetryRadius::CalorimetryRadiusAlg fCalorimetryRadiusAlg;
+  RecoTruthDistance::RecoTruthDistanceAlg fRecoTruthDistanceAlg;
   // Fhiclcpp variables
   std::string fInstanceName;
   int fIteration;
-  std::vector<double> fMinTpcBound;
-  std::vector<double> fMaxTpcBound;
+  std::vector<double> fMinTpcBound, fMaxTpcBound, fCenterCoordinates;
   std::string fPfpLabel;
   std::string fHitLabel;
   std::string fMcsLabel;
@@ -94,6 +96,7 @@ private:
   double fTickNorm;
   bool fVerbose;
   bool fSaveDrawTree;
+  bool fUseTruthDistanceMetric;
   bool fTruthMatching;
 
   // Declare services
@@ -102,13 +105,15 @@ private:
 
   // Declare trees
   TTree *metaTree;
-  TTree *pandoraTree;
-  TTree *pandoraDrawTree;
+  TTree *eventTree;
+  TTree *candidateTree;
+  TTree *drawTree;
   TTree *physicsTree;
 
-  // Declare tree helpers
-  AuxEvent::EventDescriptor evd;
-  AuxEvent::DrawTreeDescriptor dtd;
+  // Declare tree fillers
+  AuxEvent::EventTreeFiller etf;
+  AuxEvent::CandidateTreeFiller ctf;
+  AuxEvent::DrawTreeFiller dtf;
 
   // Declare analysis variables
   std::vector<float> profileTicks;
@@ -119,6 +124,6 @@ private:
 
   // Declare analysis functions
   void ClearData();
-}; // End class PreSelectHSN
+}; // End class HsnFinder
 
 #endif

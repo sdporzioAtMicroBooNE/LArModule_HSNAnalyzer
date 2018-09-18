@@ -1,5 +1,5 @@
-#ifndef CALORIMETRYRADIUSALG_H
-#define CALORIMETRYRADIUSALG_H
+#ifndef FINDPANDORAVERTEXALG_H
+#define FINDPANDORAVERTEXALG_H
 
 // c++ includes
 #include <iostream>
@@ -41,7 +41,7 @@
 #include "canvas/Persistency/Common/FindManyP.h"
 #include "canvas/Persistency/Common/FindOne.h"
 #include "canvas/Persistency/Common/FindOneP.h"
-
+#include "canvas/Persistency/Common/Assns.h"
 // larsoft object includes
 #include "lardataobj/RecoBase/Track.h"
 #include "lardataobj/RecoBase/Shower.h"
@@ -51,57 +51,49 @@
 #include "lardataobj/RecoBase/Hit.h"
 #include "lardataobj/RecoBase/TrackingTypes.h"
 #include "lardataobj/RawData/RawDigit.h"
+#include "lardataobj/RecoBase/MCSFitResult.h"
 #include "larcorealg/Geometry/geo.h"
 #include "larcore/Geometry/Geometry.h"
 #include "larcore/CoreUtils/ServiceUtil.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
+#include "lardataobj/AnalysisBase/BackTrackerMatchingData.h"
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 
 // Auxiliary objects includes
-#include "larhsn/PreSelectHSN/DataObjects/DecayVertex.h"
-#include "larhsn/PreSelectHSN/DataObjects/EventDescriptor.h"
+#include "larhsn/HsnFinder/DataObjects/DecayVertex.h"
+#include "larhsn/HsnFinder/DataObjects/EventTreeFiller.h"
 
-namespace CalorimetryRadius
+
+
+namespace FindPandoraVertex
 {
 
-  class CalorimetryRadiusAlg
+  class FindPandoraVertexAlg
   {
   public:
-    CalorimetryRadiusAlg(fhicl::ParameterSet const & pset);
-    ~CalorimetryRadiusAlg();
+    FindPandoraVertexAlg(fhicl::ParameterSet const & pset);
+    ~FindPandoraVertexAlg();
     void reconfigure(fhicl::ParameterSet const & pset);
 
-  // Algorithms
-  void PerformCalorimetry(
-          art::Event const & evt,
-          AuxEvent::EventDescriptor & evd,
-          std::vector<AuxVertex::DecayVertex>& decayVertices);
-
-  // PerformCalorimetry returns
-  std::vector<std::vector<art::Ptr<recob::Hit>>> ana_calo_totHitsInMaxRadius; // for each hit, for each dv
-
-  int tree_calo_NumTotHits;
-  std::vector<std::vector<float>> tree_calo_totChargeInRadius;
-  std::vector<std::vector<float>> tree_calo_prong1ChargeInRadius;
-  std::vector<std::vector<float>> tree_calo_prong2ChargeInRadius;
-  std::vector<std::vector<float>> tree_calo_caloRatio;
+    // Algorithms
+    void GetPotentialNeutrinoVertices(
+            art::Event const & evt,
+            AuxEvent::EventTreeFiller & evd,
+            std::vector<AuxVertex::DecayVertex> & ana_decayVertices);
 
   private:
     // fhicl parameters
     std::string fPfpLabel;
-    std::string fHitLabel;
-    std::vector<double> fRadiusProfileLimits;
-    int fRadiusProfileBins;
-    double fChannelNorm;
-    double fTickNorm;
+    std::string fMcsLabel;
+    std::vector<double> fMinTpcBound;
+    std::vector<double> fMaxTpcBound;
     bool fVerbose;
-    std::vector<float> profileTicks;
 
     // microboone services
     const geo::GeometryCore* fGeometry;
     const detinfo::DetectorProperties* fDetectorProperties;
   };
 
-} // END namespace CalorimetryRadius
+} // END namespace FindPandoraVertex
 
 #endif

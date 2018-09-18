@@ -25,10 +25,23 @@ physics:
     GetPotCount:
     {
       module_type:          "GetPotCount"
+      isOverlayData:        true
       verbose:              true
     }
+
+    GetNormalizationHistograms:
+    {
+      module_type:          "GetNormalizationHistograms"
+      HitLabel:             "gaushit"
+      TrackLabel:           "pandoraNu"
+      ShowerLabel:          "pandoraNu"
+      BeamFlashLabel:       "simpleFlashBeam"
+      CosmicFlashLabel:     "simpleFlashCosmic"
+      ExtraInformation:     true
+      Verbose:              false
+    }
   }
-  analysis: [GetPotCount]
+  analysis: [GetPotCount, GetNormalizationHistograms]
   end_paths: [analysis]
 }
 

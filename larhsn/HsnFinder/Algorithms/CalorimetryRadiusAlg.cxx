@@ -38,15 +38,15 @@ namespace CalorimetryRadius
   // Now, we actually repeat this step for different radia in order to build up a profile. The width of the profile is given by fRadiusProfileLimits and the number of bins by fRadiusProfileBin.
   void CalorimetryRadiusAlg::PerformCalorimetry(
           art::Event const & evt,
-          AuxEvent::EventDescriptor & evd,
+          AuxEvent::EventTreeFiller & evd,
           std::vector<AuxVertex::DecayVertex>& decayVertices)
   {
 
     // Clean vectors that will be returned by function
-    evd.calo_prong1ChargeInRadius.clear();
-    evd.calo_prong2ChargeInRadius.clear();
-    evd.calo_totChargeInRadius.clear();
-    evd.calo_caloRatio.clear();
+    // evd.calo_prong1ChargeInRadius.clear();
+    // evd.calo_prong2ChargeInRadius.clear();
+    // evd.calo_totChargeInRadius.clear();
+    // evd.calo_caloRatio.clear();
 
     // Prepare total hits vector (this is absolutely inefficient and potentially wrong, must be fixed)
     // art::InputTag hitTag {fHitLabel};
