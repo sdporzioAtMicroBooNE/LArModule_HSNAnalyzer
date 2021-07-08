@@ -1,15 +1,19 @@
 art_make( BASENAME_ONLY
-	LIBRARY_NAME LArHSNDataObjects
-	LIB_LIBRARIES 
+	LIBRARY_NAME PreSelectAlgorithms
+	LIB_LIBRARIES
+		PreSelectDataObjects
+		larreco_RecoAlg
+		larreco_RecoAlg_Cluster3DAlgs
+		larsim_Simulation
 		lardataobj_RawData
-		lardataobj_RecoBase
 		lardata_RecoObjects
-		lardata_ArtDataHelper
+		lardataobj_RecoBase
+		lardataobj_MCBase
+		lardataobj_AnalysisBase
+		larcorealg_Geometry
+    larcore_Geometry_Geometry_service
 		lardata_Utilities
-		lardata_DetectorInfoServices_DetectorPropertiesServiceStandard_service
-		larevt_Filters
-		larevt_CalibrationDBI_IOVData
-		larevt_CalibrationDBI_Providers
+		nusimdata_SimulationBase
 		${ART_FRAMEWORK_CORE}
 		${ART_FRAMEWORK_PRINCIPAL}
 		${ART_FRAMEWORK_SERVICES_REGISTRY}
@@ -17,17 +21,17 @@ art_make( BASENAME_ONLY
 		${ART_FRAMEWORK_SERVICES_OPTIONAL}
 		${ART_FRAMEWORK_SERVICES_OPTIONAL_TFILESERVICE_SERVICE}
 		${ART_FRAMEWORK_SERVICES_OPTIONAL_RANDOMNUMBERGENERATOR_SERVICE}
-		art_Persistency_Common
-		art_Persistency_Provenance
-		art_Utilities
+		art_Persistency_Common canvas
+		art_Persistency_Provenance canvas
+		art_Utilities canvas
 		${ART_UTILITIES}
-		${FHICLCPP}
-		${CETLIB}
-		${ROOT_BASIC_LIB_LIST}
 		${MF_MESSAGELOGGER}
 		${MF_UTILITIES}
 		${FHICLCPP}
-		${CETLIB}
+		cetlib cetlib_except
+		${CLHEP}
+		${ROOT_BASIC_LIB_LIST}
+		${G4_LIB_LIST}
 		${Boost_SYSTEM_LIBRARY}
 	)
 
